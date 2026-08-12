@@ -522,33 +522,48 @@ export default function GradesPage() {
     }
   };
 
+
   const computeNoteFinale = (noteCC, noteSN) => {
-    const cc = parseFloat(noteCC);
-    if (isNaN(cc)) return null;
-    const sn = parseFloat(noteSN) || 0;
-    const total = (cc * gradeParams.pourcentage_cc) + (sn * gradeParams.pourcentage_sn);
-    return (total / 100).toFixed(2);
+  const cc = parseFloat(noteCC) || 0;
+  const sn = parseFloat(noteSN) || 0;
+
+  return (cc + sn).toFixed(2);
+
   };
 
-  const handleBatchInputChange = (index, field, value) => {
-    const newData = [...batchData];
-    if ((field === "note_cc" || field === "note_sn") && value !== "") {
-      let num = parseFloat(value);
-      if (!isNaN(num)) {
-        if (num > 20) num = 20;
-        if (num < 0) num = 0;
-        value = num;
+const handleBatchInputChange = (index, field, value) => {
+  const newData = [...batchData];
+
+  if ((field === "note_cc" || field === "note_sn") && value !== "") {
+    let num = parseFloat(value);
+
+    if (!isNaN(num)) {
+      // CC est sur 30
+      if (field === "note_cc") {
+        if (num > 30) num = 30;
       }
-    }
-    newData[index][field] = value;
-    // Recalculate note_finale locally
-    newData[index].note_finale = computeNoteFinale(
-      field === "note_cc" ? value : newData[index].note_cc,
-      field === "note_sn" ? value : newData[index].note_sn,
-    );
-    setBatchData(newData);
-  };
 
+      // SN est sur 70
+      if (field === "note_sn") {
+        if (num > 70) num = 70;
+      }
+
+      if (num < 0) num = 0;
+
+      value = num;
+    }
+  }
+
+  newData[index][field] = value;
+
+  const cc = parseFloat(newData[index].note_cc) || 0;
+  const sn = parseFloat(newData[index].note_sn) || 0;
+
+  // Note finale sur 100
+  newData[index].note_finale = (cc + sn).toFixed(2);
+
+  setBatchData(newData);
+};
   const handleSave = async () => {
     if (!validateForm()) return;
     setSubmitting(true);
@@ -996,13 +1011,13 @@ export default function GradesPage() {
                         Nom Complet
                       </TableCell>
                       <TableCell sx={premiumStyles.tableHeadCell} width={150}>
-                        Note CC / 20
+                        Note CC / 30
                       </TableCell>
                       <TableCell sx={premiumStyles.tableHeadCell} width={150}>
-                        Note SN / 20
+                        Note SN / 70
                       </TableCell>
                       <TableCell sx={premiumStyles.tableHeadCell}>
-                        Note Finale
+                        Note Finale 
                       </TableCell>
                       <TableCell sx={premiumStyles.tableHeadCell}>
                         Statut
@@ -1032,7 +1047,7 @@ export default function GradesPage() {
                                 e.target.value,
                               )
                             }
-                            inputProps={{ min: 0, max: 20, step: 0.25 }}
+                            inputProps={{ min: 0, max: 30, step: 0.25 }}
                             sx={premiumStyles.input}
                           />
                         </TableCell>
@@ -1048,7 +1063,7 @@ export default function GradesPage() {
                                 e.target.value,
                               )
                             }
-                            inputProps={{ min: 0, max: 20, step: 0.25 }}
+                            inputProps={{ min: 0, max: 70, step: 0.25 }}
                             sx={premiumStyles.input}
                           />
                         </TableCell>
@@ -1059,7 +1074,7 @@ export default function GradesPage() {
                             color: "#10b981",
                           }}
                         >
-                          {row.note_finale || "-"}
+                          {row.note_finale || "__"} / 100
                         </TableCell>
                         <TableCell sx={premiumStyles.tableCell}>
                           <Chip
