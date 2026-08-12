@@ -108,7 +108,8 @@ export default function StudentGrades() {
             ) : (
               <TableRow>
                 <TableCell colSpan={6} align="center" sx={{ py: 3 }}>
-                  Aucune note disponible pour cette session.
+                  Aucune note publiée pour cette session. Vos résultats
+                  apparaîtront ici après validation par l'administration.
                 </TableCell>
               </TableRow>
             )}

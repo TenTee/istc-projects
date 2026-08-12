@@ -29,6 +29,37 @@ def _to_decimal(value):
         return None
 
 
+def _peut_valider(user):
+    """Seul un administrateur (superuser ou rôle avec gestion pédagogie) peut valider les notes."""
+    if not user or not user.is_authenticated:
+        return False
+    if user.is_superuser:
+        return True
+    if getattr(user, 'role', '') in ("admin", "superadmin"):
+        return True
+    try:
+        from users.models import Role
+        role_obj = Role.objects.get(code=user.role)
+        return role_obj.can_manage_pedagogie in ("lecture", "ecriture")
+    except Role.DoesNotExist:
+        return False
+
+
+def _notes_visibles(user, base_qs=None):
+    """Restreint les notes visibles selon le rôle de l'utilisateur.
+    Un étudiant ne voit que SES notes validées par l'administration."""
+    qs = base_qs if base_qs is not None else Note.objects.all()
+    if not user or not user.is_authenticated:
+        return qs.none()
+    role = getattr(user, 'role', '')
+    if role == 'etudiant':
+        etudiant = getattr(user, 'etudiant_profile', None)
+        if not etudiant:
+            return qs.none()
+        return qs.filter(etudiant=etudiant, validee=True)
+    return qs
+
+
 class NoteViewSet(viewsets.ModelViewSet):
     queryset = Note.objects.all()
     serializer_class = NoteSerializer
@@ -49,21 +80,80 @@ class NoteViewSet(viewsets.ModelViewSet):
         classe_id = self.request.query_params.get("classe")
         evaluation_id = self.request.query_params.get("evaluation")
 
-        if self.request.user.is_authenticated and getattr(self.request.user, 'role', '') == 'etudiant':
-            etudiant = getattr(self.request.user, 'etudiant_profile', None)
-            if etudiant:
-                queryset = queryset.filter(etudiant=etudiant)
-
         if classe_id:
             queryset = queryset.filter(classe_id=classe_id)
         if evaluation_id:
             queryset = queryset.filter(evaluation_id=evaluation_id)
-        return queryset
+        return _notes_visibles(self.request.user, queryset)
 
     def get_serializer_class(self):
         if self.action == "list" and self.request.query_params.get("summary") == "true":
             return NoteSummarySerializer
         return NoteSerializer
+
+    def perform_create(self, serializer):
+        # Une note enregistrée n'est pas visible par l'étudiant tant qu'un
+        # administrateur ne l'a pas validée.
+        if not _peut_valider(self.request.user):
+            serializer.save(validee=False)
+        else:
+            serializer.save()
+
+    def perform_update(self, serializer):
+        # Toute modification d'une note la rend à nouveau non visible tant
+        # qu'elle n'est pas re-validée par l'administration.
+        if not _peut_valider(self.request.user):
+            serializer.save(validee=False)
+        else:
+            serializer.save()
+
+    @action(detail=False, methods=["post"], url_path="valider")
+    def valider(self, request):
+        """Valide des notes (les rend visibles par les étudiants). Admin uniquement."""
+        if not _peut_valider(request.user):
+            return Response({"error": "Seul un administrateur peut valider les notes"}, status=403)
+
+        notes_qs = self._notes_a_modifier(request)
+        count = notes_qs.update(validee=True)
+        return Response({
+            "message": f"{count} note(s) validée(s)",
+            "validees": count,
+        })
+
+    @action(detail=False, methods=["post"], url_path="devalider")
+    def devalider(self, request):
+        """Dévalide des notes (les masque aux étudiants). Admin uniquement."""
+        if not _peut_valider(request.user):
+            return Response({"error": "Seul un administrateur peut dévalider les notes"}, status=403)
+
+        notes_qs = self._notes_a_modifier(request)
+        count = notes_qs.update(validee=False)
+        return Response({
+            "message": f"{count} note(s) dévalidée(s)",
+            "devalidees": count,
+        })
+
+    def _notes_a_modifier(self, request):
+        """Construit le queryset ciblé pour la (dé)validation à partir de la requête."""
+        qs = Note.objects.all()
+        note_ids = request.data.get("note_ids")
+        if note_ids:
+            return qs.filter(id__in=note_ids)
+
+        classe_id = request.data.get("classe_id")
+        module_id = request.data.get("module_id")
+        evaluation_id = request.data.get("evaluation_id")
+        session = request.data.get("session")
+
+        if classe_id:
+            qs = qs.filter(classe_id=classe_id)
+        if module_id:
+            qs = qs.filter(module_id=module_id)
+        if evaluation_id:
+            qs = qs.filter(evaluation_id=evaluation_id)
+        if session:
+            qs = qs.filter(session=session)
+        return qs
 
     @action(detail=False, methods=["get"], url_path="me")
     def me(self, request):
@@ -72,7 +162,7 @@ class NoteViewSet(viewsets.ModelViewSet):
             return Response({"error": "Profil étudiant introuvable"}, status=404)
 
         session = request.query_params.get("session")
-        notes = Note.objects.filter(etudiant=etudiant)
+        notes = Note.objects.filter(etudiant=etudiant, validee=True)
 
         year_id = get_current_academic_year_id()
         if year_id:
@@ -393,6 +483,7 @@ class NoteViewSet(viewsets.ModelViewSet):
                 "note_sn": float(note.note_sn) if note and note.note_sn is not None else None,
                 "note_rattrapage": float(note.note_rattrapage) if note and note.note_rattrapage is not None else None,
                 "note_finale": float(note.note_finale) if note and note.note_finale is not None else None,
+                "validee": bool(note.validee) if note else False,
             })
 
         return Response(data)
@@ -441,6 +532,7 @@ class NoteViewSet(viewsets.ModelViewSet):
                     existing.note_cc = note_cc
                     existing.note_sn = note_sn
                     existing.note_rattrapage = note_rattrapage
+                    existing.validee = False  # toute nouvelle saisie doit être re-validée
                     if classe_id:
                         existing.classe_id = classe_id
                     existing.save()
@@ -473,7 +565,13 @@ class NoteViewSet(viewsets.ModelViewSet):
         except Etudiant.DoesNotExist:
             return Response({"error": "Étudiant introuvable"}, status=404)
 
-        notes = Note.objects.filter(etudiant=etudiant).select_related("module", "classe")
+        if getattr(request.user, 'role', '') == 'etudiant':
+            profil = getattr(request.user, 'etudiant_profile', None)
+            if not profil or profil.id != etudiant.id:
+                return Response({"error": "Accès refusé"}, status=403)
+            notes = Note.objects.filter(etudiant=etudiant, validee=True).select_related("module", "classe")
+        else:
+            notes = Note.objects.filter(etudiant=etudiant).select_related("module", "classe")
 
         year_id = get_current_academic_year_id()
         if year_id:
@@ -514,6 +612,14 @@ class NoteViewSet(viewsets.ModelViewSet):
         except Etudiant.DoesNotExist:
             return Response({"error": "Étudiant introuvable"}, status=404)
 
+        if getattr(request.user, 'role', '') == 'etudiant':
+            profil = getattr(request.user, 'etudiant_profile', None)
+            if not profil or profil.id != etudiant.id:
+                return Response({"error": "Accès refusé"}, status=403)
+            notes_qs = Note.objects.filter(etudiant=etudiant, validee=True).select_related("module", "classe")
+        else:
+            notes_qs = Note.objects.filter(etudiant=etudiant).select_related("module", "classe")
+
         inscription = Inscription.objects.filter(
             etudiant=etudiant,
             classe__isnull=False,
@@ -524,8 +630,6 @@ class NoteViewSet(viewsets.ModelViewSet):
         from academique.models import ConfigurationEtablissement, ParametresGlobaux
         config = ConfigurationEtablissement.get_config()
         params = ParametresGlobaux.get_parametres()
-
-        notes_qs = Note.objects.filter(etudiant=etudiant).select_related("module", "classe")
 
         year_id = get_current_academic_year_id()
         if year_id:

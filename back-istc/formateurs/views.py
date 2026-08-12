@@ -414,6 +414,7 @@ class FormateurPortalViewSet(viewsets.ViewSet):
                         'note_cc': item.get('note_cc'),
                         'note_sn': item.get('note_sn'),
                         'note_rattrapage': item.get('note_rattrapage'),
+                        'validee': False,  # doit être validée par l'administration avant visibilité étudiant
                     }
                 )
                 if created:

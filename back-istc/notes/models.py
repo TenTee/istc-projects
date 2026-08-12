@@ -44,6 +44,12 @@ class Note(models.Model):
     # ✅ Calcul automatique
     note_finale = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, help_text="Note finale sur 20")
 
+    # ✅ Validation administrative
+    validee = models.BooleanField(
+        default=False,
+        help_text="Note visible par l'étudiant uniquement après validation par l'administration",
+    )
+
     def save(self, *args, **kwargs):
         """
         Calcul automatique pondéré de la note finale (sur 20) à partir des notes sur 20.

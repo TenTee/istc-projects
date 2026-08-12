@@ -33,6 +33,7 @@ import {
   Divider,
   Grid,
   Tooltip,
+  Chip,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import SearchIcon from "@mui/icons-material/Search";
@@ -46,6 +47,8 @@ import GridOnIcon from "@mui/icons-material/GridOn";
 import SaveIcon from "@mui/icons-material/Save";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import SummarizeIcon from "@mui/icons-material/Summarize";
+import VerifiedIcon from "@mui/icons-material/Verified";
+import VerifiedUserIcon from "@mui/icons-material/VerifiedUser";
 import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
 import * as XLSX from "xlsx";
@@ -130,6 +133,7 @@ export default function GradesPage() {
 
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [validating, setValidating] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
   const [page, setPage] = useState(0);
@@ -367,6 +371,7 @@ export default function GradesPage() {
           ...item,
           note_cc: item.note_cc || "",
           note_sn: item.note_sn || "",
+          validee: !!item.validee,
         })),
       );
     } catch (error) {
@@ -396,7 +401,8 @@ export default function GradesPage() {
       await notesService.batchSave(payload);
       setToast({
         open: true,
-        message: "Toutes les notes ont été enregistrées",
+        message:
+          "Toutes les notes ont été enregistrées. Elles seront visibles par les étudiants après validation.",
         severity: "success",
       });
       fetchData(); // Refresh global list
@@ -414,6 +420,47 @@ export default function GradesPage() {
       });
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleBatchValidate = async (valider = true) => {
+    const noteIds = batchData
+      .filter((item) => item.note_id)
+      .map((item) => item.note_id);
+    if (noteIds.length === 0) {
+      setToast({
+        open: true,
+        message:
+          "Aucune note enregistrée à valider. Enregistrez d'abord les notes.",
+        severity: "warning",
+      });
+      return;
+    }
+    setValidating(true);
+    try {
+      const payload = { note_ids: noteIds };
+      const res = valider
+        ? await notesService.valider(payload)
+        : await notesService.devalider(payload);
+      setToast({
+        open: true,
+        message: res?.message || (valider ? "Notes validées" : "Notes dévalidées"),
+        severity: "success",
+      });
+      fetchData();
+      try {
+        await fetchBatchData();
+      } catch (e) {
+        // ignore
+      }
+    } catch (error) {
+      setToast({
+        open: true,
+        message: getApiErrorMessage(error, valider ? "Erreur lors de la validation" : "Erreur lors de la dévalidation"),
+        severity: "error",
+      });
+    } finally {
+      setValidating(false);
     }
   };
 
@@ -827,6 +874,28 @@ export default function GradesPage() {
                   >
                     {submitting ? "Enregistrement..." : "Enregistrer tout"}
                   </Button>
+                  <Button
+                    variant="contained"
+                    startIcon={<VerifiedIcon />}
+                    onClick={() => handleBatchValidate(true)}
+                    disabled={validating || !batchData.length}
+                    sx={{ ...premiumStyles.actionBtn, bgcolor: "#16a34a" }}
+                  >
+                    {validating ? "Validation..." : "Valider les notes"}
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    startIcon={<VerifiedUserIcon />}
+                    onClick={() => handleBatchValidate(false)}
+                    disabled={validating || !batchData.length}
+                    sx={{
+                      ...premiumStyles.actionBtn,
+                      color: "#f59e0b",
+                      borderColor: "#fcd34d",
+                    }}
+                  >
+                    Dévalider
+                  </Button>
                 </Box>
               </Box>
 
@@ -906,6 +975,16 @@ export default function GradesPage() {
                 )}
               </Box>
 
+              <Alert
+                severity="info"
+                sx={{ mb: 2, borderRadius: "8px" }}
+                icon={<VerifiedIcon fontSize="small" />}
+              >
+                Les notes enregistrées sont masquées aux étudiants jusqu'à leur
+                validation. Cliquez sur &quot;Valider les notes&quot; pour les
+                publier sur le portail étudiant.
+              </Alert>
+
               <TableContainer>
                 <Table>
                   <TableHead>
@@ -924,6 +1003,9 @@ export default function GradesPage() {
                       </TableCell>
                       <TableCell sx={premiumStyles.tableHeadCell}>
                         Note Finale
+                      </TableCell>
+                      <TableCell sx={premiumStyles.tableHeadCell}>
+                        Statut
                       </TableCell>
                     </TableRow>
                   </TableHead>
@@ -978,6 +1060,14 @@ export default function GradesPage() {
                           }}
                         >
                           {row.note_finale || "-"}
+                        </TableCell>
+                        <TableCell sx={premiumStyles.tableCell}>
+                          <Chip
+                            size="small"
+                            label={row.validee ? "Validée" : "En attente"}
+                            color={row.validee ? "success" : "warning"}
+                            variant={row.validee ? "filled" : "outlined"}
+                          />
                         </TableCell>
                       </TableRow>
                     ))}

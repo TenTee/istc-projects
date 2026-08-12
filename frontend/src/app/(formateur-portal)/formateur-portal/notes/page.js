@@ -97,7 +97,7 @@ export default function SaisieNotesPage() {
       const result = await formateurPortalService.saisirNotes({ notes: notesToSave });
       setSnackbar({
         open: true,
-        message: `${result.created} créées, ${result.updated} mises à jour.${result.errors?.length ? ` Erreurs: ${result.errors.length}` : ''}`,
+        message: `${result.created} créées, ${result.updated} mises à jour.${result.errors?.length ? ` Erreurs: ${result.errors.length}` : ''} Les notes seront visibles par les étudiants après validation de l'administration.`,
         severity: result.errors?.length ? 'warning' : 'success',
       });
     } catch (e) {

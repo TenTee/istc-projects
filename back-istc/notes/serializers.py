@@ -45,6 +45,7 @@ class NoteSerializer(serializers.ModelSerializer):
             "note_finale",
             "note_sur_20",
             "besoin_rattrapage",
+            "validee",
         ]
         read_only_fields = ["id", "note_finale", "session"]
 
