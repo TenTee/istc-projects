@@ -42,7 +42,7 @@ export default function Header() {
   const [notifAnchorEl, setNotifAnchorEl] = React.useState(null);
   const [userInfo, setUserInfo] = React.useState({ username: 'Utilisateur', role: '' });
   const [notifications, setNotifications] = React.useState([]);
-  const { academicYears, selectedYear, changeYear } = useAcademicYear();
+  const { academicYears, selectedYear, changeYear, yearError, clearYearError } = useAcademicYear();
   const config = React.useContext(ConfigContext);
   const primaryColor = config?.couleur_primaire || '#193A7F';
 
@@ -313,7 +313,10 @@ export default function Header() {
             <CalendarMonthIcon sx={{ color: primaryColor, mr: 1, fontSize: 20 }} />
             <Select
               value={selectedYear?.id || ''}
-              onChange={(e) => changeYear(e.target.value)}
+              onChange={(e) => {
+                changeYear(e.target.value);
+                clearYearError();
+              }}
               variant="standard"
               disableUnderline
               sx={{ 
@@ -331,24 +334,23 @@ export default function Header() {
             </Select>
           </Box>
 
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              backgroundColor: 'white',
-              borderRadius: 4,
-              px: 2,
-              py: 0.5,
-              boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
-            }}
-          >
-            <SearchIcon sx={{ color: '#aaa', mr: 1, fontSize: 20 }} />
-            <InputBase placeholder="Rechercher..." sx={{ fontSize: '0.9rem' }} />
-          </Box>
-
-          <IconButton onClick={handleNotifMenu} sx={{ backgroundColor: 'white', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
-            <Badge badgeContent={unreadCount > 0 ? unreadCount : null} color="error">
-              <NotificationsIcon sx={{ color: '#aaa' }} />
+          {yearError ? (
+            <Box
+              sx={{
+                px: 2,
+                py: 1,
+                borderRadius: 3,
+                backgroundColor: '#fdecea',
+                border: '1px solid #f5c2c7',
+                color: '#842029',
+                maxWidth: 320,
+              }}
+            >
+              <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                {yearError}
+              </Typography>
+            </Box>
+          ) : null}
             </Badge>
           </IconButton>
           
