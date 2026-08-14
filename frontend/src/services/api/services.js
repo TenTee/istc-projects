@@ -190,7 +190,10 @@ export const affectationsService = createCrudService(API_ENDPOINTS.affectations)
 export const emploisDuTempsV2Service = createCrudService(API_ENDPOINTS.emploisDuTempsV2);
 export const parametresGlobauxService = {
   ...createCrudService(API_ENDPOINTS.parametresGlobaux),
-  getStats: () => apiRequest({ url: API_ENDPOINTS.parametresGlobaux, method: 'GET' }),
+  getStats: async () => {
+    const response = await apiRequest({ url: API_ENDPOINTS.parametresGlobaux, method: 'GET' });
+    return Array.isArray(response) ? response[0] : response?.results?.[0] ?? response;
+  },
   updateStats: (data) => apiRequest({ url: `${API_ENDPOINTS.parametresGlobaux}1/`, method: 'PUT', data }),
 };
 

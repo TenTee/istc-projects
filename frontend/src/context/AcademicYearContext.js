@@ -78,11 +78,18 @@ export const AcademicYearProvider = ({ children }) => {
 
     if (!year.est_active && !allowInactive) {
       setYearError("L'année sélectionnée est archivée et ne peut être utilisée que par le super-admin.");
-      return;
+      return false;
     }
 
     setYearError(null);
+    // L'intercepteur API lit cette valeur pour envoyer X-Academic-Year.
+    // On l'enregistre avant le rendu suivant, afin que les requêtes de la
+    // page courante utilisent immédiatement la nouvelle année.
+    localStorage.setItem('selectedAcademicYearId', year.id);
+    localStorage.setItem('selectedAcademicYearLibelle', year.libelle);
     setSelectedYear(year);
+    window.dispatchEvent(new CustomEvent('academicYearChanged', { detail: { yearId: year.id } }));
+    return true;
   };
 
   return (

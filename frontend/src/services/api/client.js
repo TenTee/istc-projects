@@ -167,6 +167,22 @@ export async function apiRequest(config) {
   if (typeof window === 'undefined') {
     return null;
   }
-  const response = await apiClient.request(config);
-  return response.data;
+  try {
+    const response = await apiClient.request(config);
+    return response.data;
+  } catch (error) {
+    try {
+      const base = (apiClient.defaults && apiClient.defaults.baseURL) || '';
+      const url = `${base}${config && config.url ? config.url : ''}`;
+      console.error('API request failed:', {
+        url,
+        method: config && config.method ? config.method : 'GET',
+        message: error?.message,
+        isAxiosError: error?.isAxiosError,
+      });
+    } catch (e) {
+      console.error('API request failed (error computing URL):', e);
+    }
+    throw error;
+  }
 }

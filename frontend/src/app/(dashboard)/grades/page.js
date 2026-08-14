@@ -229,13 +229,10 @@ export default function GradesPage() {
       );
       setConfig(resConfig);
       if (resParams) {
-        const paramsList = Array.isArray(resParams) ? resParams : resParams?.results || [];
-        if (paramsList.length > 0) {
-          setGradeParams({
-            pourcentage_cc: paramsList[0].pourcentage_cc || 30,
-            pourcentage_sn: paramsList[0].pourcentage_sn || 70,
-          });
-        }
+        setGradeParams({
+          pourcentage_cc: resParams.pourcentage_cc ?? 30,
+          pourcentage_sn: resParams.pourcentage_sn ?? 70,
+        });
       }
     } catch (error) {
       setToast({
@@ -533,19 +530,21 @@ export default function GradesPage() {
 
 const handleBatchInputChange = (index, field, value) => {
   const newData = [...batchData];
+  const ccMax = gradeParams?.pourcentage_cc ?? 30;
+  const snMax = gradeParams?.pourcentage_sn ?? 70;
 
   if ((field === "note_cc" || field === "note_sn") && value !== "") {
     let num = parseFloat(value);
 
     if (!isNaN(num)) {
-      // CC est sur 30
+      // CC est sur la valeur configuree
       if (field === "note_cc") {
-        if (num > 30) num = 30;
+        if (num > ccMax) num = ccMax;
       }
 
-      // SN est sur 70
+      // SN est sur la valeur configuree
       if (field === "note_sn") {
-        if (num > 70) num = 70;
+        if (num > snMax) num = snMax;
       }
 
       if (num < 0) num = 0;
@@ -1011,10 +1010,10 @@ const handleBatchInputChange = (index, field, value) => {
                         Nom Complet
                       </TableCell>
                       <TableCell sx={premiumStyles.tableHeadCell} width={150}>
-                        Note CC / 30
+                        Note CC / {gradeParams?.pourcentage_cc ?? 30}
                       </TableCell>
                       <TableCell sx={premiumStyles.tableHeadCell} width={150}>
-                        Note SN / 70
+                        Note SN / {gradeParams?.pourcentage_sn ?? 70}
                       </TableCell>
                       <TableCell sx={premiumStyles.tableHeadCell}>
                         Note Finale 
@@ -1047,7 +1046,7 @@ const handleBatchInputChange = (index, field, value) => {
                                 e.target.value,
                               )
                             }
-                            inputProps={{ min: 0, max: 30, step: 0.25 }}
+                            inputProps={{ min: 0, max: gradeParams?.pourcentage_cc ?? 30, step: 0.25 }}
                             sx={premiumStyles.input}
                           />
                         </TableCell>
@@ -1063,7 +1062,7 @@ const handleBatchInputChange = (index, field, value) => {
                                 e.target.value,
                               )
                             }
-                            inputProps={{ min: 0, max: 70, step: 0.25 }}
+                            inputProps={{ min: 0, max: gradeParams?.pourcentage_sn ?? 70, step: 0.25 }}
                             sx={premiumStyles.input}
                           />
                         </TableCell>
@@ -1345,20 +1344,20 @@ const handleBatchInputChange = (index, field, value) => {
           const getMention = (avg) => {
             if (avg === null) return "--";
             const v = parseFloat(avg);
-            if (v < 10) return "Échec";
-            if (v < 12) return "Passable";
-            if (v < 14) return "Assez Bien";
-            if (v < 16) return "Bien";
+            if (v < 50) return "Échec";
+            if (v < 60) return "Passable";
+            if (v < 70) return "Assez Bien";
+            if (v < 80) return "Bien";
             return "Très Bien";
           };
 
           const getMentionColor = (avg) => {
             if (avg === null) return "#94a3b8";
             const v = parseFloat(avg);
-            if (v < 10) return "#ef4444";
-            if (v < 12) return "#f59e0b";
-            if (v < 14) return "#3b82f6";
-            if (v < 16) return "#10b981";
+            if (v < 50) return "#ef4444";
+            if (v < 60) return "#f59e0b";
+            if (v < 70) return "#3b82f6";
+            if (v < 80) return "#10b981";
             return "#8b5cf6";
           };
 
@@ -1702,7 +1701,7 @@ const handleBatchInputChange = (index, field, value) => {
                                 key={student.id}
                                 hover
                                 sx={
-                                  avg !== null && parseFloat(avg) < 10
+                                  avg !== null && parseFloat(avg) < 50
                                     ? { bgcolor: "#fef2f2" }
                                     : {}
                                 }
@@ -1754,7 +1753,7 @@ const handleBatchInputChange = (index, field, value) => {
                                         textAlign: "center",
                                         fontWeight: 500,
                                         color:
-                                          nf != null && parseFloat(nf) < 10
+                                          nf != null && parseFloat(nf) < 50
                                             ? "#ef4444"
                                             : "#334155",
                                       }}
@@ -1816,7 +1815,7 @@ const handleBatchInputChange = (index, field, value) => {
                       ).toFixed(2);
                       const maxAvg = Math.max(...avgs).toFixed(2);
                       const minAvg = Math.min(...avgs).toFixed(2);
-                      const successCount = avgs.filter((a) => a >= 10).length;
+                      const successCount = avgs.filter((a) => a >= 50).length;
                       const successRate = (
                         (successCount / avgs.length) *
                         100

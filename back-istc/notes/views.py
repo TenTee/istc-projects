@@ -16,15 +16,23 @@ from academique.middleware import get_current_academic_year_id
 
 
 def _to_decimal(value):
+    """
+    Convertit une note en Decimal et la limite entre 0 et 100.
+    """
     if value is None or value == "" or value == "null":
         return None
+
     try:
         d = Decimal(str(value))
+
         if d < 0:
             d = Decimal("0")
-        if d > 20:
-            d = Decimal("20")
+
+        if d > 100:
+            d = Decimal("100")
+
         return d
+
     except (InvalidOperation, ValueError, TypeError):
         return None
 
@@ -216,17 +224,17 @@ class NoteViewSet(viewsets.ModelViewSet):
             for n in rows:
                 etudiant_id = n["etudiant_id"]
                 session = n["session"]
-                moyenne_sur_20 = Note.moyenne_etudiant(Etudiant.objects.get(pk=etudiant_id), session=session)
-                if moyenne_sur_20 is None:
-                    moyenne_sur_20 = 0
+                moyenne_sur_100 = Note.moyenne_etudiant(Etudiant.objects.get(pk=etudiant_id), session=session)
+                if moyenne_sur_100 is None:
+                    moyenne_sur_100 = 0
 
-                if moyenne_sur_20 < 10:
+                if moyenne_sur_100 < 50:
                     mention = "Échec"
-                elif 10 <= moyenne_sur_20 < 12:
+                elif 50 <= moyenne_sur_100 < 60:
                     mention = "Passable"
-                elif 12 <= moyenne_sur_20 < 14:
+                elif 60 <= moyenne_sur_100 < 70:
                     mention = "Assez Bien"
-                elif 14 <= moyenne_sur_20 < 16:
+                elif 70 <= moyenne_sur_100 < 80:
                     mention = "Bien"
                 else:
                     mention = "Très Bien"
@@ -237,7 +245,7 @@ class NoteViewSet(viewsets.ModelViewSet):
                     "etudiant_matricule": n["etudiant__matricule"],
                     "formation": n["etudiant__filiere__nom"],
                     "session": session,
-                    "moyenne_generale": moyenne_sur_20,
+                    "moyenne_generale": moyenne_sur_100,
                     "mention": mention,
                 })
 
@@ -271,7 +279,7 @@ class NoteViewSet(viewsets.ModelViewSet):
 
             note_sur_20 = None
             if note and note.note_finale is not None:
-                note_sur_20 = float(note.note_finale)
+                note_sur_20 = float(note.note_sur_20)
 
             data.append({
                 "id": note.id if note else None,
@@ -336,7 +344,7 @@ class NoteViewSet(viewsets.ModelViewSet):
                     "note_sn": note.note_sn if note else None,
                     "note_rattrapage": note.note_rattrapage if note else None,
                     "note_finale": note.note_finale if note else None,
-                    "note_sur_20": float(note.note_finale) if note and note.note_finale else None
+                    "note_sur_100": float(note.note_finale) if note and note.note_finale else None
                 })
             data["etudiants"].append(etudiant_data)
 
@@ -396,7 +404,7 @@ class NoteViewSet(viewsets.ModelViewSet):
                         "note_sn": note.note_sn if note else None,
                         "note_rattrapage": note.note_rattrapage if note else None,
                         "note_finale": note_finale,
-                        "note_sur_20": float(note_finale) if note_finale is not None else None
+                        "note_sur_20": float(note.note_sur_20) if note_finale is not None else None
                     })
 
                 moyenne_niveau = round(total_points / total_coeff, 2) if total_coeff > 0 else None
@@ -599,7 +607,7 @@ class NoteViewSet(viewsets.ModelViewSet):
                 "note_sn": float(note.note_sn) if note.note_sn is not None else None,
                 "note_rattrapage": float(note.note_rattrapage) if note.note_rattrapage is not None else None,
                 "note_finale": float(note.note_finale) if note.note_finale is not None else None,
-                "note_sur_20": float(note.note_finale) if note.note_finale is not None else None,
+                "note_sur_20": float(note.note_sur_20) if note.note_finale is not None else None,
             })
 
         return Response(data)
@@ -650,7 +658,7 @@ class NoteViewSet(viewsets.ModelViewSet):
         def get_grade(note_finale):
             if note_finale is None:
                 return "-"
-            n = float(note_finale)
+            n = float(note_finale) / 5.0
             if n >= 16:
                 return "A"
             elif n >= 14:
@@ -668,7 +676,7 @@ class NoteViewSet(viewsets.ModelViewSet):
         def get_observation(note_finale):
             if note_finale is None:
                 return "-"
-            n = float(note_finale)
+            n = float(note_finale) / 5.0
             if n >= 16:
                 return "Excellent"
             elif n >= 14:
@@ -682,13 +690,13 @@ class NoteViewSet(viewsets.ModelViewSet):
         def get_mention(moyenne):
             if moyenne is None:
                 return "-"
-            if moyenne >= 16:
+            if moyenne >= 80:
                 return "Très Bien"
-            elif moyenne >= 14:
+            elif moyenne >= 70:
                 return "Bien"
-            elif moyenne >= 12:
+            elif moyenne >= 60:
                 return "Assez Bien"
-            elif moyenne >= 10:
+            elif moyenne >= 50:
                 return "Passable"
             return "Échec"
 
@@ -709,7 +717,7 @@ class NoteViewSet(viewsets.ModelViewSet):
                 total_credits += credits
                 if note_finale is not None:
                     credits_obtenus += credits
-                    if note_finale >= 10:
+                    if note_finale >= 50:
                         credits_valides += credits
                     total_points_weighted += note_finale * coeff
                     total_coeff += coeff

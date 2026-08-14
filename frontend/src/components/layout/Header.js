@@ -314,8 +314,11 @@ export default function Header() {
             <Select
               value={selectedYear?.id || ''}
               onChange={(e) => {
-                changeYear(e.target.value);
-                clearYearError();
+                const changed = changeYear(e.target.value);
+                if (changed) {
+                  clearYearError();
+                  router.refresh();
+                }
               }}
               variant="standard"
               disableUnderline
@@ -351,9 +354,21 @@ export default function Header() {
               </Typography>
             </Box>
           ) : null}
+          <IconButton
+            color="inherit"
+            aria-label="notifications"
+            onClick={handleNotifMenu}
+            sx={{
+              backgroundColor: 'white',
+              boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
+              '&:hover': { backgroundColor: '#f5f5f0' },
+            }}
+          >
+            <Badge badgeContent={unreadCount} color="error">
+              <NotificationsIcon sx={{ color: primaryColor }} />
             </Badge>
           </IconButton>
-          
+
           <Menu
             anchorEl={notifAnchorEl}
             open={Boolean(notifAnchorEl)}
