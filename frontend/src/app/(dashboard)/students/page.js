@@ -55,9 +55,12 @@ import { jsPDF } from "jspdf";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import SchoolIcon from "@mui/icons-material/School";
 import { useAcademicYear } from "../../../context/AcademicYearContext";
+import { useUserPermissions } from "../../../utils/permissions";
 import {
   etudiantsService,
   filieresV2Service,
+  specialitesService,
+  cyclesService,
   levelsV2Service,
   classesService,
   facultesService,
@@ -223,6 +226,8 @@ const initialForm = {
   nom_parent: "",
   whatsapp_parent: "",
   filiere: "",
+  specialite: "",
+  cycle: "",
   niveau: "",
   classe: "",
 };
@@ -233,6 +238,9 @@ const initialPaymentPlanForm = {
 };
 
 export default function StudentsPage() {
+  const { canWrite } = useUserPermissions();
+  const canWriteStudents = canWrite("can_manage_etudiants");
+  const canWriteFinance = canWrite("can_manage_finance");
   const [searchTerm, setSearchTerm] = useState("");
   const [courseFilter, setCourseFilter] = useState("Tous");
   const [classFilter, setClassFilter] = useState("Tous");
@@ -250,6 +258,8 @@ export default function StudentsPage() {
     severity: "success",
   });
   const [filieres, setFilieres] = useState([]);
+  const [specialites, setSpecialites] = useState([]);
+  const [cycles, setCycles] = useState([]);
   const [facultes, setFacultes] = useState([]);
   const [levels, setLevels] = useState([]);
   const [classes, setClasses] = useState([]);
@@ -327,13 +337,17 @@ export default function StudentsPage() {
 
   const fetchAcademicData = async () => {
     try {
-      const [fils, lvls, clss, facs] = await Promise.all([
+      const [fils, specs, cycs, lvls, clss, facs] = await Promise.all([
         filieresV2Service.list(),
+        specialitesService.list(),
+        cyclesService.list(),
         levelsV2Service.list(),
         classesService.list(),
         facultesService.list(),
       ]);
       setFilieres(toList(fils));
+      setSpecialites(toList(specs));
+      setCycles(toList(cycs));
       setLevels(toList(lvls));
       setClasses(toList(clss));
       setFacultes(toList(facs));
@@ -591,6 +605,15 @@ export default function StudentsPage() {
     setIsEditing(true);
     const latestInscription = student.inscriptions?.[0];
     const { indicatif, numero } = parseContactWithIndicatif(student.contact);
+
+    // Determine specialite and cycle from inscription data or levels
+    const niveauId = latestInscription?.niveau?.id || latestInscription?.niveau || "";
+    const niveauObj = levels.find((l) => Number(l.id) === Number(niveauId));
+    const cycleId = niveauObj?.cycle || "";
+    const cycleObj = cycles.find((c) => Number(c.id) === Number(cycleId));
+    const specialiteId = cycleObj?.specialite || niveauObj?.specialite_id || "";
+    const filiereId = student.filiere_details?.id || student.filiere?.id || student.filiere || "";
+
     setForm({
       id: student.id,
       matricule: student.matricule || "",
@@ -602,10 +625,12 @@ export default function StudentsPage() {
       nom_parent: student.nom_parent || "",
       whatsapp_parent: student.whatsapp_parent || "",
       filiere_details: student.filiere_details || null,
+      specialite: specialiteId ? Number(specialiteId) : "",
+      cycle: cycleId ? Number(cycleId) : "",
 
       inscriptions: [
         {
-          niveau: latestInscription?.niveau || "",
+          niveau: niveauId,
           classe: latestInscription?.classe || "",
         },
       ],
@@ -777,13 +802,20 @@ export default function StudentsPage() {
     try {
       // L'API attend "filiere_id" et non "filiere"
       const fullContact = `${form.indicatif} ${form.contact}`.trim();
+      const inscriptionData = form.inscriptions?.[0] || {};
       const payload = {
         ...form,
         contact: fullContact,
         filiere_id: form.filiere_details?.id,
       };
+      // Nettoyage des champs non-API
       delete payload.filiere;
       delete payload.indicatif;
+      delete payload.specialite;
+      delete payload.cycle;
+      delete payload.inscriptions;
+      delete payload.filiere_details;
+      delete payload.documents_existants;
 
       let studentId = form.id;
       if (isEditing) {
@@ -792,13 +824,15 @@ export default function StudentsPage() {
         const response = await etudiantsService.create(payload);
         studentId = response?.id || response?.results?.id;
 
-        // Création de l'inscription si une classe est sélectionnée
-        if (studentId && form.classe) {
+        // Création de l'inscription si un niveau est sélectionné
+        const classeId = inscriptionData.classe;
+        const niveauId = inscriptionData.niveau;
+        if (studentId && niveauId) {
           try {
             await inscriptionsV2Service.create({
               etudiant: studentId,
-              classe: form.classe,
-              niveau: form.niveau,
+              classe: classeId || undefined,
+              niveau: niveauId,
             });
           } catch (e) {
             console.error("Erreur lors de la création de l'inscription:", e);
@@ -906,15 +940,17 @@ export default function StudentsPage() {
           >
             Exporter (Excel)
           </Button>
-          {/* <Button
-            variant="contained"
-            color="primary"
-            startIcon={<AddIcon />}
-            sx={{ borderRadius: 2 }}
-            onClick={handleOpenCreate}
-          >
-            Ajouter un étudiant
-          </Button> */}
+          {canWriteStudents && (
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<AddIcon />}
+              sx={{ borderRadius: 2 }}
+              onClick={handleOpenCreate}
+            >
+              Ajouter un étudiant
+            </Button>
+          )}
         </Box>
       </Box>
 
@@ -1177,22 +1213,26 @@ export default function StudentsPage() {
                       >
                         <VisibilityIcon fontSize="small" />
                       </IconButton>
-                      <IconButton
-                        size="small"
-                        color="info"
-                        onClick={() => handleEdit(student)}
-                        title="Modifier"
-                      >
-                        <EditIcon fontSize="small" />
-                      </IconButton>
-                      <IconButton
-                        size="small"
-                        color="error"
-                        onClick={() => handleDeleteClick(student)}
-                        title="Supprimer"
-                      >
-                        <DeleteIcon fontSize="small" />
-                      </IconButton>
+                      {canWriteStudents && (
+                        <IconButton
+                          size="small"
+                          color="info"
+                          onClick={() => handleEdit(student)}
+                          title="Modifier"
+                        >
+                          <EditIcon fontSize="small" />
+                        </IconButton>
+                      )}
+                      {canWriteStudents && (
+                        <IconButton
+                          size="small"
+                          color="error"
+                          onClick={() => handleDeleteClick(student)}
+                          title="Supprimer"
+                        >
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))
@@ -1359,6 +1399,7 @@ export default function StudentsPage() {
                 Informations Académiques
               </Typography>
 
+              {/* Filière */}
               <FormControl
                 fullWidth
                 size="small"
@@ -1376,6 +1417,8 @@ export default function StudentsPage() {
                     setForm((prev) => ({
                       ...prev,
                       filiere_details: filiere || null,
+                      specialite: "",
+                      cycle: "",
                       inscriptions: [
                         {
                           ...(prev.inscriptions?.[0] || {}),
@@ -1404,6 +1447,7 @@ export default function StudentsPage() {
                 )}
               </FormControl>
 
+              {/* Spécialité */}
               <FormControl
                 fullWidth
                 size="small"
@@ -1412,14 +1456,109 @@ export default function StudentsPage() {
               >
                 <Select
                   displayEmpty
+                  value={form.specialite || ""}
+                  onChange={(e) => {
+                    const selectedSpecialite = Number(e.target.value);
+                    setForm((prev) => ({
+                      ...prev,
+                      specialite: selectedSpecialite,
+                      cycle: "",
+                      inscriptions: [
+                        {
+                          ...(prev.inscriptions?.[0] || {}),
+                          niveau: "",
+                          classe: "",
+                        },
+                      ],
+                    }));
+                  }}
+                >
+                  <MenuItem value="" disabled>
+                    Sélectionner une spécialité
+                  </MenuItem>
+
+                  {specialites
+                    .filter(
+                      (s) =>
+                        Number(s.filiere) ===
+                        Number(form.filiere_details?.id),
+                    )
+                    .map((s) => (
+                      <MenuItem key={s.id} value={s.id}>
+                        {s.nom}
+                      </MenuItem>
+                    ))}
+                </Select>
+              </FormControl>
+
+              {/* Cycle */}
+              <FormControl
+                fullWidth
+                size="small"
+                margin="dense"
+                disabled={!form.filiere_details?.id}
+              >
+                <Select
+                  displayEmpty
+                  value={form.cycle || ""}
+                  onChange={(e) => {
+                    const selectedCycle = Number(e.target.value);
+                    setForm((prev) => ({
+                      ...prev,
+                      cycle: selectedCycle,
+                      inscriptions: [
+                        {
+                          ...(prev.inscriptions?.[0] || {}),
+                          niveau: "",
+                          classe: "",
+                        },
+                      ],
+                    }));
+                  }}
+                >
+                  <MenuItem value="" disabled>
+                    Sélectionner un cycle
+                  </MenuItem>
+
+                  {cycles
+                    .filter((c) => {
+                      const matchFiliere =
+                        Number(c.filiere) ===
+                        Number(form.filiere_details?.id);
+                      if (form.specialite) {
+                        return (
+                          matchFiliere &&
+                          Number(c.specialite) ===
+                            Number(form.specialite)
+                        );
+                      }
+                      return matchFiliere;
+                    })
+                    .map((c) => (
+                      <MenuItem key={c.id} value={c.id}>
+                        {c.nom}
+                      </MenuItem>
+                    ))}
+                </Select>
+              </FormControl>
+
+              {/* Niveau */}
+              <FormControl
+                fullWidth
+                size="small"
+                margin="dense"
+                disabled={!form.cycle}
+              >
+                <Select
+                  displayEmpty
                   value={form.inscriptions?.[0]?.niveau || ""}
                   onChange={(e) => {
                     const selectedNiveau = Number(e.target.value);
 
                     const matchingClasse = classes.find(
-                      (c) =>
-                        Number(c.niveau?.id || c.niveau) === selectedNiveau &&
-                        Number(c.filiere?.id || c.filiere) ===
+                      (cl) =>
+                        Number(cl.niveau?.id || cl.niveau) === selectedNiveau &&
+                        Number(cl.filiere?.id || cl.filiere) ===
                           Number(form.filiere_details?.id),
                     );
 
@@ -1442,8 +1581,8 @@ export default function StudentsPage() {
                   {levels
                     .filter(
                       (l) =>
-                        Number(l.filiere_id) ===
-                        Number(form.filiere_details?.id),
+                        Number(l.cycle) ===
+                        Number(form.cycle),
                     )
                     .map((l) => (
                       <MenuItem key={l.id} value={l.id}>
@@ -1453,15 +1592,15 @@ export default function StudentsPage() {
                 </Select>
               </FormControl>
 
-              {form.classe && (
+              {form.inscriptions?.[0]?.classe && (
                 <Typography
                   variant="caption"
                   color="success.main"
                   sx={{ mt: 0.5, display: "block" }}
                 >
                   Classe attribuée automatiquement :{" "}
-                  {classes.find((c) => c.id === form.classe)?.nom ||
-                    form.classe}
+                  {classes.find((c) => c.id === form.inscriptions[0].classe)?.nom ||
+                    form.inscriptions[0].classe}
                 </Typography>
               )}
             </Grid>
@@ -1866,13 +2005,15 @@ export default function StudentsPage() {
             <Typography variant="subtitle1" fontWeight="bold">
               Echeancier et alertes
             </Typography>
-            <Button
-              size="small"
-              variant="contained"
-              onClick={handleOpenPaymentPlanDialog}
-            >
-              Configurer
-            </Button>
+            {(canWriteFinance || canWriteStudents) && (
+              <Button
+                size="small"
+                variant="contained"
+                onClick={handleOpenPaymentPlanDialog}
+              >
+                Configurer
+              </Button>
+            )}
           </Box>
           {loadingStudentPlan ? (
             <Box sx={{ py: 2, display: "flex", justifyContent: "center" }}>
