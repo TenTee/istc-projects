@@ -47,8 +47,6 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import SchoolIcon from '@mui/icons-material/School';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
-import PeopleIcon from '@mui/icons-material/People';
-import CardGiftcardIcon from '@mui/icons-material/CardGiftcard';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import {
   anneesAcademiquesService,
@@ -275,8 +273,11 @@ export default function ScolaritePage() {
     try {
       const data = await paiementsService.dashboard();
       setDashboard(data);
-    } catch (e) { console.error(e); }
-    finally { setLoadingDashboard(false); }
+    } catch (e) {
+      if (e?.response?.status !== 401 && e?.response?.status !== 403) {
+        console.error(e);
+      }
+    } finally { setLoadingDashboard(false); }
   };
 
   const fetchData = async () => {

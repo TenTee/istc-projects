@@ -20,10 +20,11 @@ const protectedRoutes = [
   '/system',
   '/settings',
   '/formateur-portal',
+  '/coordonnateurs',
 ];
 
-// Routes accessibles uniquement si NON authentifié
-const publicRoutes = ['/login'];
+// Routes accessibles sans authentification requise
+const publicRoutes = ['/login', '/preinscription'];
 
 export function middleware(request) {
   const { pathname } = request.nextUrl;

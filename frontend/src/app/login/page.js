@@ -11,17 +11,19 @@ import {
   IconButton,
   Alert,
   CircularProgress,
+  Divider,
 } from "@mui/material";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import AccountCircleOutlined from "@mui/icons-material/AccountCircleOutlined";
 import LockOutlined from "@mui/icons-material/LockOutlined";
+import PersonAddOutlinedIcon from "@mui/icons-material/PersonAddOutlined";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { authService } from "../../services/api/services";
-import { getApiErrorMessage } from "../../services/api/client";
+import { getApiErrorMessage, clearSession } from "../../services/api/client";
 import RecaptchaV2 from "../../components/RecaptchaV2";
 
 const schema = yup.object({
@@ -69,6 +71,8 @@ export default function LoginPage() {
         throw new Error("Token introuvable dans la reponse API.");
       }
 
+      // Repartir d'une session propre (flags d'un utilisateur précédent sur ce navigateur).
+      clearSession();
       localStorage.setItem("token", accessToken);
       if (data?.refresh) {
         localStorage.setItem("refreshToken", data.refresh);
@@ -358,6 +362,38 @@ export default function LoginPage() {
               ) : (
                 "Se connecter"
               )}
+            </Button>
+
+            <Divider sx={{ my: 3 }}>
+              <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>
+                Nouveau candidat ou futur étudiant ?
+              </Typography>
+            </Divider>
+
+            <Button
+              fullWidth
+              variant="outlined"
+              size="large"
+              color="primary"
+              startIcon={<PersonAddOutlinedIcon />}
+              onClick={() => router.push("/preinscription")}
+              sx={{
+                py: 1.2,
+                fontSize: "0.95rem",
+                fontWeight: 700,
+                borderRadius: 2,
+                textTransform: "none",
+                borderColor: "#193A7F",
+                color: "#193A7F",
+                borderWidth: 1.5,
+                "&:hover": {
+                  bgcolor: "rgba(25, 58, 127, 0.05)",
+                  borderColor: "#193A7F",
+                  borderWidth: 1.5,
+                },
+              }}
+            >
+              Préinscription en ligne
             </Button>
           </form>
         </Paper>
