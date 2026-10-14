@@ -51,8 +51,14 @@ class DemandeArticle(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.reference:
-            count = DemandeArticle.objects.count() + 1
-            self.reference = f"DEM-{count:04d}"
+            # Basé sur le plus grand identifiant (et non sur le nombre de demandes) :
+            # après une suppression, le comptage redonnait une référence déjà utilisée
+            # et l'enregistrement échouait (référence unique).
+            dernier = DemandeArticle.objects.order_by("-pk").values_list("pk", flat=True).first() or 0
+            self.reference = f"DEM-{dernier + 1:04d}"
+            while DemandeArticle.objects.filter(reference=self.reference).exists():
+                dernier += 1
+                self.reference = f"DEM-{dernier + 1:04d}"
         super().save(*args, **kwargs)
 
     def __str__(self):

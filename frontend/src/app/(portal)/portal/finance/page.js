@@ -146,9 +146,9 @@ export default function StudentFinance() {
                     <TableCell align="right">{formatCurrency(inst.amount_due)}</TableCell>
                     <TableCell align="center">
                       <Chip 
-                        label={inst.status === 'PAID' ? 'Payé' : inst.status === 'OVERDUE' ? 'Retard' : 'À venir'} 
+                        label={inst.status === 'PAID' ? 'Payé' : inst.status === 'OVERDUE' ? 'Retard' : inst.status === 'PARTIAL' ? 'Partiel' : 'À venir'} 
                         size="small"
-                        color={inst.status === 'PAID' ? 'success' : inst.status === 'OVERDUE' ? 'error' : 'default'}
+                        color={inst.status === 'PAID' ? 'success' : inst.status === 'OVERDUE' ? 'error' : inst.status === 'PARTIAL' ? 'warning' : 'default'}
                         variant={inst.status === 'PAID' ? 'filled' : 'outlined'}
                       />
                     </TableCell>

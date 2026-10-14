@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { Box, Typography, Button, Tooltip } from "@mui/material";
 import FlipCameraAndroidIcon from "@mui/icons-material/FlipCameraAndroid";
 import BadgeIcon from "@mui/icons-material/Badge";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import { formatDate } from "../../utils/formatters";
+import { ConfigContext } from "../../theme/ThemeRegistry";
 
 // Helper simple pour générer un code-barres visuel au format SVG pour le matricule
 function BarcodeSVG({ value = "STD-2025-0001", width = 180, height = 36 }) {
@@ -517,18 +518,21 @@ function BackFaceContent({ studentData, configProps, width, height }) {
 
 export default function StudentCard({
   student,
-  config = {},
+  config: configProp,
   side = "front",
   flipable = true,
   scale = 1,
   id = "student-card-preview",
 }) {
   const [isFlipped, setIsFlipped] = useState(side === "back");
+  // Sans configuration transmise (ex. portail étudiant), on utilise celle de l'établissement.
+  const configContexte = useContext(ConfigContext);
+  const config = configProp && Object.keys(configProp).length ? configProp : configContexte || {};
 
   const latestInscription = student?.inscriptions?.[0] || {};
 
   const studentData = {
-    schoolName: config?.nom || "IFPT SMART CAMPUS",
+    schoolName: config?.nom || "SMART CAMPUS",
     logoUrl: config?.logo_entete || config?.logo || "/LOGO SMART CAMPUS.svg",
     primaryColor: config?.couleur_primaire || "#193A7F",
     secondaryColor: config?.couleur_secondaire || "#0D1B2A",

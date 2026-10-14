@@ -1,0 +1,6 @@
+# Outils pour générer le site de documentation (dossier docs/).
+#   pip install -r requirements-docs.txt
+#   mkdocs serve      → aperçu sur http://127.0.0.1:8000
+#   mkdocs build      → site statique dans le dossier site/
+mkdocs>=1.6,<2
+mkdocs-material>=9.5,<10

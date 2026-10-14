@@ -31,7 +31,7 @@ import {
 } from "../../services/api/services";
 import { apiRequest, getApiErrorMessage } from "../../services/api/client";
 import { API_ENDPOINTS } from "../../services/api/endpoints";
-import RecaptchaV2 from "../../components/RecaptchaV2";
+import RecaptchaV2, { RECAPTCHA_ACTIF } from "../../components/RecaptchaV2";
 
 function toList(data) {
   return Array.isArray(data) ? data : data?.results || [];
@@ -189,7 +189,7 @@ export default function PublicPreinscriptionPage() {
   const validateStep2 = () => {
     const errors = {};
     // Documents optionnels
-    if (!recaptchaToken) errors.recaptcha = "Veuillez cocher le reCAPTCHA.";
+    if (RECAPTCHA_ACTIF && !recaptchaToken) errors.recaptcha = "Veuillez cocher le reCAPTCHA.";
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };

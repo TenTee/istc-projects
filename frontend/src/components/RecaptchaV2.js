@@ -151,13 +151,10 @@ export default function RecaptchaV2({
     };
   }, [siteKey, theme, size, tabindex, handleCallback, handleExpired]);
 
+  // Sans clé configurée (développement, démonstration), le reCAPTCHA est désactivé :
+  // le serveur ne l'exige pas non plus tant que RECAPTCHA_SECRET_KEY est vide.
   if (!siteKey) {
-    return (
-      <div style={{ color: "#d32f2f", padding: "0.75rem 0" }}>
-        La clé reCAPTCHA n&apos;est pas configurée. Ajoutez
-        `NEXT_PUBLIC_RECAPTCHA_SITE_KEY`.
-      </div>
-    );
+    return null;
   }
 
   return (
@@ -173,3 +170,6 @@ export default function RecaptchaV2({
     />
   );
 }
+
+/** Vrai si une clé reCAPTCHA est configurée pour ce frontend. */
+export const RECAPTCHA_ACTIF = Boolean(process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY);

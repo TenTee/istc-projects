@@ -150,6 +150,13 @@ class Note(models.Model):
         elif self.note_cc is None and self.note_sn is None and self.note_rattrapage is None:
             # Toutes les composantes ont été effacées : la note finale ne doit pas rester l'ancienne valeur.
             self.note_finale = None
+
+        # `update_or_create` (portail formateur) enregistre avec update_fields limité aux
+        # valeurs saisies : sans cela la note finale recalculée n'était jamais sauvegardée.
+        if kwargs.get("update_fields") is not None:
+            kwargs["update_fields"] = set(kwargs["update_fields"]) | {
+                "note_finale", "module", "classe", "session", "annee_academique", "annee_academique_ref",
+            }
         super().save(*args, **kwargs)
 
 

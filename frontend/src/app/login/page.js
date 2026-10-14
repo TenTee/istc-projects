@@ -24,7 +24,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { authService } from "../../services/api/services";
 import { getApiErrorMessage, clearSession } from "../../services/api/client";
-import RecaptchaV2 from "../../components/RecaptchaV2";
+import RecaptchaV2, { RECAPTCHA_ACTIF } from "../../components/RecaptchaV2";
 
 const schema = yup.object({
   username: yup.string().required("Le nom d'utilisateur est requis"),
@@ -55,7 +55,7 @@ export default function LoginPage() {
   const handleClickShowPassword = () => setShowPassword((show) => !show);
 
   const onSubmit = async (values) => {
-    if (!recaptchaToken) {
+    if (RECAPTCHA_ACTIF && !recaptchaToken) {
       setRecaptchaError("Veuillez compléter le reCAPTCHA.");
       return;
     }

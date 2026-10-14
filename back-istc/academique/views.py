@@ -768,7 +768,8 @@ class PreInscriptionViewSet(OptimizedModelViewSet):
                 elif type_reduction == "PERCENT_10":
                     target_reduction = "FORMATION"
                     if classe:
-                        from paiements.models import Frais
+                        # (Pas d'import local de Frais ici : il masquait l'import du module et
+                        #  faisait planter toute approbation avec paiement — UnboundLocalError.)
                         try:
                             schedule = classe.payment_schedule
                             total_formation = schedule.total_amount

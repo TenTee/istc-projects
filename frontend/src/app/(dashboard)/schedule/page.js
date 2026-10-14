@@ -330,6 +330,19 @@ export default function SchedulePage() {
           );
         });
 
+        // Les créneaux en conflit dans les classes ciblées sont remplacés :
+        // on demande confirmation avant toute suppression.
+        if (
+          conflicts.length > 0 &&
+          !window.confirm(
+            `${conflicts.length} créneau(x) existant(s) sur ce jour et cette plage horaire ` +
+              `dans les classes concernées seront supprimés et remplacés par le tronc commun. Continuer ?`,
+          )
+        ) {
+          setSubmitting(false);
+          return;
+        }
+
         // Delete conflicting schedules
         for (const conflict of conflicts) {
           await emploiDuTempsService.remove(conflict.id);

@@ -262,7 +262,7 @@ export default function StudentsPage() {
   const [certStudent, setCertStudent] = useState(null);
 
   const config = React.useContext(ConfigContext);
-  const schoolName = config?.nom || "IFPT SMART CAMPUS";
+  const schoolName = config?.nom || "SMART CAMPUS";
   const logoUrl = getMediaUrl(config?.logo_entete || config?.logo) || "/LOGO SMART CAMPUS.svg";
   const directeurTitre = config?.titre_directeur || "Le Directeur Général";
   const directeurNom = config?.nom_directeur || "";

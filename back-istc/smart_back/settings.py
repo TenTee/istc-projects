@@ -27,8 +27,20 @@ SECRET_KEY = os.getenv(
     'django-insecure-%)nyb*o-kkh67_e)5!jvgbcu&m#49j!c=s9&@!1636^x*9%nmo'
 )
 DEBUG = os.getenv('DEBUG', 'True').strip().lower() in {'1', 'true', 'yes', 'on'}
+# Domaines de production inclus par défaut : sans eux, un serveur dont le .env ne définit
+# pas ALLOWED_HOSTS refuse toutes les requêtes (« DisallowedHost »).
+DEFAULT_ALLOWED_HOSTS = (
+    'localhost,127.0.0.1,'
+    'istc.tenteeglobal.com,smart.tenteeglobal.com'
+)
 ALLOWED_HOSTS = [
-    host.strip() for host in os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',') if host.strip()
+    host.strip() for host in os.getenv('ALLOWED_HOSTS', DEFAULT_ALLOWED_HOSTS).split(',') if host.strip()
+]
+# Derrière un proxy qui transmet X-Forwarded-Host (ex. démo locale via Next.js) : URLs absolues correctes.
+USE_X_FORWARDED_HOST = os.getenv('USE_X_FORWARDED_HOST', 'False').strip().lower() in {'1', 'true', 'yes', 'on'}
+
+CSRF_TRUSTED_ORIGINS = [
+    f"https://{host}" for host in ALLOWED_HOSTS if host not in ('localhost', '127.0.0.1', '*')
 ]
 
 # -------------------------
@@ -87,6 +99,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'academique.middleware.ArchiveAcademicYearMiddleware',
     'users.middleware.PortalAccessMiddleware',
+    'users.acces_personnel.StaffAccessMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'academique.middleware.AcademicYearMiddleware',
@@ -158,7 +171,8 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
+# Surchargeable (ex. base de démonstration : outils/demo/lancer_demo.sh)
+MEDIA_ROOT = Path(os.getenv("MEDIA_ROOT")) if os.getenv("MEDIA_ROOT") else BASE_DIR / "media"
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -214,7 +228,7 @@ CELERY_RESULT_BACKEND = "redis://localhost:6379/0"
 # -------------------------
 # CORS
 # -------------------------
-CORS_ALLOWED_ORIGINS = [
+DEFAULT_CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "http://localhost:3000",
@@ -224,6 +238,11 @@ CORS_ALLOWED_ORIGINS = [
     "http://istc.tenteeglobal.com",
     "https://istc-smartcampus.vercel.app",
 ]
+# Origines supplémentaires dans .env : CORS_ALLOWED_ORIGINS=https://a.com,https://b.com
+# (ajoutées aux origines par défaut ci-dessus, qui restent toujours autorisées).
+CORS_ALLOWED_ORIGINS = list(dict.fromkeys(DEFAULT_CORS_ALLOWED_ORIGINS + [
+    origin.strip().rstrip('/') for origin in os.getenv('CORS_ALLOWED_ORIGINS', '').split(',') if origin.strip()
+]))
 
 from corsheaders.defaults import default_headers
 

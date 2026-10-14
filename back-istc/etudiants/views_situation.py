@@ -144,10 +144,10 @@ class StudentHistoryView(APIView):
                     assiduite_qs = assiduite_qs.filter(etudiant__inscriptions__annee_academique_ref_id=year_id)
                 
                 history.append({
-                    "annee_academique": ins.annee_academique_ref_libelle or ins.annee_academique,
+                    "annee_academique": ins.annee_academique_ref.libelle if ins.annee_academique_ref_id else ins.annee_academique,
                     "annee_academique_id": year_id,
-                    "classe": ins.classe_nom,
-                    "niveau": ins.niveau_nom,
+                    "classe": ins.classe.nom if ins.classe_id else "",
+                    "niveau": ins.niveau.nom if ins.niveau_id else "",
                     "notes_count": notes_qs.count(),
                     "finances": {
                         "montant_du": float(montant_du),

@@ -1,0 +1,41 @@
+# --- Secrets et configuration locale (ne JAMAIS committer) ---
+.env
+.env.*
+!.env.example
+!.env.istc
+
+# --- Python / Django ---
+__pycache__/
+*.py[cod]
+venv/
+.venv/
+*.sqlite3
+back-istc/media/
+back-istc/staticfiles/
+back-istc/backups/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# --- Node / Next.js ---
+node_modules/
+frontend/.next/
+frontend/out/
+*.tsbuildinfo
+
+# --- Documentation générée ---
+site/
+
+# --- Systèmes / éditeurs ---
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# --- Divers ---
+.claude_snapshot*.tgz
+
+# Démonstration locale
+outils/demo/media/

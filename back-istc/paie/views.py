@@ -125,6 +125,16 @@ class CampagnePaieViewSet(viewsets.ModelViewSet):
             return CampagnePaieListSerializer
         return CampagnePaieSerializer
 
+    def destroy(self, request, *args, **kwargs):
+        # Une campagne payée a généré des dépenses et des remboursements d'avances :
+        # la supprimer fausserait la comptabilité.
+        if self.get_object().statut == 'payee':
+            return Response(
+                {'error': 'Une campagne déjà payée ne peut pas être supprimée.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        return super().destroy(request, *args, **kwargs)
+
 
 class GenererCampagneView(APIView):
     """

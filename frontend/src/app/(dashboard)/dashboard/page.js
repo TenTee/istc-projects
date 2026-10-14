@@ -23,6 +23,10 @@ import CardSkeletonGrid from '../../../components/common/CardSkeleton';
 import ChartSkeleton from '../../../components/common/ChartSkeleton';
 import ErrorState from '../../../components/common/ErrorState';
 
+// Les statuts sont stockés avec accents (« Validé », « Validée ») : comparaison insensible aux accents.
+const estValide = (statut) =>
+  String(statut || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().startsWith('valid');
+
 const MONTH_NAMES = ["Jan", "Fév", "Mar", "Avr", "Mai", "Jun", "Jul", "Aoû", "Sep", "Oct", "Nov", "Déc"];
 
 function sortByMonth(data) {
@@ -134,14 +138,14 @@ export default function Dashboard() {
         // Flux financier mensuel (Revenus vs Dépenses)
         const finMonthCount = {};
         revenus.forEach(r => {
-             if(r.statut !== 'Valide') return;
+             if(!estValide(r.statut)) return;
              const d = new Date(r.date_entree || r.created_at);
              const m = `${MONTH_NAMES[d.getMonth()]} ${d.getFullYear().toString().substr(-2)}`;
              if(!finMonthCount[m]) finMonthCount[m] = { name: m, revenus: 0, depenses: 0 };
              finMonthCount[m].revenus += Number(r.montant);
         });
         depenses.forEach(dep => {
-             if(dep.statut !== 'Validee') return;
+             if(!estValide(dep.statut)) return;
              const date = new Date(dep.date_depense || dep.created_at);
              const m = `${MONTH_NAMES[date.getMonth()]} ${date.getFullYear().toString().substr(-2)}`;
              if(!finMonthCount[m]) finMonthCount[m] = { name: m, revenus: 0, depenses: 0 };

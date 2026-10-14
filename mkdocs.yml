@@ -1,0 +1,111 @@
+site_name: SmartCampus ISTC — Guide d'utilisation
+site_description: Guide complet de la plateforme SmartCampus (administration, formateurs, étudiants, installation et développement)
+site_author: ISTC
+docs_dir: docs
+site_dir: site
+use_directory_urls: true
+
+theme:
+  name: material
+  language: fr
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - navigation.footer
+    - navigation.indexes
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - toc.follow
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: amber
+      toggle:
+        icon: material/weather-night
+        name: Passer en mode sombre
+    - scheme: slate
+      primary: indigo
+      accent: amber
+      toggle:
+        icon: material/weather-sunny
+        name: Passer en mode clair
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.keys
+  - pymdownx.mark
+
+plugins:
+  - search:
+      lang: fr
+
+nav:
+  - Accueil: index.md
+  - Guide d'utilisation:
+      - guide/index.md
+      - Premiers pas: guide/premiers-pas.md
+      - Rôles et droits d'accès: guide/roles-et-acces.md
+      - Démarrer une nouvelle année: guide/demarrer-une-annee.md
+      - Candidats — préinscription en ligne: guide/preinscription-candidat.md
+      - Administration:
+          - guide/administration/index.md
+          - Tableau de bord: guide/administration/tableau-de-bord.md
+          - Structure académique: guide/administration/structure-academique.md
+          - Cours et modules: guide/administration/cours.md
+          - Étudiants: guide/administration/etudiants.md
+          - Enseignants (formateurs): guide/administration/enseignants.md
+          - Emploi du temps: guide/administration/emploi-du-temps.md
+          - Notes et relevés: guide/administration/notes.md
+          - Banque d'épreuves: guide/administration/banque-epreuves.md
+          - Assiduité: guide/administration/assiduite.md
+          - Coordonnateurs de filière: guide/administration/coordonnateurs.md
+          - Préinscriptions (validation): guide/administration/preinscriptions.md
+          - Scolarité et paiements: guide/administration/scolarite.md
+          - Aperçu financier (revenus et dépenses): guide/administration/apercu-financier.md
+          - Salaires (personnel et formateurs): guide/administration/salaires.md
+          - Heures des vacataires: guide/administration/heures-vacataires.md
+          - Inventaire et demandes: guide/administration/inventaire.md
+          - Personnel et congés: guide/administration/personnel-conges.md
+          - Système (paramètres, utilisateurs, rôles): guide/administration/systeme.md
+      - Portail formateur: guide/portail-formateur.md
+      - Coordonnateur de filière: guide/coordonnateur.md
+      - Portail étudiant: guide/portail-etudiant.md
+      - Questions fréquentes: guide/faq.md
+      - Glossaire: guide/glossaire.md
+  - Installation et configuration:
+      - installation/index.md
+      - Prérequis: installation/prerequis.md
+      - Installation sur un poste (test): installation/installation-locale.md
+      - Mise en ligne sur un serveur: installation/deploiement-serveur.md
+      - Fichier de configuration (.env): installation/configuration.md
+      - Sauvegardes et restauration: installation/sauvegardes.md
+      - Mettre à jour la plateforme: installation/mise-a-jour.md
+      - Dépannage: installation/depannage.md
+  - Développeurs:
+      - developpeurs/index.md
+      - Architecture: developpeurs/architecture.md
+      - Carte des applications: developpeurs/applications.md
+      - Permissions et cloisonnement: developpeurs/permissions.md
+      - Tests automatisés: developpeurs/tests.md
+      - Ajouter une fonctionnalité: developpeurs/ajouter-une-fonctionnalite.md
+      - Conventions de code: developpeurs/conventions.md
+      - Référence API: developpeurs/api.md

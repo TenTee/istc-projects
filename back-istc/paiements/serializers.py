@@ -129,6 +129,11 @@ class StudentPaymentPlanSerializer(serializers.ModelSerializer):
             "updated_at",
         ]
         read_only_fields = ["created_at", "updated_at", "etudiant_nom", "filiere_nom", "installments"]
+        # Déduits de l'étudiant dans validate() s'ils ne sont pas fournis.
+        extra_kwargs = {"filiere": {"required": False}, "policy": {"required": False}}
+        # Le validateur d'unicité automatique rendait « filiere » obligatoire : l'unicité
+        # (un plan par étudiant et par filière) est contrôlée dans validate().
+        validators = []
 
     def validate(self, attrs):
         etudiant = attrs.get("etudiant") or getattr(self.instance, "etudiant", None)
@@ -136,9 +141,15 @@ class StudentPaymentPlanSerializer(serializers.ModelSerializer):
 
         if etudiant and not filiere:
             filiere = etudiant.filiere
+        if filiere:
             attrs["filiere"] = filiere
         if not filiere:
             raise serializers.ValidationError({"filiere": "La filière est requise."})
+        doublon = StudentPaymentPlan.objects.filter(etudiant=etudiant, filiere=filiere)
+        if self.instance is not None:
+            doublon = doublon.exclude(pk=self.instance.pk)
+        if etudiant and doublon.exists():
+            raise serializers.ValidationError({"etudiant": "Cet étudiant a déjà un échéancier pour cette filière."})
 
         policy = attrs.get("policy") or getattr(self.instance, "policy", None) or getattr(filiere, "payment_policy", None)
         if not policy:

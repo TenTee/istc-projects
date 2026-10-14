@@ -1,5 +1,7 @@
 # SmartCampus — API (Django / DRF)
 
+Documentation complète : dossier `../docs/` (installation, configuration `.env`, architecture, permissions).
+
 ## Démarrage (dev)
 
 ```bash
@@ -18,8 +20,12 @@ Frontend (Next.js) : dossier `../frontend`, variable `NEXT_PUBLIC_API_BASE_URL` 
 ## Tests
 
 ```bash
-python -m pytest
+python -m pytest -q          # toute la suite
+python -m pytest tests/ -q   # tests de flux (parcours utilisateurs)
 ```
+
+Fabriques de test : `smart_back/testing.py` (`Monde`, `client_api`…), fixtures : `conftest.py`.
+Guide complet : `../docs/developpeurs/tests.md`.
 
 ## Contrôle d'accès
 

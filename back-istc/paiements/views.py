@@ -377,17 +377,25 @@ class MePaiementSummary(APIView):
         montant_paye_inscription = sf["paye_inscription"]
         montant_paye_formation = sf["paye_formation"]
 
-        plan = StudentPaymentPlan.objects.filter(etudiant=etudiant).first()
+        # Échéancier : même calcul que la fiche étudiant côté administration (échéancier
+        # personnel s'il existe, sinon celui de la classe). Auparavant seul un échéancier
+        # personnel était renvoyé : la plupart des étudiants voyaient un tableau vide.
         installments = []
-        if plan:
-            for inst in plan.installments.all():
-                installments.append({
-                    "label": inst.label,
-                    "due_date": inst.due_date,
-                    "amount_due": inst.amount_due,
-                    "amount_paid": inst.amount_paid,
-                    "status": inst.status
-                })
+        inscription = sf.get("inscription")
+        if inscription and inscription.classe_id:
+            resume = compute_student_retard(etudiant, inscription.classe)
+            installments = [
+                {k: inst.get(k) for k in ("label", "due_date", "amount_due", "amount_paid", "status")}
+                for inst in resume.get("installments", [])
+            ]
+        else:
+            plan = StudentPaymentPlan.objects.filter(etudiant=etudiant).first()
+            if plan:
+                installments = [
+                    {"label": i.label, "due_date": i.due_date, "amount_due": i.amount_due,
+                     "amount_paid": i.amount_paid, "status": i.status}
+                    for i in plan.installments.all()
+                ]
 
         return Response({
             "inscription": {
