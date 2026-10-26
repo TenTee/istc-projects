@@ -18,6 +18,8 @@ import {
   ListItemText,
   Alert,
   Snackbar,
+  useTheme,
+  useMediaQuery,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import DownloadIcon from "@mui/icons-material/Download";
@@ -30,6 +32,8 @@ import CategoryIcon from "@mui/icons-material/Category";
 
 export default function DocPreviewModal({ doc, open, onClose }) {
   const [toastOpen, setToastOpen] = useState(false);
+  const theme = useTheme();
+  const fullScreen = useMediaQuery(theme.breakpoints.down("sm"));
 
   if (!doc) return null;
 
@@ -73,16 +77,17 @@ export default function DocPreviewModal({ doc, open, onClose }) {
         onClose={onClose}
         maxWidth="md"
         fullWidth
+        fullScreen={fullScreen}
         PaperProps={{
           sx: {
-            borderRadius: "16px",
+            borderRadius: fullScreen ? 0 : "16px",
             p: { xs: 1, sm: 2 },
             boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
           },
         }}
       >
         <DialogTitle sx={{ m: 0, p: 2, display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-          <Box sx={{ pr: 2 }}>
+          <Box sx={{ pr: { xs: 1, sm: 2 }, minWidth: 0 }}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1, flexWrap: "wrap" }}>
               <Chip
                 label={doc.badge}
@@ -108,11 +113,11 @@ export default function DocPreviewModal({ doc, open, onClose }) {
               />
             </Box>
 
-            <Typography variant="h5" component="h2" sx={{ fontWeight: 800, color: "#0F172A", lineHeight: 1.3 }}>
+            <Typography variant="h5" component="h2" sx={{ fontWeight: 800, color: "#0F172A", lineHeight: 1.3, wordBreak: "break-word" }}>
               {doc.title}
             </Typography>
           </Box>
-          <IconButton onClick={onClose} sx={{ color: "#64748B" }}>
+          <IconButton onClick={onClose} sx={{ color: "#64748B", flexShrink: 0 }}>
             <CloseIcon />
           </IconButton>
         </DialogTitle>
@@ -125,7 +130,7 @@ export default function DocPreviewModal({ doc, open, onClose }) {
             sx={{
               display: "flex",
               flexWrap: "wrap",
-              gap: 3,
+              gap: { xs: 2, sm: 3 },
               backgroundColor: "#F8FAFC",
               p: 2,
               borderRadius: "12px",
@@ -210,7 +215,7 @@ export default function DocPreviewModal({ doc, open, onClose }) {
 
         <Divider />
 
-        <DialogActions sx={{ p: 2.5, justifyContent: "space-between", flexWrap: "wrap", gap: 1 }}>
+        <DialogActions sx={{ p: { xs: 2, sm: 2.5 }, justifyContent: "space-between", flexWrap: "wrap", gap: 1 }}>
           <Button
             startIcon={<ShareIcon />}
             onClick={handleShare}
@@ -220,7 +225,7 @@ export default function DocPreviewModal({ doc, open, onClose }) {
             Copier le lien
           </Button>
 
-          <Box sx={{ display: "flex", gap: 1.5 }}>
+          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1.5 }}>
             <Button onClick={onClose} variant="text" sx={{ textTransform: "none", color: "#64748B" }}>
               Fermer
             </Button>

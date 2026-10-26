@@ -24,6 +24,7 @@ import { routes, bottomRoutes } from '../../config/routes';
 import { ConfigContext } from '../../theme/ThemeRegistry';
 import { getMediaUrl, clearSession } from '../../services/api/client';
 import { useSidebar } from '../../context/SidebarContext';
+import VersionInfo from './VersionInfo';
 import { hasReadAccess } from '../../utils/permissions';
 
 const EXPANDED_WIDTH = 260;
@@ -288,6 +289,8 @@ export default function Sidebar() {
                             fontSize: '0.9rem',
                             fontWeight: isParentActive ? 600 : 400,
                             whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
                           }}
                         />
                       )}
@@ -335,6 +338,8 @@ export default function Sidebar() {
                                 primaryTypographyProps={{
                                   fontSize: '0.85rem',
                                   fontWeight: isChildActive ? 600 : 400,
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
                                 }}
                               />
                             </ListItemButton>
@@ -396,6 +401,8 @@ export default function Sidebar() {
                           fontSize: '0.9rem',
                           fontWeight: isParentActive ? 600 : 400,
                           whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
                         }}
                       />
                     )}
@@ -438,6 +445,7 @@ export default function Sidebar() {
             </Tooltip>
           </ListItem>
         </List>
+        <VersionInfo compact={isCollapsed && !isMobile} />
       </Box>
     </Box>
   );

@@ -29,7 +29,7 @@ export default function DocCategoryTabs({ selectedCategory, setSelectedCategory,
   };
 
   return (
-    <Box sx={{ backgroundColor: "#F8FAFC", borderBottom: "1px solid #E2E8F0", py: 2.5 }}>
+    <Box sx={{ backgroundColor: "#F8FAFC", borderBottom: "1px solid #E2E8F0", py: { xs: 1.5, sm: 2.5 } }}>
       <Container maxWidth="lg">
         <Box
           sx={{
@@ -58,6 +58,7 @@ export default function DocCategoryTabs({ selectedCategory, setSelectedCategory,
                   px: 2.5,
                   py: 1,
                   whiteSpace: "nowrap",
+                  flexShrink: 0,
                   textTransform: "none",
                   fontWeight: isSelected ? 700 : 500,
                   fontSize: "0.92rem",

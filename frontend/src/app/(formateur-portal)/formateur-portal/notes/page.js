@@ -142,9 +142,9 @@ export default function SaisieNotesPage() {
     <Box>
       <Typography variant="h5" fontWeight="bold" gutterBottom>Saisie des Notes</Typography>
 
-      <Paper sx={{ p: 3, mb: 3 }}>
+      <Paper sx={{ p: { xs: 2, sm: 3 }, mb: 3 }}>
         <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-          <FormControl sx={{ minWidth: 200 }}>
+          <FormControl sx={{ minWidth: { xs: 0, sm: 200 }, flex: { xs: '1 1 100%', sm: '0 1 auto' } }}>
             <InputLabel>Classe</InputLabel>
             <Select
               value={selectedClasse}
@@ -161,7 +161,7 @@ export default function SaisieNotesPage() {
             </Select>
           </FormControl>
 
-          <FormControl sx={{ minWidth: 200 }}>
+          <FormControl sx={{ minWidth: { xs: 0, sm: 200 }, flex: { xs: '1 1 100%', sm: '0 1 auto' } }}>
             <InputLabel>Module</InputLabel>
             <Select
               value={selectedModule}
@@ -178,9 +178,9 @@ export default function SaisieNotesPage() {
       </Paper>
 
       {notes.length > 0 && (
-        <Paper sx={{ p: 2 }}>
+        <Paper sx={{ p: { xs: 1, sm: 2 } }}>
           <TableContainer>
-            <Table size="small">
+            <Table size="small" sx={{ minWidth: 650 }}>
               <TableHead>
                 <TableRow>
                   <TableCell><strong>Matricule</strong></TableCell>
@@ -193,7 +193,7 @@ export default function SaisieNotesPage() {
               <TableBody>
                 {notes.map((note, idx) => (
                   <TableRow key={note.etudiant_id}>
-                    <TableCell>{note.matricule}</TableCell>
+                    <TableCell sx={{ whiteSpace: 'nowrap' }}>{note.matricule}</TableCell>
                     <TableCell>{note.etudiant_nom}</TableCell>
                     <TableCell align="center">
                       <TextField
@@ -237,6 +237,7 @@ export default function SaisieNotesPage() {
               startIcon={<SaveIcon />}
               onClick={handleSave}
               disabled={saving}
+              sx={{ width: { xs: '100%', sm: 'auto' } }}
             >
               {saving ? 'Enregistrement...' : 'Enregistrer les notes'}
             </Button>

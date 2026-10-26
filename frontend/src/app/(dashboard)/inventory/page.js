@@ -39,6 +39,9 @@ import {
   StepLabel,
   Divider,
   Badge,
+  TableContainer,
+  useTheme,
+  useMediaQuery,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -119,6 +122,8 @@ const DEMANDE_STATUTS = {
 export default function InventoryPage() {
   const { canWrite } = useUserPermissions();
   const canWriteLogistique = canWrite('can_manage_logistique');
+  const theme = useTheme();
+  const fullScreen = useMediaQuery(theme.breakpoints.down("sm"));
   const [currentTab, setCurrentTab] = useState(0);
   const [openImportExport, setOpenImportExport] = useState(false);
   const [snack, setSnack] = useState({
@@ -591,8 +596,10 @@ export default function InventoryPage() {
       <Box
         sx={{
           display: "flex",
+          flexDirection: { xs: "column", sm: "row" },
           justifyContent: "space-between",
-          alignItems: "center",
+          alignItems: { xs: "stretch", sm: "center" },
+          gap: 2,
           mb: 2,
         }}
       >
@@ -601,11 +608,12 @@ export default function InventoryPage() {
           Gestion du Matériel
         </Typography>
         {currentTab === 0 && (
-          <Box sx={{ display: "flex", gap: 1 }}>
+          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
             <Button
               variant="outlined"
               startIcon={<DownloadIcon />}
               onClick={() => setOpenImportExport(true)}
+              sx={{ flex: { xs: "1 1 auto", sm: "0 0 auto" } }}
             >
               Import / Export
             </Button>
@@ -613,6 +621,7 @@ export default function InventoryPage() {
               <Button
                 variant="contained"
                 startIcon={<AddIcon />}
+                sx={{ flex: { xs: "1 1 auto", sm: "0 0 auto" } }}
                 onClick={() => {
                   setEditingArticle(null);
                   setArticleForm({
@@ -639,6 +648,7 @@ export default function InventoryPage() {
             variant="contained"
             startIcon={<AddIcon />}
             color="secondary"
+            sx={{ width: { xs: "100%", sm: "auto" } }}
             onClick={() => {
               setDemandeForm({
                 objet: "",
@@ -692,7 +702,8 @@ export default function InventoryPage() {
       {currentTab === 0 && (
         <Box>
           <Paper sx={{ borderRadius: 3, overflow: "hidden" }}>
-            <Table>
+            <TableContainer>
+            <Table sx={{ minWidth: 900 }}>
               <TableHead sx={{ bgcolor: "#F5F7FA" }}>
                 <TableRow>
                   <TableCell width={40}></TableCell>
@@ -810,7 +821,7 @@ export default function InventoryPage() {
                           <TableCell>
                             {Number(art.prix_unitaire).toLocaleString()} F
                           </TableCell>
-                          <TableCell align="right">
+                          <TableCell align="right" sx={{ whiteSpace: "nowrap" }}>
                             {canWriteLogistique && (
                               <Tooltip title="Ajouter au stock">
                                 <IconButton
@@ -968,7 +979,7 @@ export default function InventoryPage() {
                                             <TableCell>
                                               {ex.attributaire_nom || "-"}
                                             </TableCell>
-                                            <TableCell align="right">
+                                            <TableCell align="right" sx={{ whiteSpace: "nowrap" }}>
                                               <Tooltip title="Modifier N° série / Description">
                                                 <IconButton
                                                   size="small"
@@ -1080,6 +1091,7 @@ export default function InventoryPage() {
                 )}
               </TableBody>
             </Table>
+            </TableContainer>
             <TablePagination
               rowsPerPageOptions={[20, 50, 100]}
               component="div"
@@ -1101,7 +1113,8 @@ export default function InventoryPage() {
       {currentTab === 1 && (
         <Box>
           <Paper sx={{ borderRadius: 3, overflow: "hidden" }}>
-            <Table>
+            <TableContainer>
+            <Table sx={{ minWidth: 900 }}>
               <TableHead sx={{ bgcolor: "#F5F7FA" }}>
                 <TableRow>
                   <TableCell width={40}></TableCell>
@@ -1206,7 +1219,7 @@ export default function InventoryPage() {
                                   )
                                 : "-"}
                             </TableCell>
-                            <TableCell align="right">
+                            <TableCell align="right" sx={{ whiteSpace: "nowrap" }}>
                               {canWriteLogistique && dem.statut === "brouillon" && (
                                 <Tooltip title="Soumettre">
                                   <IconButton
@@ -1363,6 +1376,7 @@ export default function InventoryPage() {
                 )}
               </TableBody>
             </Table>
+            </TableContainer>
             <TablePagination
               rowsPerPageOptions={[20, 50, 100]}
               component="div"
@@ -1383,7 +1397,8 @@ export default function InventoryPage() {
       {/* TAB 2: MOUVEMENTS */}
       {currentTab === 2 && (
         <Paper sx={{ borderRadius: 3, overflow: "hidden" }}>
-          <Table>
+          <TableContainer>
+          <Table sx={{ minWidth: 800 }}>
             <TableHead sx={{ bgcolor: "#F5F7FA" }}>
               <TableRow>
                 <TableCell sx={{ fontWeight: "bold" }}>Référence</TableCell>
@@ -1461,6 +1476,7 @@ export default function InventoryPage() {
               )}
             </TableBody>
           </Table>
+          </TableContainer>
           <TablePagination
             rowsPerPageOptions={[20, 50, 100]}
             component="div"
@@ -1705,7 +1721,8 @@ export default function InventoryPage() {
                       >
                         Top articles en utilisation
                       </Typography>
-                      <Table size="small">
+                      <TableContainer>
+                      <Table size="small" sx={{ minWidth: 600 }}>
                         <TableHead sx={{ bgcolor: "#F5F7FA" }}>
                           <TableRow>
                             <TableCell sx={{ fontWeight: "bold" }}>
@@ -1774,6 +1791,7 @@ export default function InventoryPage() {
                           ))}
                         </TableBody>
                       </Table>
+                      </TableContainer>
                     </CardContent>
                   </Card>
                 )}
@@ -1847,7 +1865,8 @@ export default function InventoryPage() {
                       >
                         Derniers mouvements
                       </Typography>
-                      <Table size="small">
+                      <TableContainer>
+                      <Table size="small" sx={{ minWidth: 550 }}>
                         <TableHead>
                           <TableRow>
                             <TableCell>Réf.</TableCell>
@@ -1883,6 +1902,7 @@ export default function InventoryPage() {
                           ))}
                         </TableBody>
                       </Table>
+                      </TableContainer>
                     </CardContent>
                   </Card>
                 )}
@@ -1932,7 +1952,7 @@ export default function InventoryPage() {
                 }
               />
             </Grid>
-            <Grid item xs={6}>
+            <Grid item xs={12} sm={6}>
               <FormControl fullWidth>
                 <InputLabel>Catégorie</InputLabel>
                 <Select
@@ -1953,7 +1973,7 @@ export default function InventoryPage() {
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={6}>
+            <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
                 type="number"
@@ -1967,7 +1987,7 @@ export default function InventoryPage() {
                 }
               />
             </Grid>
-            <Grid item xs={6}>
+            <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
                 label="Fournisseur"
@@ -1980,7 +2000,7 @@ export default function InventoryPage() {
                 }
               />
             </Grid>
-            <Grid item xs={6}>
+            <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
                 type="number"
@@ -2001,7 +2021,7 @@ export default function InventoryPage() {
                     <Chip label="Stock initial" size="small" />
                   </Divider>
                 </Grid>
-                <Grid item xs={4}>
+                <Grid item xs={12} sm={4}>
                   <TextField
                     fullWidth
                     type="number"
@@ -2015,7 +2035,7 @@ export default function InventoryPage() {
                     }
                   />
                 </Grid>
-                <Grid item xs={4}>
+                <Grid item xs={12} sm={4}>
                   <FormControl fullWidth>
                     <InputLabel>Condition</InputLabel>
                     <Select
@@ -2036,7 +2056,7 @@ export default function InventoryPage() {
                     </Select>
                   </FormControl>
                 </Grid>
-                <Grid item xs={4}>
+                <Grid item xs={12} sm={4}>
                   <TextField
                     fullWidth
                     label="Localisation"
@@ -2157,6 +2177,7 @@ export default function InventoryPage() {
         onClose={() => setOpenDemandeForm(false)}
         maxWidth="md"
         fullWidth
+        fullScreen={fullScreen}
       >
         <DialogTitle>Nouvelle demande d'articles</DialogTitle>
         <DialogContent dividers>
@@ -2199,7 +2220,7 @@ export default function InventoryPage() {
                   placeholder="Expliquez pourquoi ce matériel est nécessaire..."
                 />
               </Grid>
-              <Grid item xs={6}>
+              <Grid item xs={12} sm={6}>
                 <FormControl fullWidth required>
                   <InputLabel>Demandeur</InputLabel>
                   <Select
@@ -2233,7 +2254,7 @@ export default function InventoryPage() {
                   </Select>
                 </FormControl>
               </Grid>
-              <Grid item xs={6}>
+              <Grid item xs={12} sm={6}>
                 <FormControl fullWidth>
                   <InputLabel>Priorité</InputLabel>
                   <Select
@@ -2268,7 +2289,7 @@ export default function InventoryPage() {
                   flexWrap: "wrap",
                 }}
               >
-                <FormControl sx={{ minWidth: 250 }}>
+                <FormControl sx={{ minWidth: { xs: "100%", sm: 250 } }}>
                   <InputLabel>Article</InputLabel>
                   <Select
                     label="Article"
@@ -2305,7 +2326,7 @@ export default function InventoryPage() {
                   onChange={(e) =>
                     setTempLigne({ ...tempLigne, notes: e.target.value })
                   }
-                  sx={{ flex: 1, minWidth: 150 }}
+                  sx={{ flex: 1, minWidth: { xs: 0, sm: 150 } }}
                 />
                 <Button
                   variant="outlined"
@@ -2358,7 +2379,8 @@ export default function InventoryPage() {
                   Aucun article ajouté. Sélectionnez un article ci-dessus.
                 </Alert>
               ) : (
-                <Table size="small">
+                <TableContainer>
+                <Table size="small" sx={{ minWidth: 600 }}>
                   <TableHead sx={{ bgcolor: "#F5F7FA" }}>
                     <TableRow>
                       <TableCell sx={{ fontWeight: "bold" }}>Article</TableCell>
@@ -2429,6 +2451,7 @@ export default function InventoryPage() {
                     ))}
                   </TableBody>
                 </Table>
+                </TableContainer>
               )}
             </Box>
           )}

@@ -1,14 +1,15 @@
 'use client';
 
 import React from 'react';
-import { Chip, Table, TableBody, TableCell, TableHead, TableRow, Typography } from '@mui/material';
+import { Chip, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from '@mui/material';
 import { formatDateFr, formatHeure, formatHeures } from './common';
 
 /** Tableau détaillé des pointages d'un enseignant (utilisé par le coordonnateur et la finance). */
 export default function PointagesTable({ pointages }) {
   if (!pointages.length) return <Typography color="text.secondary">Aucun pointage.</Typography>;
   return (
-    <Table size="small">
+    <TableContainer>
+    <Table size="small" sx={{ minWidth: 750 }}>
       <TableHead>
         <TableRow>
           <TableCell>Date</TableCell>
@@ -52,5 +53,6 @@ export default function PointagesTable({ pointages }) {
         ))}
       </TableBody>
     </Table>
+    </TableContainer>
   );
 }

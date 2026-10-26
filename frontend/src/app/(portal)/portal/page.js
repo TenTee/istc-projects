@@ -83,7 +83,7 @@ export default function StudentDashboard() {
         </Typography>
       </Box>
 
-      <Grid container spacing={3}>
+      <Grid container spacing={{ xs: 2, md: 3 }}>
         {/* Profile Card */}
         <Grid item xs={12} md={4}>
           <Card sx={{ borderRadius: 4, height: '100%', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
@@ -98,19 +98,19 @@ export default function StudentDashboard() {
               <Box sx={{ mt: 2, width: '100%' }}>
                 <Divider sx={{ my: 2 }} />
                 <Stack spacing={1}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 1 }}>
                     <Typography variant="caption" color="text.secondary">Filière</Typography>
-                    <Typography variant="caption" fontWeight="bold">{student.filiere_details?.nom || '-'}</Typography>
+                    <Typography variant="caption" fontWeight="bold" sx={{ textAlign: 'right', wordBreak: 'break-word', minWidth: 0 }}>{student.filiere_details?.nom || '-'}</Typography>
                   </Box>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 1 }}>
                     <Typography variant="caption" color="text.secondary">Classe</Typography>
-                    <Typography variant="caption" fontWeight="bold">
+                    <Typography variant="caption" fontWeight="bold" sx={{ textAlign: 'right', wordBreak: 'break-word', minWidth: 0 }}>
                       {student.inscriptions?.[0]?.classe_nom || 'Non assigné'}
                     </Typography>
                   </Box>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 1 }}>
                     <Typography variant="caption" color="text.secondary">Contact</Typography>
-                    <Typography variant="caption" fontWeight="bold">{student.contact}</Typography>
+                    <Typography variant="caption" fontWeight="bold" sx={{ textAlign: 'right', wordBreak: 'break-word', minWidth: 0 }}>{student.contact}</Typography>
                   </Box>
                 </Stack>
                 
@@ -166,7 +166,7 @@ export default function StudentDashboard() {
                   elevation={0}
                   onClick={() => router.push(item.link)}
                   sx={{ 
-                    p: 3, 
+                    p: { xs: 2, sm: 3 }, 
                     borderRadius: 4, 
                     border: '1px solid rgba(0,0,0,0.05)',
                     display: 'flex',
@@ -180,10 +180,10 @@ export default function StudentDashboard() {
                     }
                   }}
                 >
-                  <Box sx={{ p: 1.5, borderRadius: 3, bgcolor: `${item.color}15`, color: item.color }}>
+                  <Box sx={{ p: 1.5, borderRadius: 3, bgcolor: `${item.color}15`, color: item.color, flexShrink: 0 }}>
                     <item.icon />
                   </Box>
-                  <Box>
+                  <Box sx={{ minWidth: 0 }}>
                     <Typography variant="subtitle1" fontWeight="bold">{item.label}</Typography>
                     <Typography variant="caption" color="text.secondary">{item.desc}</Typography>
                   </Box>
@@ -193,7 +193,7 @@ export default function StudentDashboard() {
           </Grid>
 
           {/* Announcements / Notifications placeholder */}
-          <Card sx={{ mt: 3, borderRadius: 4, boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
+          <Card sx={{ mt: { xs: 2, md: 3 }, borderRadius: 4, boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
             <CardContent>
               <Typography variant="h6" fontWeight="bold" gutterBottom>Actualités du campus</Typography>
               <Divider sx={{ mb: 2 }} />
@@ -214,8 +214,11 @@ export default function StudentDashboard() {
         <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span>Ma Carte d&apos;Étudiant Digitalisée</span>
         </DialogTitle>
-        <DialogContent sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', p: 4, bgcolor: '#f0f2f5' }}>
-          <StudentCard student={student} flipable={true} />
+        <DialogContent sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', p: { xs: 2, sm: 4 }, bgcolor: '#f0f2f5', overflowX: 'auto' }}>
+          {/* Aperçu à l'écran uniquement : réduction visuelle sur téléphone, dimensions de la carte inchangées */}
+          <Box sx={{ zoom: { xs: 0.66, sm: 1 } }}>
+            <StudentCard student={student} flipable={true} />
+          </Box>
           <Typography variant="caption" color="text.secondary" sx={{ mt: 2, fontStyle: 'italic', textAlign: 'center' }}>
             Document numérique d&apos;identification réservé à la consultation. Pour obtenir une carte PVC officielle imprimée, veuillez vous adresser au secrétariat de l&apos;établissement.
           </Typography>

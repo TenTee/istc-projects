@@ -1,0 +1,57 @@
+# Versionnage automatique : à chaque push sur main, une nouvelle version est calculée,
+# enregistrée (versions.json, VERSION, CHANGELOG.md, package.json), étiquetée (vX.Y.Z)
+# et publiée comme « Release » GitHub. Détails : docs/developpeurs/versions.md
+name: Version
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: versionnage
+  cancel-in-progress: false
+
+jobs:
+  version:
+    name: Nouvelle version
+    runs-on: ubuntu-latest
+    # le commit créé par ce workflow ne relance pas un versionnage
+    if: ${{ !startsWith(github.event.head_commit.message, 'chore(version)') }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0          # historique et étiquettes complets
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Calculer la nouvelle version
+        id: v
+        run: python3 outils/version/versionner.py --depuis "${{ github.event.before }}"
+
+      - name: Enregistrer, étiqueter et pousser
+        if: steps.v.outputs.version != ''
+        env:
+          VERSION: ${{ steps.v.outputs.version }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add VERSION CHANGELOG.md NOUVEAUTES.md frontend/src/config/versions.json frontend/package.json frontend/package-lock.json
+          git commit -m "chore(version): v$VERSION [skip ci]"
+          # si un autre push est arrivé entre-temps, on se replace dessus avant d'étiqueter
+          git pull --rebase origin main
+          git tag -a "v$VERSION" -m "SmartCampus $VERSION"
+          git push origin HEAD:main
+          git push origin "v$VERSION"
+
+      - name: Publier la Release GitHub
+        if: steps.v.outputs.version != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.v.outputs.version }}
+          NOTES: ${{ steps.v.outputs.notes }}
+        run: gh release create "v$VERSION" --title "SmartCampus $VERSION" --notes "$NOTES"

@@ -1,4 +1,4 @@
-# SmartCampus ISTC
+# SmartCampus
 
 Plateforme de gestion d'établissement de formation : préinscriptions en ligne, dossiers étudiants, structure académique, emplois du temps, notes et relevés, scolarité et paiements, paie du personnel et des formateurs, pointage des heures des vacataires, inventaire, congés. Trois espaces : **administration**, **portail formateur**, **portail étudiant**.
 

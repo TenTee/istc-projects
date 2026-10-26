@@ -1,11 +1,11 @@
-# SmartCampus ISTC
+# SmartCampus
 
 **SmartCampus** est la plateforme de gestion de l'établissement : préinscriptions en ligne, dossiers étudiants, structure académique, emplois du temps, notes et relevés, scolarité et paiements, paie du personnel et des formateurs, heures des vacataires, inventaire, congés…
 
 Elle s'utilise dans un **navigateur internet** (Chrome, Edge, Firefox, Safari), sur ordinateur, tablette ou téléphone. Il n'y a rien à installer pour les utilisateurs.
 
 !!! info "Version Word"
-    Toute cette documentation existe aussi en un seul fichier Word : [SmartCampus_ISTC_Documentation_complete.docx](SmartCampus_ISTC_Documentation_complete.docx) (régénéré avec `outils/doc-word/construire.sh`).
+    Toute cette documentation existe aussi en un seul fichier Word : [SmartCampus_Documentation_complete.docx](SmartCampus_Documentation_complete.docx) (régénéré avec `outils/doc-word/construire.sh`).
 
 ## Qui fait quoi ?
 

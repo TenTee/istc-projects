@@ -27,6 +27,8 @@ import {
   TextField,
   Tooltip,
   Typography,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import CheckIcon from '@mui/icons-material/CheckCircleOutline';
@@ -48,15 +50,17 @@ import PointagesTable from '../../../../components/vacations/PointagesTable';
 
 function Kpi({ label, value, color }) {
   return (
-    <Paper sx={{ p: 2, borderLeft: `4px solid ${color}` }}>
+    <Paper sx={{ p: 2, borderLeft: `4px solid ${color}`, height: '100%' }}>
       <Typography variant="body2" color="text.secondary">{label}</Typography>
-      <Typography variant="h6" fontWeight="bold">{value}</Typography>
+      <Typography variant="h6" fontWeight="bold" sx={{ overflowWrap: 'anywhere' }}>{value}</Typography>
     </Paper>
   );
 }
 
 export default function HeuresVacatairesPage() {
   const router = useRouter();
+  const theme = useTheme();
+  const fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
   const { canWrite } = useUserPermissions();
   const canValidate = canWrite('can_manage_finance');
 
@@ -165,7 +169,7 @@ export default function HeuresVacatairesPage() {
         </Box>
         <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
           <MonthPicker mois={periode.mois} annee={periode.annee} onChange={setPeriode} />
-          <FormControl size="small" sx={{ minWidth: 200 }}>
+          <FormControl size="small" sx={{ minWidth: { xs: 160, sm: 200 }, flex: { xs: '1 1 160px', sm: '0 0 auto' } }}>
             <InputLabel>Statut</InputLabel>
             <Select label="Statut" value={statut} onChange={(e) => setStatut(e.target.value)}>
               <MenuItem value="">Tous</MenuItem>
@@ -176,15 +180,15 @@ export default function HeuresVacatairesPage() {
       </Box>
 
       <Grid container spacing={2} sx={{ mb: 3 }}>
-        <Grid item xs={6} md={3}><Kpi label="À valider" value={stats.aValider} color="#0288d1" /></Grid>
-        <Grid item xs={6} md={3}><Kpi label="Non clôturés par les coordonnateurs" value={stats.enCours} color="#9e9e9e" /></Grid>
-        <Grid item xs={6} md={3}><Kpi label="Heures pointées" value={formatHeures(stats.heures)} color="#193A7F" /></Grid>
-        <Grid item xs={6} md={3}>
+        <Grid item xs={6} sm={6} md={3}><Kpi label="À valider" value={stats.aValider} color="#0288d1" /></Grid>
+        <Grid item xs={6} sm={6} md={3}><Kpi label="Non clôturés par les coordonnateurs" value={stats.enCours} color="#9e9e9e" /></Grid>
+        <Grid item xs={12} sm={6} md={3}><Kpi label="Heures pointées" value={formatHeures(stats.heures)} color="#193A7F" /></Grid>
+        <Grid item xs={12} sm={6} md={3}>
           <Kpi label="Montant validé / total" value={`${formatMontant(stats.montantValide)} / ${formatMontant(stats.montantTotal)}`} color="#2e7d32" />
         </Grid>
       </Grid>
 
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mb: 1.5 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', flexWrap: 'wrap', gap: 1, mb: 1.5 }}>
         <Button onClick={() => router.push('/finances/salaires-formateurs')}>Aller à la paie formateurs</Button>
         {canValidate && (
           <Button variant="contained" color="success" disabled={stats.aValider === 0} onClick={validerTout}>
@@ -197,7 +201,7 @@ export default function HeuresVacatairesPage() {
         <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}><CircularProgress /></Box>
       ) : (
         <TableContainer component={Paper}>
-          <Table size="small">
+          <Table size="small" sx={{ minWidth: 900 }}>
             <TableHead sx={{ bgcolor: '#F5F7FA' }}>
               <TableRow>
                 <TableCell>Enseignant</TableCell>
@@ -266,7 +270,7 @@ export default function HeuresVacatairesPage() {
         </TableContainer>
       )}
 
-      <Dialog open={Boolean(detail)} onClose={() => setDetail(null)} maxWidth="md" fullWidth>
+      <Dialog open={Boolean(detail)} onClose={() => setDetail(null)} maxWidth="md" fullWidth fullScreen={fullScreen}>
         <DialogTitle>
           {detail?.formateur_nom} – {detail ? `${MOIS[detail.mois - 1]} ${detail.annee}` : ''} · {detail?.filiere_nom}
         </DialogTitle>

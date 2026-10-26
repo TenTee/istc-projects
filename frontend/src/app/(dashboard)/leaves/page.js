@@ -172,12 +172,12 @@ export default function LeavesRequestsPage() {
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: { xs: 'stretch', sm: 'center' }, flexDirection: { xs: 'column', sm: 'row' }, gap: 2, mb: 3 }}>
         <Typography variant="h5" fontWeight="bold" color="primary">
           Congés & Demandes Administratives
         </Typography>
         {tabValue === 0 && canWriteRh && (
-          <Button variant="contained" color="primary" startIcon={<AddIcon />} onClick={handleOpenCongeCreate}>
+          <Button variant="contained" color="primary" startIcon={<AddIcon />} onClick={handleOpenCongeCreate} sx={{ width: { xs: '100%', sm: 'auto' }, flexShrink: 0 }}>
             Ajouter un Congé
           </Button>
         )}
@@ -222,7 +222,7 @@ export default function LeavesRequestsPage() {
                          <Typography variant="caption" color="text.secondary">{leave.raison}</Typography>
                       </TableCell>
                       <TableCell>{renderStatus(leave.statut)}</TableCell>
-                      <TableCell align="right">
+                      <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
                         {canWriteRh && (
                           <IconButton size="small" color="info" onClick={() => handleEditConge(leave)}>
                             <EditIcon fontSize="small" />
@@ -336,9 +336,9 @@ export default function LeavesRequestsPage() {
                 >
                   {personnels.map(p => (
                     <MenuItem key={p.id} value={p.id}>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
-                        <Typography variant="body2">{p.nom} - {p.fonction}</Typography>
-                        <Typography variant="caption" sx={{ ml: 2, color: p.est_eligible_conges ? 'success.main' : 'warning.main' }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center', minWidth: 0 }}>
+                        <Typography variant="body2" noWrap sx={{ minWidth: 0 }}>{p.nom} - {p.fonction}</Typography>
+                        <Typography variant="caption" sx={{ ml: 2, flexShrink: 0, color: p.est_eligible_conges ? 'success.main' : 'warning.main' }}>
                           {p.solde_conges_restant}j restants
                         </Typography>
                       </Box>

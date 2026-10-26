@@ -171,19 +171,28 @@ export default function ImportExportModal({
   }
 
   return (
-    <div style={{ padding: 12, border: "1px solid #eee", borderRadius: 6 }}>
+    <div
+      style={{
+        padding: 12,
+        border: "1px solid #eee",
+        borderRadius: 6,
+        maxWidth: "100%",
+        boxSizing: "border-box",
+        overflowWrap: "anywhere",
+      }}
+    >
       <div style={{ marginBottom: 8 }}>
         <strong>Import / Export</strong> — Entité: {entity}
       </div>
-      <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, marginBottom: 8 }}>
         <button onClick={handleDownloadTemplate}>Télécharger modèle</button>
         <button onClick={handleExport}>Exporter CSV</button>
-        <label style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+        <label style={{ display: "inline-flex", alignItems: "center", gap: 6, maxWidth: "100%", minWidth: 0 }}>
           <input
             type="file"
             accept=".csv,.xlsx,.xls"
             onChange={handleFileChange}
-            style={{ display: "inline-block" }}
+            style={{ display: "inline-block", maxWidth: "100%" }}
           />
         </label>
       </div>

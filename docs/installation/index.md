@@ -8,7 +8,7 @@ SmartCampus comporte **deux programmes** qui fonctionnent ensemble :
 
 ```mermaid
 flowchart LR
-    U[Navigateur<br/>des utilisateurs] -->|https://istc.exemple.cm| F[Frontend<br/>Next.js<br/>les écrans]
+    U[Navigateur<br/>des utilisateurs] -->|https://smartcampus.exemple.cm| F[Frontend<br/>Next.js<br/>les écrans]
     U -->|appels API /api/...| B[Backend<br/>Django<br/>les règles et les données]
     F -. adresse de l'API .-> B
     B --> D[(Base de données<br/>PostgreSQL)]

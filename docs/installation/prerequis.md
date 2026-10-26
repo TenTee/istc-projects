@@ -24,7 +24,7 @@ git --version
 | Serveur | Linux (Ubuntu 22.04/24.04 ou image Bitnami), 2 vCPU, 4 Go de RAM, 40 Go de disque minimum |
 | Base de données | PostgreSQL 14 ou plus récent |
 | Serveur web | Nginx (ou Apache sur Bitnami) en frontal, avec HTTPS |
-| Nom de domaine | Ex. `istc.exemple.cm` (interface) et éventuellement `api.istc.exemple.cm` (API) |
+| Nom de domaine | Ex. `smartcampus.exemple.cm` (interface) et éventuellement `api.smartcampus.exemple.cm` (API) |
 | Certificat HTTPS | Let's Encrypt (gratuit) via `certbot`, ou l'outil `bncert-tool` sur Bitnami |
 | Clés reCAPTCHA (facultatif) | <https://www.google.com/recaptcha/admin> : type **reCAPTCHA v2 « Je ne suis pas un robot »**, déclarer votre domaine. Vous obtenez une **clé du site** (publique) et une **clé secrète**. |
 

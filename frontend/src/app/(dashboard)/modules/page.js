@@ -23,6 +23,7 @@ import {
   Table,
   TableBody,
   TableCell,
+  TableContainer,
   TableHead,
   TablePagination,
   TableRow,
@@ -163,12 +164,12 @@ export default function ModulesPage() {
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'stretch', sm: 'center' }, gap: 2, mb: 3 }}>
         <Typography variant="h5" fontWeight="bold" color="primary">
           Cours et modules
         </Typography>
         {canWritePedagogie && (
-          <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleOpenDialog()}>
+          <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleOpenDialog()} sx={{ width: { xs: '100%', sm: 'auto' } }}>
             Nouveau cours
           </Button>
         )}
@@ -192,8 +193,8 @@ export default function ModulesPage() {
         />
       </Card>
 
-      <Paper sx={{ borderRadius: 3, overflow: 'hidden' }}>
-        <Table>
+      <TableContainer component={Paper} sx={{ borderRadius: 3 }}>
+        <Table sx={{ minWidth: 750 }}>
           <TableHead sx={{ bgcolor: '#F5F7FA' }}>
             <TableRow>
               <TableCell>Nom</TableCell>
@@ -234,7 +235,7 @@ export default function ModulesPage() {
                       : <Typography variant="body2" color="text.secondary">Aucun</Typography>}
                   </Box>
                 </TableCell>
-                <TableCell align="right">
+                <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
                   {canWritePedagogie && (
                     <IconButton color="primary" onClick={() => handleOpenDialog(item)}>
                       <EditIcon fontSize="small" />
@@ -257,7 +258,7 @@ export default function ModulesPage() {
             )}
           </TableBody>
         </Table>
-      </Paper>
+      </TableContainer>
 
       {filteredModules.length > 0 && (
         <TablePagination

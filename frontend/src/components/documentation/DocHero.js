@@ -79,6 +79,9 @@ export default function DocHero({ searchSearchTerm, setSearchTerm, totalDocsCoun
               px: 1,
               py: 0.5,
               border: "1px solid rgba(255, 255, 255, 0.2)",
+              maxWidth: "100%",
+              height: { xs: "auto", sm: 32 },
+              "& .MuiChip-label": { whiteSpace: { xs: "normal", sm: "nowrap" } },
             }}
           />
 
@@ -87,7 +90,8 @@ export default function DocHero({ searchSearchTerm, setSearchTerm, totalDocsCoun
             component="h1"
             sx={{
               fontWeight: 800,
-              fontSize: { xs: "2rem", sm: "2.8rem", md: "3.4rem" },
+              fontSize: { xs: "1.7rem", sm: "2.8rem", md: "3.4rem" },
+              wordBreak: "break-word",
               letterSpacing: "-0.02em",
               lineHeight: 1.2,
               mb: 2,
@@ -195,6 +199,7 @@ export default function DocHero({ searchSearchTerm, setSearchTerm, totalDocsCoun
               display: "flex",
               justifyContent: "center",
               alignItems: "center",
+              flexWrap: "wrap",
               gap: { xs: 2, sm: 5 },
               mt: 5,
               pt: 3,

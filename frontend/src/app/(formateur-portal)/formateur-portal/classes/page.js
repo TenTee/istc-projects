@@ -45,28 +45,28 @@ export default function MesClassesPage() {
       <Typography variant="h5" fontWeight="bold" gutterBottom>Mes Classes & Étudiants</Typography>
 
       {classes.length === 0 ? (
-        <Paper sx={{ p: 4, textAlign: 'center' }}>
+        <Paper sx={{ p: { xs: 3, sm: 4 }, textAlign: 'center' }}>
           <Typography color="text.secondary">Aucune affectation trouvée pour cette année académique.</Typography>
         </Paper>
       ) : (
         classes.map((cls, idx) => (
           <Paper key={idx} sx={{ mb: 2 }}>
             <Box
-              sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}
+              sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, cursor: 'pointer' }}
               onClick={() => toggleExpand(idx)}
             >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Typography fontWeight="bold">{cls.classe_nom}</Typography>
-                <Chip label={cls.module_nom} size="small" color="primary" variant="outlined" />
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 2 }, flexWrap: 'wrap', minWidth: 0 }}>
+                <Typography fontWeight="bold" sx={{ wordBreak: 'break-word' }}>{cls.classe_nom}</Typography>
+                <Chip label={cls.module_nom} size="small" color="primary" variant="outlined" sx={{ maxWidth: '100%' }} />
                 <Chip label={`${cls.effectif} étudiants`} size="small" />
               </Box>
-              <IconButton size="small">
+              <IconButton size="small" sx={{ flexShrink: 0 }}>
                 {expanded[idx] ? <ExpandLessIcon /> : <ExpandMoreIcon />}
               </IconButton>
             </Box>
             <Collapse in={expanded[idx]}>
               <TableContainer>
-                <Table size="small">
+                <Table size="small" sx={{ minWidth: 500 }}>
                   <TableHead>
                     <TableRow>
                       <TableCell><strong>Matricule</strong></TableCell>
@@ -77,7 +77,7 @@ export default function MesClassesPage() {
                   <TableBody>
                     {cls.etudiants.map((et) => (
                       <TableRow key={et.id}>
-                        <TableCell>{et.matricule}</TableCell>
+                        <TableCell sx={{ whiteSpace: 'nowrap' }}>{et.matricule}</TableCell>
                         <TableCell>{et.nom}</TableCell>
                         <TableCell>{et.email}</TableCell>
                       </TableRow>

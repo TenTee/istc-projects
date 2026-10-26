@@ -149,7 +149,7 @@ export default function UsersTab() {
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'stretch', sm: 'center' }, gap: 2, mb: 3 }}>
         <Typography variant="h6" fontWeight="bold">Gestion des Utilisateurs</Typography>
         <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleOpenModal()}>
           Nouvel Utilisateur
@@ -160,7 +160,7 @@ export default function UsersTab() {
 
       <Paper sx={{ width: '100%', overflow: 'hidden', boxShadow: 3, borderRadius: 2 }}>
         <TableContainer sx={{ maxHeight: 600 }}>
-          <Table stickyHeader>
+          <Table stickyHeader sx={{ minWidth: 600 }}>
             <TableHead>
               <TableRow>
                 <TableCell sx={{ fontWeight: 'bold' }}>Nom Complet</TableCell>
@@ -193,7 +193,7 @@ export default function UsersTab() {
                         {getRoleLabel(user.role)}
                       </Typography>
                     </TableCell>
-                    <TableCell align="right">
+                    <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
                       <Tooltip title="Changer le mot de passe">
                         <IconButton color="warning" onClick={() => handleResetPassword(user.id)}>
                           <PasswordIcon />
@@ -272,14 +272,14 @@ export default function UsersTab() {
             L'opération a réussi. Voici les identifiants d'accès temporaires.
             <br /><strong>Veillez à les transmettre de manière sécurisée.</strong>
           </Typography>
-          <Box sx={{ p: 3, bgcolor: '#f5f5f5', borderRadius: 3, border: '1px solid rgba(0,0,0,0.08)' }}>
+          <Box sx={{ p: { xs: 2, sm: 3 }, bgcolor: '#f5f5f5', borderRadius: 3, border: '1px solid rgba(0,0,0,0.08)' }}>
             <Typography sx={{ mb: 2 }}>
               Nom d'utilisateur : <br />
-              <Typography component="span" fontWeight="bold">{resetModalInfo.passwordDetails?.username}</Typography>
+              <Typography component="span" fontWeight="bold" sx={{ wordBreak: 'break-all' }}>{resetModalInfo.passwordDetails?.username}</Typography>
             </Typography>
             <Typography sx={{ mb: 1 }}>Mot de passe temporaire :</Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, p: 2, borderRadius: 2, bgcolor: 'white' }}>
-              <Typography variant="h6" sx={{ fontWeight: 'bold', letterSpacing: 1, wordBreak: 'break-all' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, p: { xs: 1.5, sm: 2 }, borderRadius: 2, bgcolor: 'white' }}>
+              <Typography variant="h6" sx={{ fontWeight: 'bold', letterSpacing: 1, wordBreak: 'break-all', minWidth: 0 }}>
                 {resetModalInfo.passwordDetails?.new_password}
               </Typography>
               <Tooltip title="Copier le mot de passe">

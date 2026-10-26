@@ -56,7 +56,7 @@ export default function StudentSchedule() {
   return (
     <Box>
       <Typography variant="h5" fontWeight="bold" color="primary" gutterBottom>Mon Emploi du Temps</Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 4 }}>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: { xs: 3, md: 4 } }}>
         Planning hebdomadaire des cours et activités.
       </Typography>
 
@@ -73,7 +73,7 @@ export default function StudentSchedule() {
         Grille Hebdomadaire des Cours
       </Typography>
 
-      <Grid container spacing={3}>
+      <Grid container spacing={{ xs: 2, md: 3 }}>
         {DAYS.map((day) => {
           const sessions = getSessionsForDay(day);
           return (
@@ -115,7 +115,7 @@ function CardSession({ session }) {
         '&:hover': { transform: 'scale(1.02)' }
       }}
     >
-      <Typography variant="subtitle2" fontWeight="bold" gutterBottom>{session.module_nom}</Typography>
+      <Typography variant="subtitle2" fontWeight="bold" gutterBottom sx={{ wordBreak: 'break-word' }}>{session.module_nom}</Typography>
       
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
         <AccessTimeIcon sx={{ fontSize: 16, color: 'text.secondary' }} />

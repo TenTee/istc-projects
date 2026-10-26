@@ -52,15 +52,15 @@ export default function DocCardGrid({ documents, searchTerm, selectedCategory })
   };
 
   return (
-    <Box sx={{ py: 6, backgroundColor: "#FFFFFF", minHeight: "500px" }}>
+    <Box sx={{ py: { xs: 4, md: 6 }, backgroundColor: "#FFFFFF", minHeight: "500px" }}>
       <Container maxWidth="lg">
         {/* Results Header */}
-        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 4, flexWrap: "wrap", gap: 1 }}>
+        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: { xs: 3, md: 4 }, flexWrap: "wrap", gap: 1 }}>
           <Typography variant="h5" sx={{ fontWeight: 800, color: "#0F172A" }}>
             Documents ({documents.length})
           </Typography>
           {(searchTerm || selectedCategory !== "all") && (
-            <Typography variant="body2" sx={{ color: "#64748B" }}>
+            <Typography variant="body2" sx={{ color: "#64748B", wordBreak: "break-word", minWidth: 0 }}>
               Filtres actifs : {searchTerm && `"${searchTerm}"`} {selectedCategory !== "all" && `[Catégorie: ${selectedCategory}]`}
             </Typography>
           )}
@@ -71,7 +71,7 @@ export default function DocCardGrid({ documents, searchTerm, selectedCategory })
           <Paper
             elevation={0}
             sx={{
-              p: 6,
+              p: { xs: 3, sm: 6 },
               textAlign: "center",
               backgroundColor: "#F8FAFC",
               borderRadius: "16px",
@@ -90,7 +90,7 @@ export default function DocCardGrid({ documents, searchTerm, selectedCategory })
             </Typography>
           </Paper>
         ) : (
-          <Grid container spacing={3.5}>
+          <Grid container spacing={{ xs: 2, md: 3.5 }}>
             {documents.map((doc) => (
               <Grid item xs={12} sm={6} md={4} key={doc.id}>
                 <Card
@@ -113,9 +113,9 @@ export default function DocCardGrid({ documents, searchTerm, selectedCategory })
                     },
                   }}
                 >
-                  <CardContent sx={{ p: 3 }}>
+                  <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
                     {/* Format & Badge Header */}
-                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 1, mb: 2 }}>
                       <Box sx={{ display: "flex", alignItems: "center", gap: 0.8 }}>
                         {doc.format === "PDF" ? (
                           <PictureAsPdfIcon sx={{ color: "#EF4444", fontSize: 22 }} />
@@ -180,7 +180,7 @@ export default function DocCardGrid({ documents, searchTerm, selectedCategory })
                     <Divider sx={{ my: 1.5 }} />
 
                     {/* Metadata Footer */}
-                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 1 }}>
                       <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
                         <CalendarTodayIcon sx={{ fontSize: 14, color: "#94A3B8" }} />
                         <Typography variant="caption" sx={{ color: "#64748B", fontWeight: 500 }}>
@@ -197,7 +197,7 @@ export default function DocCardGrid({ documents, searchTerm, selectedCategory })
                   </CardContent>
 
                   {/* Actions */}
-                  <CardActions sx={{ px: 3, pb: 3, pt: 0, gap: 1 }}>
+                  <CardActions sx={{ px: { xs: 2, sm: 3 }, pb: { xs: 2, sm: 3 }, pt: 0, gap: 1 }}>
                     <Button
                       fullWidth
                       variant="outlined"

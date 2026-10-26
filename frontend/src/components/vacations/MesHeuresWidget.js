@@ -22,12 +22,12 @@ export default function MesHeuresWidget() {
   const statuts = [...new Set((data.recaps || []).map((r) => r.statut))];
 
   return (
-    <Paper sx={{ p: 3, mt: 3 }}>
+    <Paper sx={{ p: { xs: 2, sm: 3 }, mt: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, flexWrap: 'wrap', gap: 1 }}>
         <Typography variant="h6" fontWeight="bold" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <PendingActionsIcon color="primary" /> Mes heures – {MOIS[data.mois - 1]} {data.annee}
         </Typography>
-        <Box sx={{ display: 'flex', gap: 0.5 }}>
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
           {statuts.map((s) => <StatutRecapChip key={s} statut={s} />)}
         </Box>
       </Box>
@@ -49,7 +49,7 @@ export default function MesHeuresWidget() {
         {estVacataire && (
           <Grid item xs={6} md={3}>
             <Typography variant="body2" color="text.secondary">Montant estimé</Typography>
-            <Typography variant="h5" fontWeight="bold">{formatMontant(data.totaux.montant_estime)}</Typography>
+            <Typography variant="h5" fontWeight="bold" sx={{ overflowWrap: 'anywhere' }}>{formatMontant(data.totaux.montant_estime)}</Typography>
           </Grid>
         )}
       </Grid>

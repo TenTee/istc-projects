@@ -14,14 +14,14 @@
 
 ### Hôte interdit (DisallowedHost)
 
-**Symptôme :** « Invalid HTTP_HOST header: 'istc.exemple.cm' » dans le journal, ou erreur 400 sur toutes les requêtes.
+**Symptôme :** « Invalid HTTP_HOST header: 'smartcampus.exemple.cm' » dans le journal, ou erreur 400 sur toutes les requêtes.
 
 **Cause :** le domaine n'est pas dans `ALLOWED_HOSTS`.
 
 **Solution :** dans `back-istc/.env`, ajoutez le domaine **sans** `https://` :
 
 ```ini
-ALLOWED_HOSTS=istc.exemple.cm,api.istc.exemple.cm,localhost,127.0.0.1
+ALLOWED_HOSTS=smartcampus.exemple.cm,api.smartcampus.exemple.cm,localhost,127.0.0.1
 ```
 
 puis `sudo systemctl restart smartcampus-api`.
@@ -32,7 +32,7 @@ puis `sudo systemctl restart smartcampus-api`.
 
 **Cause :** l'adresse de l'interface n'est pas autorisée par l'API.
 
-**Solution :** `CORS_ALLOWED_ORIGINS=https://istc.exemple.cm` (avec `https://`, sans `/` final) dans `back-istc/.env`, puis redémarrer l'API.
+**Solution :** `CORS_ALLOWED_ORIGINS=https://smartcampus.exemple.cm` (avec `https://`, sans `/` final) dans `back-istc/.env`, puis redémarrer l'API.
 
 ### Impossible de se connecter alors que le mot de passe est bon
 
@@ -93,4 +93,4 @@ python -m pytest -q                      # lancer les tests automatiques
 
 ## Interface d'administration technique
 
-`https://api.istc.exemple.cm/admin/` donne accès, pour le **super-administrateur**, à toutes les tables (corrections exceptionnelles, sanctions disciplinaires, paiements). À utiliser avec prudence : les contrôles de l'application n'y sont pas tous appliqués.
+`https://api.smartcampus.exemple.cm/admin/` donne accès, pour le **super-administrateur**, à toutes les tables (corrections exceptionnelles, sanctions disciplinaires, paiements). À utiliser avec prudence : les contrôles de l'application n'y sont pas tous appliqués.

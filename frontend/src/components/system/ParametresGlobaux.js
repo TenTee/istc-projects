@@ -110,10 +110,10 @@ export default function ParametresGlobaux() {
 
   return (
     <Box>
-      <Grid container spacing={4}>
+      <Grid container spacing={{ xs: 2, md: 4 }}>
         <Grid item xs={12} md={7}>
-          <Paper sx={{ p: 3, borderRadius: 3, boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+          <Paper sx={{ p: { xs: 2, sm: 3 }, borderRadius: 3, boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1, mb: 2 }}>
               <Typography variant="h6" fontWeight="bold">Cycles Globaux</Typography>
               <Button variant="contained" size="small" startIcon={<AddIcon />} onClick={() => handleOpenCycleDialog()}>
                 Nouveau
@@ -133,7 +133,7 @@ export default function ParametresGlobaux() {
                     <TableRow key={cycle.id}>
                       <TableCell>{cycle.nom}</TableCell>
                       <TableCell>{cycle.code}</TableCell>
-                      <TableCell align="right">
+                      <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
                         <IconButton color="primary" size="small" onClick={() => handleOpenCycleDialog(cycle)}>
                           <EditIcon fontSize="small" />
                         </IconButton>
@@ -153,7 +153,7 @@ export default function ParametresGlobaux() {
         </Grid>
 
         <Grid item xs={12} md={5}>
-          <Paper sx={{ p: 3, borderRadius: 3, boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
+          <Paper sx={{ p: { xs: 2, sm: 3 }, borderRadius: 3, boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
             <Typography variant="h6" fontWeight="bold" gutterBottom>Calcul des Notes</Typography>
             <Box sx={{ mt: 2 }}>
               <TextField
@@ -186,7 +186,7 @@ export default function ParametresGlobaux() {
             value={newCycle.nom} onChange={(e) => setNewCycle({ ...newCycle, nom: e.target.value })} />
           <TextField margin="dense" label="Code (ex: LIC)" fullWidth
             value={newCycle.code} onChange={(e) => setNewCycle({ ...newCycle, code: e.target.value })} />
-          <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
+          <Box sx={{ mt: 2, display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2 }}>
             <TextField label="Début Pause" type="time" fullWidth InputLabelProps={{ shrink: true }}
               value={newCycle.heure_pause_debut || '12:00'}
               onChange={(e) => setNewCycle({ ...newCycle, heure_pause_debut: e.target.value })} />
@@ -194,7 +194,7 @@ export default function ParametresGlobaux() {
               value={newCycle.heure_pause_fin || '13:00'}
               onChange={(e) => setNewCycle({ ...newCycle, heure_pause_fin: e.target.value })} />
           </Box>
-          <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
+          <Box sx={{ mt: 2, display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, gap: 2 }}>
             <TextField label="Début Journée" type="time" fullWidth InputLabelProps={{ shrink: true }}
               value={newCycle.heure_debut_journee || '08:00'}
               onChange={(e) => setNewCycle({ ...newCycle, heure_debut_journee: e.target.value })} />

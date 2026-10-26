@@ -7,7 +7,7 @@ import {
   Tabs, Tab, Dialog, DialogTitle, DialogContent, DialogActions,
   TextField, FormControl, InputLabel, Select, MenuItem, IconButton,
   Snackbar, Alert, CircularProgress, LinearProgress,
-  Tooltip, FormControlLabel, Switch, Divider
+  Tooltip, FormControlLabel, Switch, Divider, useTheme, useMediaQuery
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
@@ -56,6 +56,8 @@ const BENEFICIAIRE_TYPE = 'Personnel';
 
 export default function SalairesPersonnelPage() {
   const { canWrite } = useUserPermissions();
+  const theme = useTheme();
+  const fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
   const canWriteFinance = canWrite('can_manage_finance');
   const [currentTab, setCurrentTab] = useState(0);
   const [toast, setToast] = useState({ open: false, message: '', severity: 'success' });
@@ -358,7 +360,7 @@ export default function SalairesPersonnelPage() {
 
   return (
     <Box>
-      <Paper sx={{ p: 3, mb: 3, background: 'linear-gradient(90deg, #193A7F 0%, #2A52A1 100%)', color: 'white', borderRadius: 3 }}>
+      <Paper sx={{ p: { xs: 2, sm: 3 }, mb: 3, background: 'linear-gradient(90deg, #193A7F 0%, #2A52A1 100%)', color: 'white', borderRadius: 3 }}>
         <Typography variant="h5" fontWeight="bold" gutterBottom>
           Salaires du Personnel
         </Typography>
@@ -372,8 +374,8 @@ export default function SalairesPersonnelPage() {
           <Grid item xs={12} sm={6} md={3}>
             <Card sx={{ borderRadius: 3, borderTop: '4px solid #2196F3' }}>
               <CardContent>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1 }}>
+                  <Box sx={{ minWidth: 0 }}>
                     <Typography variant="caption" color="text.secondary" fontWeight="bold">MASSE SALARIALE</Typography>
                     <Typography variant="h5" fontWeight="bold">{Number(forecast.total_previsionnel_personnel || forecast.total_previsionnel || 0).toLocaleString()} FCFA</Typography>
                   </Box>
@@ -385,8 +387,8 @@ export default function SalairesPersonnelPage() {
           <Grid item xs={12} sm={6} md={3}>
             <Card sx={{ borderRadius: 3, borderTop: '4px solid #4CAF50' }}>
               <CardContent>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1 }}>
+                  <Box sx={{ minWidth: 0 }}>
                     <Typography variant="caption" color="text.secondary" fontWeight="bold">PAYÉ CE MOIS</Typography>
                     <Typography variant="h5" fontWeight="bold">{Number(forecast.total_paye_mois_personnel || forecast.total_paye_mois || 0).toLocaleString()} FCFA</Typography>
                   </Box>
@@ -398,8 +400,8 @@ export default function SalairesPersonnelPage() {
           <Grid item xs={12} sm={6} md={3}>
             <Card sx={{ borderRadius: 3, borderTop: '4px solid #FF9800' }}>
               <CardContent>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1 }}>
+                  <Box sx={{ minWidth: 0 }}>
                     <Typography variant="caption" color="text.secondary" fontWeight="bold">EFFECTIF PERSONNEL</Typography>
                     <Typography variant="h5" fontWeight="bold">{forecast.nb_personnel || 0}</Typography>
                   </Box>
@@ -411,8 +413,8 @@ export default function SalairesPersonnelPage() {
           <Grid item xs={12} sm={6} md={3}>
             <Card sx={{ borderRadius: 3, borderTop: `4px solid ${forecast.is_near_payday ? '#F44336' : '#9C27B0'}` }}>
               <CardContent>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1 }}>
+                  <Box sx={{ minWidth: 0 }}>
                     <Typography variant="caption" color="text.secondary" fontWeight="bold">PROCHAINE PAIE</Typography>
                     <Typography variant="h6" fontWeight="bold" color={forecast.is_near_payday ? 'error' : 'inherit'}>
                       {forecast.prochaine_echeance ? formatDate(forecast.prochaine_echeance) : '-'}
@@ -441,13 +443,13 @@ export default function SalairesPersonnelPage() {
         <Box>
           {canWriteFinance && (
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
-              <Button variant="contained" startIcon={<PlayArrowIcon />} onClick={() => setOpenGenerer(true)}>
+              <Button sx={{ width: { xs: '100%', sm: 'auto' } }} variant="contained" startIcon={<PlayArrowIcon />} onClick={() => setOpenGenerer(true)}>
                 Générer une campagne
               </Button>
             </Box>
           )}
           <TableContainer component={Paper} sx={{ borderRadius: 3 }}>
-            <Table>
+            <Table sx={{ minWidth: 650 }}>
               <TableHead sx={{ bgcolor: '#F5F7FA' }}>
                 <TableRow>
                   <TableCell sx={{ fontWeight: 'bold' }}>Référence</TableCell>
@@ -471,7 +473,7 @@ export default function SalairesPersonnelPage() {
                     <TableCell>
                       <Chip label={camp.statut_display || camp.statut} color={camp.statut === 'payee' ? 'success' : camp.statut === 'validee' ? 'info' : camp.statut === 'annulee' ? 'error' : 'warning'} size="small" />
                     </TableCell>
-                    <TableCell align="right">
+                    <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
                       <Tooltip title="Voir les bulletins"><IconButton size="small" color="primary" onClick={() => handleViewCampagne(camp)}><VisibilityIcon fontSize="small" /></IconButton></Tooltip>
                       {canWriteFinance && camp.statut === 'brouillon' && (<Tooltip title="Valider"><IconButton size="small" color="info" onClick={() => handleValiderCampagne(camp.id)}><CheckCircleIcon fontSize="small" /></IconButton></Tooltip>)}
                       {canWriteFinance && camp.statut === 'validee' && (<Tooltip title="Marquer comme payée"><IconButton size="small" color="success" onClick={() => handlePayerCampagne(camp.id)}><PaymentIcon fontSize="small" /></IconButton></Tooltip>)}
@@ -493,7 +495,7 @@ export default function SalairesPersonnelPage() {
         <Box>
           {canWriteFinance && (
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
-              <Button variant="contained" startIcon={<AddIcon />} onClick={() => {
+              <Button sx={{ width: { xs: '100%', sm: 'auto' } }} variant="contained" startIcon={<AddIcon />} onClick={() => {
                 setEditingPrime(null);
                 setPrimeForm({ beneficiaire_content_type: '', beneficiaire_object_id: '', type_prime: 'transport', libelle: '', montant: '', est_permanente: true, est_active: true, date_debut: '', date_fin: '' });
                 setOpenPrimeForm(true);
@@ -503,7 +505,7 @@ export default function SalairesPersonnelPage() {
             </Box>
           )}
           <TableContainer component={Paper} sx={{ borderRadius: 3 }}>
-            <Table>
+            <Table sx={{ minWidth: 650 }}>
               <TableHead sx={{ bgcolor: '#F5F7FA' }}>
                 <TableRow>
                   <TableCell sx={{ fontWeight: 'bold' }}>Bénéficiaire</TableCell>
@@ -523,7 +525,7 @@ export default function SalairesPersonnelPage() {
                     <TableCell sx={{ fontWeight: 'bold', color: 'success.main' }}>+{Number(prime.montant).toLocaleString()} FCFA</TableCell>
                     <TableCell>{prime.est_permanente ? 'Oui' : 'Non'}</TableCell>
                     <TableCell><Chip label={prime.est_active ? 'Active' : 'Inactive'} color={prime.est_active ? 'success' : 'default'} size="small" /></TableCell>
-                    <TableCell align="right">
+                    <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
                       {canWriteFinance && (
                         <IconButton size="small" color="primary" onClick={() => {
                           setEditingPrime(prime);
@@ -549,7 +551,7 @@ export default function SalairesPersonnelPage() {
         <Box>
           {canWriteFinance && (
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
-              <Button variant="contained" startIcon={<AddIcon />} onClick={() => {
+              <Button sx={{ width: { xs: '100%', sm: 'auto' } }} variant="contained" startIcon={<AddIcon />} onClick={() => {
                 setEditingRetenue(null);
                 setRetenueForm({ beneficiaire_content_type: '', beneficiaire_object_id: '', type_retenue: 'cnps', libelle: '', montant: '', est_permanente: true, est_active: true, date_debut: '', date_fin: '' });
                 setOpenRetenueForm(true);
@@ -559,7 +561,7 @@ export default function SalairesPersonnelPage() {
             </Box>
           )}
           <TableContainer component={Paper} sx={{ borderRadius: 3 }}>
-            <Table>
+            <Table sx={{ minWidth: 650 }}>
               <TableHead sx={{ bgcolor: '#F5F7FA' }}>
                 <TableRow>
                   <TableCell sx={{ fontWeight: 'bold' }}>Bénéficiaire</TableCell>
@@ -579,7 +581,7 @@ export default function SalairesPersonnelPage() {
                     <TableCell sx={{ fontWeight: 'bold', color: 'error.main' }}>-{Number(ret.montant).toLocaleString()} FCFA</TableCell>
                     <TableCell>{ret.est_permanente ? 'Oui' : 'Non'}</TableCell>
                     <TableCell><Chip label={ret.est_active ? 'Active' : 'Inactive'} color={ret.est_active ? 'success' : 'default'} size="small" /></TableCell>
-                    <TableCell align="right">
+                    <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
                       {canWriteFinance && (
                         <IconButton size="small" color="primary" onClick={() => {
                           setEditingRetenue(ret);
@@ -605,7 +607,7 @@ export default function SalairesPersonnelPage() {
         <Box>
           {canWriteFinance && (
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
-              <Button variant="contained" startIcon={<AddIcon />} onClick={() => {
+              <Button sx={{ width: { xs: '100%', sm: 'auto' } }} variant="contained" startIcon={<AddIcon />} onClick={() => {
                 setAvanceForm({ beneficiaire_content_type: '', beneficiaire_object_id: '', montant_total: '', nombre_echeances: 1, motif: '', date_debut_remboursement: '' });
                 setOpenAvanceForm(true);
               }}>
@@ -614,7 +616,7 @@ export default function SalairesPersonnelPage() {
             </Box>
           )}
           <TableContainer component={Paper} sx={{ borderRadius: 3 }}>
-            <Table>
+            <Table sx={{ minWidth: 750 }}>
               <TableHead sx={{ bgcolor: '#F5F7FA' }}>
                 <TableRow>
                   <TableCell sx={{ fontWeight: 'bold' }}>Bénéficiaire</TableCell>
@@ -641,7 +643,7 @@ export default function SalairesPersonnelPage() {
                       </TableCell>
                       <TableCell>{av.nombre_echeances} mois ({Number(av.montant_echeance).toLocaleString()}/mois)</TableCell>
                       <TableCell><Chip label={av.statut_display || av.statut} color={av.statut === 'remboursee' ? 'success' : av.statut === 'en_cours' ? 'warning' : 'error'} size="small" /></TableCell>
-                      <TableCell align="right">
+                      <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
                         {canWriteFinance && (
                           <IconButton size="small" color="error" onClick={() => confirmDelete(av, 'avance')}><DeleteIcon fontSize="small" /></IconButton>
                         )}
@@ -660,7 +662,7 @@ export default function SalairesPersonnelPage() {
       {currentTab === 4 && (
         <Box>
           <TableContainer component={Paper} sx={{ borderRadius: 3 }}>
-            <Table>
+            <Table sx={{ minWidth: 850 }}>
               <TableHead sx={{ bgcolor: '#F5F7FA' }}>
                 <TableRow>
                   <TableCell sx={{ fontWeight: 'bold' }}>Bénéficiaire</TableCell>
@@ -684,7 +686,7 @@ export default function SalairesPersonnelPage() {
                     <TableCell sx={{ color: 'error.main' }}>-{Number(b.total_retenues).toLocaleString()}</TableCell>
                     <TableCell sx={{ fontWeight: 'bold' }}>{Number(b.salaire_net).toLocaleString()} FCFA</TableCell>
                     <TableCell><Chip label={b.statut_display || b.statut} color={b.statut === 'paye' ? 'success' : b.statut === 'valide' ? 'info' : b.statut === 'annule' ? 'error' : 'warning'} size="small" /></TableCell>
-                    <TableCell align="right">
+                    <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
                       <Tooltip title="Voir détail"><IconButton size="small" color="primary" onClick={() => { setSelectedBulletin(b); setOpenBulletinDetail(true); }}><VisibilityIcon fontSize="small" /></IconButton></Tooltip>
                     </TableCell>
                   </TableRow>
@@ -703,12 +705,12 @@ export default function SalairesPersonnelPage() {
             <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}><CircularProgress /></Box>
           ) : stats ? (
             <>
-              <Grid container spacing={3} sx={{ mb: 3 }}>
+              <Grid container spacing={{ xs: 2, md: 3 }} sx={{ mb: 3 }}>
                 <Grid item xs={12} md={4}>
                   <Card sx={{ borderRadius: 3, borderLeft: '4px solid #2196F3' }}>
                     <CardContent>
                       <Typography variant="caption" color="text.secondary" fontWeight="bold">MASSE SALARIALE ANNUELLE {stats.annee}</Typography>
-                      <Typography variant="h4" fontWeight="bold" sx={{ mt: 1 }}>{Number(stats.masse_salariale_annuelle).toLocaleString()} FCFA</Typography>
+                      <Typography variant="h4" fontWeight="bold" sx={{ mt: 1, wordBreak: 'break-word' }}>{Number(stats.masse_salariale_annuelle).toLocaleString()} FCFA</Typography>
                     </CardContent>
                   </Card>
                 </Grid>
@@ -716,7 +718,7 @@ export default function SalairesPersonnelPage() {
                   <Card sx={{ borderRadius: 3, borderLeft: '4px solid #FF9800' }}>
                     <CardContent>
                       <Typography variant="caption" color="text.secondary" fontWeight="bold">AVANCES EN COURS</Typography>
-                      <Typography variant="h4" fontWeight="bold" sx={{ mt: 1 }}>{Number(stats.total_avances_en_cours).toLocaleString()} FCFA</Typography>
+                      <Typography variant="h4" fontWeight="bold" sx={{ mt: 1, wordBreak: 'break-word' }}>{Number(stats.total_avances_en_cours).toLocaleString()} FCFA</Typography>
                     </CardContent>
                   </Card>
                 </Grid>
@@ -724,14 +726,14 @@ export default function SalairesPersonnelPage() {
                   <Card sx={{ borderRadius: 3, borderLeft: '4px solid #4CAF50' }}>
                     <CardContent>
                       <Typography variant="caption" color="text.secondary" fontWeight="bold">CAMPAGNES ({stats.annee})</Typography>
-                      <Typography variant="h4" fontWeight="bold" sx={{ mt: 1 }}>{stats.nb_campagnes}</Typography>
+                      <Typography variant="h4" fontWeight="bold" sx={{ mt: 1, wordBreak: 'break-word' }}>{stats.nb_campagnes}</Typography>
                     </CardContent>
                   </Card>
                 </Grid>
               </Grid>
               <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>Historique mensuel {stats.annee}</Typography>
               <TableContainer component={Paper} sx={{ borderRadius: 3 }}>
-                <Table>
+                <Table sx={{ minWidth: 750 }}>
                   <TableHead sx={{ bgcolor: '#F5F7FA' }}>
                     <TableRow>
                       <TableCell sx={{ fontWeight: 'bold' }}>Mois</TableCell>
@@ -797,19 +799,19 @@ export default function SalairesPersonnelPage() {
         </DialogActions>
       </Dialog>
 
-      <Dialog open={openCampagneDetail} onClose={() => setOpenCampagneDetail(false)} maxWidth="lg" fullWidth>
+      <Dialog open={openCampagneDetail} onClose={() => setOpenCampagneDetail(false)} maxWidth="lg" fullWidth fullScreen={fullScreen}>
         <DialogTitle>Campagne {selectedCampagne?.reference} - {selectedCampagne ? `${MOIS_LABELS[selectedCampagne.mois]} ${selectedCampagne.annee}` : ''}</DialogTitle>
         <DialogContent dividers>
           {selectedCampagne && (
             <>
               <Grid container spacing={2} sx={{ mb: 3 }}>
-                <Grid item xs={3}><Typography variant="caption" color="text.secondary">Total Brut</Typography><Typography variant="h6" fontWeight="bold">{Number(selectedCampagne.total_brut).toLocaleString()} FCFA</Typography></Grid>
-                <Grid item xs={3}><Typography variant="caption" color="text.secondary">Total Primes</Typography><Typography variant="h6" fontWeight="bold" color="success.main">+{Number(selectedCampagne.total_primes).toLocaleString()}</Typography></Grid>
-                <Grid item xs={3}><Typography variant="caption" color="text.secondary">Total Retenues</Typography><Typography variant="h6" fontWeight="bold" color="error.main">-{Number(selectedCampagne.total_retenues).toLocaleString()}</Typography></Grid>
-                <Grid item xs={3}><Typography variant="caption" color="text.secondary">Total Net</Typography><Typography variant="h6" fontWeight="bold">{Number(selectedCampagne.total_net).toLocaleString()} FCFA</Typography></Grid>
+                <Grid item xs={6} sm={3}><Typography variant="caption" color="text.secondary">Total Brut</Typography><Typography variant="h6" fontWeight="bold">{Number(selectedCampagne.total_brut).toLocaleString()} FCFA</Typography></Grid>
+                <Grid item xs={6} sm={3}><Typography variant="caption" color="text.secondary">Total Primes</Typography><Typography variant="h6" fontWeight="bold" color="success.main">+{Number(selectedCampagne.total_primes).toLocaleString()}</Typography></Grid>
+                <Grid item xs={6} sm={3}><Typography variant="caption" color="text.secondary">Total Retenues</Typography><Typography variant="h6" fontWeight="bold" color="error.main">-{Number(selectedCampagne.total_retenues).toLocaleString()}</Typography></Grid>
+                <Grid item xs={6} sm={3}><Typography variant="caption" color="text.secondary">Total Net</Typography><Typography variant="h6" fontWeight="bold">{Number(selectedCampagne.total_net).toLocaleString()} FCFA</Typography></Grid>
               </Grid>
               <TableContainer>
-                <Table size="small">
+                <Table size="small" sx={{ minWidth: 650 }}>
                   <TableHead sx={{ bgcolor: '#F5F7FA' }}>
                     <TableRow>
                       <TableCell sx={{ fontWeight: 'bold' }}>Bénéficiaire</TableCell>
@@ -862,7 +864,7 @@ export default function SalairesPersonnelPage() {
             <Grid item xs={12}><TextField fullWidth label="Libellé (optionnel)" value={primeForm.libelle} onChange={(e) => setPrimeForm({ ...primeForm, libelle: e.target.value })} /></Grid>
             <Grid item xs={6}><FormControlLabel control={<Switch checked={primeForm.est_permanente} onChange={(e) => setPrimeForm({ ...primeForm, est_permanente: e.target.checked })} />} label="Permanente" /></Grid>
             <Grid item xs={6}><FormControlLabel control={<Switch checked={primeForm.est_active} onChange={(e) => setPrimeForm({ ...primeForm, est_active: e.target.checked })} />} label="Active" /></Grid>
-            {!primeForm.est_permanente && (<><Grid item xs={6}><TextField fullWidth type="date" label="Date début" InputLabelProps={{ shrink: true }} value={primeForm.date_debut} onChange={(e) => setPrimeForm({ ...primeForm, date_debut: e.target.value })} /></Grid><Grid item xs={6}><TextField fullWidth type="date" label="Date fin" InputLabelProps={{ shrink: true }} value={primeForm.date_fin} onChange={(e) => setPrimeForm({ ...primeForm, date_fin: e.target.value })} /></Grid></>)}
+            {!primeForm.est_permanente && (<><Grid item xs={12} sm={6}><TextField fullWidth type="date" label="Date début" InputLabelProps={{ shrink: true }} value={primeForm.date_debut} onChange={(e) => setPrimeForm({ ...primeForm, date_debut: e.target.value })} /></Grid><Grid item xs={12} sm={6}><TextField fullWidth type="date" label="Date fin" InputLabelProps={{ shrink: true }} value={primeForm.date_fin} onChange={(e) => setPrimeForm({ ...primeForm, date_fin: e.target.value })} /></Grid></>)}
           </Grid>
         </DialogContent>
         <DialogActions>
@@ -893,7 +895,7 @@ export default function SalairesPersonnelPage() {
             <Grid item xs={12}><TextField fullWidth label="Libellé (optionnel)" value={retenueForm.libelle} onChange={(e) => setRetenueForm({ ...retenueForm, libelle: e.target.value })} /></Grid>
             <Grid item xs={6}><FormControlLabel control={<Switch checked={retenueForm.est_permanente} onChange={(e) => setRetenueForm({ ...retenueForm, est_permanente: e.target.checked })} />} label="Permanente" /></Grid>
             <Grid item xs={6}><FormControlLabel control={<Switch checked={retenueForm.est_active} onChange={(e) => setRetenueForm({ ...retenueForm, est_active: e.target.checked })} />} label="Active" /></Grid>
-            {!retenueForm.est_permanente && (<><Grid item xs={6}><TextField fullWidth type="date" label="Date début" InputLabelProps={{ shrink: true }} value={retenueForm.date_debut} onChange={(e) => setRetenueForm({ ...retenueForm, date_debut: e.target.value })} /></Grid><Grid item xs={6}><TextField fullWidth type="date" label="Date fin" InputLabelProps={{ shrink: true }} value={retenueForm.date_fin} onChange={(e) => setRetenueForm({ ...retenueForm, date_fin: e.target.value })} /></Grid></>)}
+            {!retenueForm.est_permanente && (<><Grid item xs={12} sm={6}><TextField fullWidth type="date" label="Date début" InputLabelProps={{ shrink: true }} value={retenueForm.date_debut} onChange={(e) => setRetenueForm({ ...retenueForm, date_debut: e.target.value })} /></Grid><Grid item xs={12} sm={6}><TextField fullWidth type="date" label="Date fin" InputLabelProps={{ shrink: true }} value={retenueForm.date_fin} onChange={(e) => setRetenueForm({ ...retenueForm, date_fin: e.target.value })} /></Grid></>)}
           </Grid>
         </DialogContent>
         <DialogActions>
@@ -936,15 +938,15 @@ export default function SalairesPersonnelPage() {
             <Box>
               <Typography variant="subtitle2" color="text.secondary" gutterBottom>{MOIS_LABELS[selectedBulletin.mois]} {selectedBulletin.annee}</Typography>
               <Divider sx={{ my: 2 }} />
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}><Typography>Salaire de base</Typography><Typography fontWeight="bold">{Number(selectedBulletin.salaire_base).toLocaleString()} FCFA</Typography></Box>
-              {selectedBulletin.detail_primes?.length > 0 && (<><Typography variant="subtitle2" sx={{ mt: 2, mb: 1, color: 'success.main' }}>Primes & Indemnités</Typography>{selectedBulletin.detail_primes.map((p, i) => (<Box key={i} sx={{ display: 'flex', justifyContent: 'space-between', ml: 2, mb: 0.5 }}><Typography variant="body2">{p.type}{p.libelle ? ` - ${p.libelle}` : ''}</Typography><Typography variant="body2" color="success.main">+{Number(p.montant).toLocaleString()}</Typography></Box>))}</>)}
-              {selectedBulletin.detail_retenues?.length > 0 && (<><Typography variant="subtitle2" sx={{ mt: 2, mb: 1, color: 'error.main' }}>Retenues</Typography>{selectedBulletin.detail_retenues.map((r, i) => (<Box key={i} sx={{ display: 'flex', justifyContent: 'space-between', ml: 2, mb: 0.5 }}><Typography variant="body2">{r.type}{r.libelle ? ` - ${r.libelle}` : ''}</Typography><Typography variant="body2" color="error.main">-{Number(r.montant).toLocaleString()}</Typography></Box>))}</>)}
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2, mb: 1 }}><Typography>Salaire de base</Typography><Typography fontWeight="bold">{Number(selectedBulletin.salaire_base).toLocaleString()} FCFA</Typography></Box>
+              {selectedBulletin.detail_primes?.length > 0 && (<><Typography variant="subtitle2" sx={{ mt: 2, mb: 1, color: 'success.main' }}>Primes & Indemnités</Typography>{selectedBulletin.detail_primes.map((p, i) => (<Box key={i} sx={{ display: 'flex', justifyContent: 'space-between', gap: 2, ml: 2, mb: 0.5 }}><Typography variant="body2">{p.type}{p.libelle ? ` - ${p.libelle}` : ''}</Typography><Typography variant="body2" color="success.main">+{Number(p.montant).toLocaleString()}</Typography></Box>))}</>)}
+              {selectedBulletin.detail_retenues?.length > 0 && (<><Typography variant="subtitle2" sx={{ mt: 2, mb: 1, color: 'error.main' }}>Retenues</Typography>{selectedBulletin.detail_retenues.map((r, i) => (<Box key={i} sx={{ display: 'flex', justifyContent: 'space-between', gap: 2, ml: 2, mb: 0.5 }}><Typography variant="body2">{r.type}{r.libelle ? ` - ${r.libelle}` : ''}</Typography><Typography variant="body2" color="error.main">-{Number(r.montant).toLocaleString()}</Typography></Box>))}</>)}
               <Divider sx={{ my: 2 }} />
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}><Typography>Salaire brut</Typography><Typography>{Number(selectedBulletin.salaire_brut).toLocaleString()} FCFA</Typography></Box>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}><Typography>Total primes</Typography><Typography color="success.main">+{Number(selectedBulletin.total_primes).toLocaleString()}</Typography></Box>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}><Typography>Total retenues</Typography><Typography color="error.main">-{Number(selectedBulletin.total_retenues).toLocaleString()}</Typography></Box>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2, mb: 1 }}><Typography>Salaire brut</Typography><Typography>{Number(selectedBulletin.salaire_brut).toLocaleString()} FCFA</Typography></Box>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2, mb: 1 }}><Typography>Total primes</Typography><Typography color="success.main">+{Number(selectedBulletin.total_primes).toLocaleString()}</Typography></Box>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2, mb: 1 }}><Typography>Total retenues</Typography><Typography color="error.main">-{Number(selectedBulletin.total_retenues).toLocaleString()}</Typography></Box>
               <Divider sx={{ my: 2 }} />
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', p: 1.5, bgcolor: '#F5F7FA', borderRadius: 2 }}><Typography variant="h6" fontWeight="bold">NET À PAYER</Typography><Typography variant="h6" fontWeight="bold" color="primary">{Number(selectedBulletin.salaire_net).toLocaleString()} FCFA</Typography></Box>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1, p: 1.5, bgcolor: '#F5F7FA', borderRadius: 2 }}><Typography variant="h6" fontWeight="bold">NET À PAYER</Typography><Typography variant="h6" fontWeight="bold" color="primary">{Number(selectedBulletin.salaire_net).toLocaleString()} FCFA</Typography></Box>
             </Box>
           )}
         </DialogContent>

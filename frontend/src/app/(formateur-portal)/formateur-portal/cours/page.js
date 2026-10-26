@@ -119,16 +119,16 @@ export default function MesCoursPage() {
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'stretch', sm: 'center' }, gap: 2, mb: 3 }}>
         <Typography variant="h5" fontWeight="bold">Mes Cours & Documents</Typography>
-        <Button variant="contained" startIcon={<CloudUploadIcon />} onClick={() => setOpenDialog(true)}>
+        <Button variant="contained" startIcon={<CloudUploadIcon />} onClick={() => setOpenDialog(true)} sx={{ width: { xs: '100%', sm: 'auto' } }}>
           Importer un document
         </Button>
       </Box>
 
       <Paper>
         <TableContainer>
-          <Table>
+          <Table sx={{ minWidth: 700 }}>
             <TableHead>
               <TableRow>
                 <TableCell><strong>Titre</strong></TableCell>
@@ -151,7 +151,7 @@ export default function MesCoursPage() {
                       {doc.description && <Typography variant="caption" color="text.secondary">{doc.description}</Typography>}
                     </TableCell>
                     <TableCell>{doc.module_nom}</TableCell>
-                    <TableCell>{new Date(doc.date_upload).toLocaleDateString('fr-FR')}</TableCell>
+                    <TableCell sx={{ whiteSpace: 'nowrap' }}>{new Date(doc.date_upload).toLocaleDateString('fr-FR')}</TableCell>
                     <TableCell align="center">
                       <Chip
                         label={doc.est_visible_etudiants ? 'Visible' : 'Masqué'}
@@ -159,7 +159,7 @@ export default function MesCoursPage() {
                         size="small"
                       />
                     </TableCell>
-                    <TableCell align="center">
+                    <TableCell align="center" sx={{ whiteSpace: 'nowrap' }}>
                       <IconButton size="small" onClick={() => handleToggleVisibility(doc)} title={doc.est_visible_etudiants ? 'Masquer' : 'Rendre visible'}>
                         {doc.est_visible_etudiants ? <VisibilityOffIcon /> : <VisibilityIcon />}
                       </IconButton>
@@ -211,7 +211,7 @@ export default function MesCoursPage() {
               ))}
             </Select>
           </FormControl>
-          <Button variant="outlined" component="label">
+          <Button variant="outlined" component="label" sx={{ wordBreak: 'break-word' }}>
             {formData.fichier ? formData.fichier.name : 'Choisir un fichier'}
             <input
               type="file"

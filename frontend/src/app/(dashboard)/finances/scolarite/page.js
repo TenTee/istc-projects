@@ -441,22 +441,22 @@ export default function ScolaritePage() {
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'stretch', sm: 'center' }, gap: 2, mb: 3 }}>
         <Typography variant="h5" fontWeight="bold" color="primary">
           Scolarité
         </Typography>
         {currentTab === 1 && canWriteFinance && (
-          <Button variant="contained" color="primary" startIcon={<AddCircleOutlineIcon />} onClick={openInscriptionForm}>
+          <Button variant="contained" color="primary" startIcon={<AddCircleOutlineIcon />} onClick={openInscriptionForm} sx={{ width: { xs: '100%', sm: 'auto' } }}>
             Nouvelle inscription
           </Button>
         )}
         {currentTab === 2 && canWriteFinance && (
-          <Box sx={{ display: 'flex', gap: 2 }}>
-            <Button variant="outlined" color="success" startIcon={<AddIcon />} onClick={() => setOpenQuickConfig(true)}>Config. Rapide</Button>
+          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+            <Button variant="outlined" color="success" startIcon={<AddIcon />} onClick={() => setOpenQuickConfig(true)} sx={{ width: { xs: '100%', sm: 'auto' } }}>Config. Rapide</Button>
           </Box>
         )}
         {currentTab === 3 && canWriteFinance && (
-          <Button variant="contained" color="primary" startIcon={<AddIcon />} onClick={() => { setFormBourse({ code: '', description: '', montant: '' }); setOpenBourseModal(true); }}>
+          <Button variant="contained" color="primary" startIcon={<AddIcon />} onClick={() => { setFormBourse({ code: '', description: '', montant: '' }); setOpenBourseModal(true); }} sx={{ width: { xs: '100%', sm: 'auto' } }}>
             Créer une Bourse
           </Button>
         )}
@@ -570,7 +570,7 @@ export default function ScolaritePage() {
                       </Box>
                       {dashboard.repartition_moyens?.length > 0 ? (
                         dashboard.repartition_moyens.map((m, i) => (
-                          <Box key={i} sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                          <Box key={i} sx={{ display: 'flex', justifyContent: 'space-between', gap: 1, mb: 0.5 }}>
                             <Typography variant="body2">{m.moyen} ({m.nombre})</Typography>
                             <Typography variant="body2" fontWeight="bold">{Number(m.montant).toLocaleString()}</Typography>
                           </Box>
@@ -661,9 +661,9 @@ export default function ScolaritePage() {
               value={searchTerm}
               onChange={(event) => setSearchTerm(event.target.value)}
               InputProps={{ startAdornment: <InputAdornment position="start"><SearchIcon /></InputAdornment> }}
-              sx={{ minWidth: 320 }}
+              sx={{ flex: '1 1 220px', minWidth: { xs: 0, sm: 320 } }}
             />
-            <FormControl size="small" sx={{ minWidth: 220 }}>
+            <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 220 } }}>
               <Select
                 value={statusFilter}
                 onChange={(event) => setStatusFilter(event.target.value)}
@@ -678,7 +678,7 @@ export default function ScolaritePage() {
           </Card>
 
           <TableContainer component={Paper} sx={{ borderRadius: 3 }}>
-            <Table>
+            <Table sx={{ minWidth: 950 }}>
               <TableHead sx={{ bgcolor: '#F5F7FA' }}>
                 <TableRow>
                   <TableCell sx={{ fontWeight: 'bold' }}>Étudiant</TableCell>
@@ -748,7 +748,7 @@ export default function ScolaritePage() {
                     <TableCell>
                       <Chip label={paymentStateLabel(item)} color={paymentStateColor(item)} size="small" />
                     </TableCell>
-                    <TableCell align="right">
+                    <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
                       <Button
                         size="small"
                         variant="outlined"
@@ -795,8 +795,8 @@ export default function ScolaritePage() {
             <Typography variant="h6" fontWeight="bold" color="primary" sx={{ mb: 2 }}>
               Échéances en retard
             </Typography>
-            <Paper sx={{ borderRadius: 3, overflow: 'hidden' }}>
-              <Table>
+            <TableContainer component={Paper} sx={{ borderRadius: 3 }}>
+              <Table sx={{ minWidth: 800 }}>
                 <TableHead sx={{ bgcolor: '#F5F7FA' }}>
                   <TableRow>
                     <TableCell sx={{ fontWeight: 'bold' }}>Étudiant</TableCell>
@@ -850,7 +850,7 @@ export default function ScolaritePage() {
                   )}
                 </TableBody>
               </Table>
-            </Paper>
+            </TableContainer>
           </Box>
         </Box>
       )}
@@ -859,7 +859,7 @@ export default function ScolaritePage() {
       {currentTab === 2 && (
         <Box>
           <TableContainer component={Paper} sx={{ borderRadius: 3 }}>
-            <Table>
+            <Table sx={{ minWidth: 650 }}>
               <TableHead sx={{ bgcolor: '#F5F7FA' }}>
                 <TableRow>
                   <TableCell sx={{ fontWeight: 'bold' }}>Classe</TableCell>
@@ -879,7 +879,7 @@ export default function ScolaritePage() {
                     <TableCell sx={{ fontWeight: 'bold' }}>{Number(item.montant).toLocaleString()} FCFA</TableCell>
                     <TableCell>{item.obligatoire ? 'Oui' : 'Non'}</TableCell>
                     <TableCell>{item.date_echeance ? formatDate(item.date_echeance) : '-'}</TableCell>
-                    <TableCell align="right">
+                    <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
                       {canWriteFinance && (
                         <IconButton size="small" color="primary" onClick={() => { setIsEditingFrais(true); setSelectedFrais(item); setFormFrais({ libelle: item.libelle, montant: item.montant, classe: item.classe_id || item.classe, obligatoire: item.obligatoire, date_echeance: item.date_echeance || '' }); setOpenFraisForm(true); }}><EditIcon fontSize="small" /></IconButton>
                       )}
@@ -899,7 +899,7 @@ export default function ScolaritePage() {
       {/* TAB 3: GESTION DES BOURSES */}
       {currentTab === 3 && (
         <Box>
-          <Box sx={{ mb: 3, display: 'flex', gap: 2, alignItems: 'center' }}>
+          <Box sx={{ mb: 3, display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
             <TextField
               size="small"
               placeholder="Rechercher par code, description ou étudiant..."
@@ -912,12 +912,12 @@ export default function ScolaritePage() {
                   </InputAdornment>
                 ),
               }}
-              sx={{ width: 380 }}
+              sx={{ width: { xs: '100%', sm: 380 } }}
             />
           </Box>
 
           <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 2 }}>
-            <Table size="small">
+            <Table size="small" sx={{ minWidth: 800 }}>
               <TableHead sx={{ bgcolor: '#f8fafc' }}>
                 <TableRow>
                   <TableCell><strong>Code Bourse</strong></TableCell>
@@ -949,7 +949,7 @@ export default function ScolaritePage() {
                       </TableCell>
                       <TableCell>{b.etudiant_nom || '-'}</TableCell>
                       <TableCell>{formatDateLocal(b.date_utilisation)}</TableCell>
-                      <TableCell align="center">
+                      <TableCell align="center" sx={{ whiteSpace: 'nowrap' }}>
                         {!b.est_utilisee && canWriteFinance && (
                           <IconButton size="small" color="error" onClick={() => handleDeleteBourse(b.id)}>
                             <DeleteIcon fontSize="small" />
@@ -1058,10 +1058,10 @@ export default function ScolaritePage() {
             <Grid item xs={12}><TextField fullWidth label="Total Scolarité" type="number" value={quickConfigData.scolariteTotal} onChange={(e) => setQuickConfigData({ ...quickConfigData, scolariteTotal: e.target.value })} /></Grid>
             {quickConfigData.tranches.map((tr, idx) => (
               <Grid item xs={12} key={idx} container spacing={1} alignItems="center">
-                <Grid item xs={4}><TextField fullWidth size="small" label={`Tranche ${idx + 1}`} type="number" value={tr.montant} onChange={(e) => { const t = [...quickConfigData.tranches]; t[idx] = { ...t[idx], montant: e.target.value }; setQuickConfigData({ ...quickConfigData, tranches: t }); }} /></Grid>
-                <Grid item xs={4}><TextField fullWidth size="small" label="Échéance" type="date" InputLabelProps={{ shrink: true }} value={tr.date} onChange={(e) => { const t = [...quickConfigData.tranches]; t[idx] = { ...t[idx], date: e.target.value }; setQuickConfigData({ ...quickConfigData, tranches: t }); }} /></Grid>
-                <Grid item xs={3}><TextField fullWidth size="small" label="Libellé" value={tr.label} onChange={(e) => { const t = [...quickConfigData.tranches]; t[idx] = { ...t[idx], label: e.target.value }; setQuickConfigData({ ...quickConfigData, tranches: t }); }} /></Grid>
-                <Grid item xs={1}>{quickConfigData.tranches.length > 1 && <IconButton size="small" color="error" onClick={() => { const t = quickConfigData.tranches.filter((_, i) => i !== idx); setQuickConfigData({ ...quickConfigData, tranches: t }); }}><DeleteIcon fontSize="small" /></IconButton>}</Grid>
+                <Grid item xs={12} sm={4}><TextField fullWidth size="small" label={`Tranche ${idx + 1}`} type="number" value={tr.montant} onChange={(e) => { const t = [...quickConfigData.tranches]; t[idx] = { ...t[idx], montant: e.target.value }; setQuickConfigData({ ...quickConfigData, tranches: t }); }} /></Grid>
+                <Grid item xs={12} sm={4}><TextField fullWidth size="small" label="Échéance" type="date" InputLabelProps={{ shrink: true }} value={tr.date} onChange={(e) => { const t = [...quickConfigData.tranches]; t[idx] = { ...t[idx], date: e.target.value }; setQuickConfigData({ ...quickConfigData, tranches: t }); }} /></Grid>
+                <Grid item xs={10} sm={3}><TextField fullWidth size="small" label="Libellé" value={tr.label} onChange={(e) => { const t = [...quickConfigData.tranches]; t[idx] = { ...t[idx], label: e.target.value }; setQuickConfigData({ ...quickConfigData, tranches: t }); }} /></Grid>
+                <Grid item xs={2} sm={1}>{quickConfigData.tranches.length > 1 && <IconButton size="small" color="error" onClick={() => { const t = quickConfigData.tranches.filter((_, i) => i !== idx); setQuickConfigData({ ...quickConfigData, tranches: t }); }}><DeleteIcon fontSize="small" /></IconButton>}</Grid>
               </Grid>
             ))}
             <Grid item xs={12}>

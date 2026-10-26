@@ -30,9 +30,9 @@ import {
 
 function Kpi({ label, value, hint, color = '#193A7F' }) {
   return (
-    <Paper sx={{ p: 2.5, height: '100%', borderTop: `3px solid ${color}` }}>
+    <Paper sx={{ p: { xs: 1.5, sm: 2.5 }, height: '100%', borderTop: `3px solid ${color}`, minWidth: 0 }}>
       <Typography variant="body2" color="text.secondary">{label}</Typography>
-      <Typography variant="h5" fontWeight="bold" sx={{ mt: 0.5 }}>{value}</Typography>
+      <Typography variant="h5" fontWeight="bold" sx={{ mt: 0.5, wordBreak: 'break-word' }}>{value}</Typography>
       {hint && <Typography variant="caption" color="text.secondary">{hint}</Typography>}
     </Paper>
   );
@@ -111,13 +111,13 @@ export default function MesHeuresPage() {
             </Grid>
           </Grid>
 
-          <Paper sx={{ p: 2.5, mb: 3 }}>
+          <Paper sx={{ p: { xs: 2, sm: 2.5 }, mb: 3 }}>
             <Typography variant="h6" fontWeight="bold" gutterBottom>Récapitulatif par filière</Typography>
             {data.recaps.length === 0 ? (
               <Typography color="text.secondary">Aucune heure pointée pour cette période.</Typography>
             ) : (
               <TableContainer>
-                <Table size="small">
+                <Table size="small" sx={{ minWidth: 650 }}>
                   <TableHead>
                     <TableRow>
                       <TableCell>Filière</TableCell>
@@ -135,7 +135,7 @@ export default function MesHeuresPage() {
                         <TableCell align="right">{r.nombre_seances}</TableCell>
                         <TableCell align="right">{r.nombre_absences}</TableCell>
                         <TableCell align="right" sx={{ fontWeight: 600 }}>{formatHeures(r.total_heures)}</TableCell>
-                        {estVacataire && <TableCell align="right">{formatMontant(r.montant)}</TableCell>}
+                        {estVacataire && <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>{formatMontant(r.montant)}</TableCell>}
                         <TableCell>
                           <StatutRecapChip statut={r.statut} />
                           {r.statut === 'rejete' && r.motif_rejet && (
@@ -150,13 +150,13 @@ export default function MesHeuresPage() {
             )}
           </Paper>
 
-          <Paper sx={{ p: 2.5, mb: 3 }}>
+          <Paper sx={{ p: { xs: 2, sm: 2.5 }, mb: 3 }}>
             <Typography variant="h6" fontWeight="bold" gutterBottom>Détail des pointages</Typography>
             {data.pointages.length === 0 ? (
               <Typography color="text.secondary">Aucun pointage.</Typography>
             ) : (
               <TableContainer>
-                <Table size="small">
+                <Table size="small" sx={{ minWidth: 800 }}>
                   <TableHead>
                     <TableRow>
                       <TableCell>Date</TableCell>
@@ -180,7 +180,7 @@ export default function MesHeuresPage() {
                           {p.module_nom || '—'}
                           {!p.seance && <Chip label="Hors planning" size="small" variant="outlined" sx={{ ml: 1 }} />}
                         </TableCell>
-                        <TableCell>
+                        <TableCell sx={{ whiteSpace: 'nowrap' }}>
                           {p.heure_debut_prevue ? `${formatHeure(p.heure_debut_prevue)} – ${formatHeure(p.heure_fin_prevue)}` : '—'}
                         </TableCell>
                         {p.statut === 'absent' ? (
@@ -206,7 +206,7 @@ export default function MesHeuresPage() {
           </Paper>
 
           {historique.length > 0 && (
-            <Paper sx={{ p: 2.5 }}>
+            <Paper sx={{ p: { xs: 2, sm: 2.5 } }}>
               <Typography variant="h6" fontWeight="bold" gutterBottom>Historique</Typography>
               <TableContainer>
                 <Table size="small">
@@ -228,7 +228,7 @@ export default function MesHeuresPage() {
                       >
                         <TableCell>{MOIS[h.mois - 1]} {h.annee}</TableCell>
                         <TableCell align="right">{formatHeures(h.heures)}</TableCell>
-                        {estVacataire && <TableCell align="right">{formatMontant(h.montant)}</TableCell>}
+                        {estVacataire && <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>{formatMontant(h.montant)}</TableCell>}
                         <TableCell>
                           <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
                             {h.statuts.map((s) => <StatutRecapChip key={s} statut={s} />)}

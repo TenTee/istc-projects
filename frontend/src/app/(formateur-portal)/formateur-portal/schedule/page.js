@@ -96,7 +96,7 @@ export default function EmploiDuTempsPage() {
                     variant="outlined"
                     sx={{ p: 1.5, mb: 1, borderLeft: '4px solid #1976d2' }}
                   >
-                    <Typography variant="body2" fontWeight="bold">
+                    <Typography variant="body2" fontWeight="bold" sx={{ wordBreak: 'break-word' }}>
                       {s.module_nom || s.module?.nom || 'Module'}
                     </Typography>
                     <Box sx={{ display: 'flex', gap: 1, mt: 0.5, flexWrap: 'wrap' }}>
@@ -112,6 +112,7 @@ export default function EmploiDuTempsPage() {
                           label={s.salle_nom || s.salle?.nom}
                           size="small"
                           variant="outlined"
+                          sx={{ maxWidth: '100%' }}
                         />
                       )}
                     </Box>

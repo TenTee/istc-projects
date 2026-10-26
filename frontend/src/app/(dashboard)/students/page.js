@@ -35,6 +35,8 @@ import {
   Grid,
   TablePagination,
   Skeleton,
+  useTheme,
+  useMediaQuery,
 } from "@mui/material";
 import { formatDate, formatDateTime } from "../../../utils/formatters";
 import SearchIcon from "@mui/icons-material/Search";
@@ -207,6 +209,8 @@ const initialPaymentPlanForm = {
 };
 
 export default function StudentsPage() {
+  const theme = useTheme();
+  const fullScreen = useMediaQuery(theme.breakpoints.down("sm"));
   const { canWrite } = useUserPermissions();
   const canWriteStudents = canWrite("can_manage_etudiants");
   const canWriteFinance = canWrite("can_manage_finance");
@@ -919,20 +923,22 @@ export default function StudentsPage() {
       <Box
         sx={{
           display: "flex",
+          flexDirection: { xs: "column", sm: "row" },
           justifyContent: "space-between",
-          alignItems: "center",
+          alignItems: { xs: "stretch", sm: "center" },
+          gap: 2,
           mb: 3,
         }}
       >
         <Typography variant="h5" fontWeight="bold" color="primary">
           Liste des étudiants
         </Typography>
-        <Box sx={{ display: "flex", gap: 2 }}>
+        <Box sx={{ display: "flex", flexWrap: "wrap", gap: { xs: 1, sm: 2 } }}>
           <Button
             variant="outlined"
             color="success"
             startIcon={<DownloadIcon />}
-            sx={{ borderRadius: 2 }}
+            sx={{ borderRadius: 2, width: { xs: "100%", sm: "auto" } }}
             onClick={handleExportExcel}
           >
             Exporter (Excel)
@@ -942,7 +948,7 @@ export default function StudentsPage() {
               variant="contained"
               color="primary"
               startIcon={<AddIcon />}
-              sx={{ borderRadius: 2 }}
+              sx={{ borderRadius: 2, width: { xs: "100%", sm: "auto" } }}
               onClick={handleOpenCreate}
             >
               Ajouter un étudiant
@@ -959,9 +965,9 @@ export default function StudentsPage() {
           boxShadow: "0 4px 20px rgba(0,0,0,0.05)",
         }}
       >
-        <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, alignItems: "center" }}>
           <TextField
-            sx={{ minWidth: 460 }}
+            sx={{ minWidth: { xs: 0, sm: 460 }, width: { xs: "100%", sm: "auto" } }}
             size="small"
             placeholder="Rechercher un étudiant..."
             value={searchTerm}
@@ -975,7 +981,7 @@ export default function StudentsPage() {
               sx: { borderRadius: 2 },
             }}
           />
-          <FormControl size="small" sx={{ minWidth: 160 }}>
+          <FormControl size="small" sx={{ minWidth: { xs: 0, sm: 160 }, flex: { xs: "1 1 140px", sm: "0 0 auto" } }}>
             <Select
               value={courseFilter}
               onChange={(e) => setCourseFilter(e.target.value)}
@@ -996,7 +1002,7 @@ export default function StudentsPage() {
             </Select>
           </FormControl>
 
-          <FormControl size="small" sx={{ minWidth: 150 }}>
+          <FormControl size="small" sx={{ minWidth: { xs: 0, sm: 150 }, flex: { xs: "1 1 140px", sm: "0 0 auto" } }}>
             <Select
               value={classFilter}
               onChange={(e) => setClassFilter(e.target.value)}
@@ -1017,7 +1023,7 @@ export default function StudentsPage() {
             </Select>
           </FormControl>
 
-          <FormControl size="small" sx={{ minWidth: 150 }}>
+          <FormControl size="small" sx={{ minWidth: { xs: 0, sm: 150 }, flex: { xs: "1 1 140px", sm: "0 0 auto" } }}>
             <Select
               value={universityFilter}
               onChange={(e) => setUniversityFilter(e.target.value)}
@@ -1090,7 +1096,7 @@ export default function StudentsPage() {
                 .replace(/[^a-zA-Z0-9_\-]/g, "");
               XLSX.writeFile(wb, `Liste_Etudiants_Tutelle_${safeName}.xlsx`);
             }}
-            sx={{ height: 40 }}
+            sx={{ height: 40, width: { xs: "100%", sm: "auto" } }}
           >
             Exporter par Tutelle
           </Button>
@@ -1101,7 +1107,7 @@ export default function StudentsPage() {
         component={Paper}
         sx={{ borderRadius: 3, boxShadow: "0 4px 20px rgba(0,0,0,0.05)" }}
       >
-        <Table sx={{ minWidth: 650 }}>
+        <Table sx={{ minWidth: 900 }}>
           <TableHead sx={{ bgcolor: "#F5F7FA" }}>
             <TableRow>
               <TableCell sx={{ fontWeight: "bold" }}>Matricule</TableCell>
@@ -1185,7 +1191,7 @@ export default function StudentsPage() {
                         ? student.inscriptions[0].classe_nom || "-"
                         : "-"}
                     </TableCell>
-                    <TableCell align="right" sx={{ minWidth: 250 }}>
+                    <TableCell align="right" sx={{ minWidth: 250, whiteSpace: "nowrap" }}>
                       <IconButton
                         size="small"
                         sx={{ color: "#4f46e5" }}
@@ -1264,12 +1270,13 @@ export default function StudentsPage() {
         onClose={() => setOpenCreate(false)}
         fullWidth
         maxWidth="md"
+        fullScreen={fullScreen}
       >
         <DialogTitle>
           {isEditing ? "Modifier un étudiant" : "Ajouter un étudiant"}
         </DialogTitle>
         <DialogContent>
-          <Grid container spacing={3} sx={{ mt: 0.5 }}>
+          <Grid container spacing={{ xs: 2, md: 3 }} sx={{ mt: 0.5 }}>
             {/* Colonne Gauche - Informations */}
             <Grid item xs={12} md={6}>
               <Typography variant="subtitle2" color="primary" gutterBottom>
@@ -1314,7 +1321,7 @@ export default function StudentsPage() {
                 helperText={formErrors.date_naissance}
               />
               <Box sx={{ display: "flex", gap: 1, alignItems: "flex-start" }}>
-                <FormControl size="small" margin="dense" sx={{ minWidth: 140 }}>
+                <FormControl size="small" margin="dense" sx={{ minWidth: { xs: 112, sm: 140 }, maxWidth: { xs: 140, sm: "none" }, flexShrink: 0 }}>
                   <Select
                     value={form.indicatif}
                     onChange={(e) =>
@@ -1726,7 +1733,7 @@ export default function StudentsPage() {
         open={openDrawer}
         onClose={() => setOpenDrawer(false)}
       >
-        <Box sx={{ width: 400, p: 3 }}>
+        <Box sx={{ width: { xs: "100vw", sm: 400 }, maxWidth: "100vw", p: { xs: 2, sm: 3 }, boxSizing: "border-box" }}>
           <Typography variant="h6" gutterBottom>
             Détails de l'étudiant
           </Typography>
@@ -1878,7 +1885,7 @@ export default function StudentsPage() {
             Historique des paiements
           </Typography>
           <Grid container spacing={1.5} sx={{ mb: 2 }}>
-            <Grid item xs={4}>
+            <Grid item xs={12} sm={4}>
               <Card sx={{ p: 1.5, borderRadius: 2, bgcolor: "#F7F9FC" }}>
                 <Typography variant="caption" color="text.secondary">
                   Total verse
@@ -1892,7 +1899,7 @@ export default function StudentsPage() {
                 </Typography>
               </Card>
             </Grid>
-            <Grid item xs={4}>
+            <Grid item xs={12} sm={4}>
               <Card sx={{ p: 1.5, borderRadius: 2, bgcolor: "#F7F9FC" }}>
                 <Typography variant="caption" color="text.secondary">
                   Montant initial
@@ -1902,7 +1909,7 @@ export default function StudentsPage() {
                 </Typography>
               </Card>
             </Grid>
-            <Grid item xs={4}>
+            <Grid item xs={12} sm={4}>
               <Card sx={{ p: 1.5, borderRadius: 2, bgcolor: "#F7F9FC" }}>
                 <Typography variant="caption" color="text.secondary">
                   Solde restant
@@ -1994,8 +2001,10 @@ export default function StudentsPage() {
           <Box
             sx={{
               display: "flex",
+              flexWrap: "wrap",
               justifyContent: "space-between",
               alignItems: "center",
+              gap: 1,
               mb: 1,
             }}
           >
@@ -2019,7 +2028,7 @@ export default function StudentsPage() {
           ) : studentPaymentPlan?.source ? (
             <>
               <Card sx={{ p: 1.5, mb: 2, borderRadius: 2, bgcolor: "#F7F9FC" }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1 }}>
                   <Chip size="small" label={studentPaymentPlan.source === "personal" ? "Personnel" : "Global"} color={studentPaymentPlan.source === "personal" ? "secondary" : "primary"} />
                   {studentPaymentPlan.is_overdue && (
                     <Chip size="small" label={`${Number(studentPaymentPlan.overdue_amount || 0).toLocaleString('fr-FR')} FCFA en retard`} color="error" />
@@ -2124,17 +2133,17 @@ export default function StudentsPage() {
             Definissez les tranches personnalisees pour cet etudiant. Cela remplacera l'echeancier global.
           </Typography>
           {(paymentPlanForm.tranches || []).map((tr, idx) => (
-            <Grid container spacing={1} key={idx} sx={{ mb: 1 }} alignItems="center">
-              <Grid item xs={4}>
+            <Grid container spacing={1} key={idx} sx={{ mb: { xs: 2, sm: 1 } }} alignItems="center">
+              <Grid item xs={12} sm={4}>
                 <TextField fullWidth size="small" label="Libelle" value={tr.label} onChange={(e) => { const t = [...paymentPlanForm.tranches]; t[idx] = { ...t[idx], label: e.target.value }; setPaymentPlanForm({ ...paymentPlanForm, tranches: t }); }} />
               </Grid>
-              <Grid item xs={3}>
+              <Grid item xs={5} sm={3}>
                 <TextField fullWidth size="small" label="Montant" type="number" value={tr.montant} onChange={(e) => { const t = [...paymentPlanForm.tranches]; t[idx] = { ...t[idx], montant: e.target.value }; setPaymentPlanForm({ ...paymentPlanForm, tranches: t }); }} />
               </Grid>
-              <Grid item xs={4}>
+              <Grid item xs={5} sm={4}>
                 <TextField fullWidth size="small" label="Echeance" type="date" InputLabelProps={{ shrink: true }} value={tr.date} onChange={(e) => { const t = [...paymentPlanForm.tranches]; t[idx] = { ...t[idx], date: e.target.value }; setPaymentPlanForm({ ...paymentPlanForm, tranches: t }); }} />
               </Grid>
-              <Grid item xs={1}>
+              <Grid item xs={2} sm={1}>
                 {paymentPlanForm.tranches.length > 1 && <IconButton size="small" color="error" onClick={() => { const t = paymentPlanForm.tranches.filter((_, i) => i !== idx); setPaymentPlanForm({ ...paymentPlanForm, tranches: t }); }}><DeleteIcon fontSize="small" /></IconButton>}
               </Grid>
             </Grid>
@@ -2178,7 +2187,7 @@ export default function StudentsPage() {
           sx={{
             display: "flex",
             justifyContent: "center",
-            p: 4,
+            p: { xs: 1.5, sm: 4 },
             bgcolor: "#f0f2f5",
           }}
         >
@@ -2226,12 +2235,15 @@ export default function StudentsPage() {
         onClose={() => setOpenCertDialog(false)}
         fullWidth
         maxWidth="md"
+        fullScreen={fullScreen}
       >
         <DialogTitle
           sx={{
             display: "flex",
+            flexWrap: "wrap",
             justifyContent: "space-between",
             alignItems: "center",
+            gap: 1,
           }}
         >
           Certificat de Scolarité
@@ -2253,11 +2265,15 @@ export default function StudentsPage() {
         <DialogContent
           sx={{
             display: "flex",
-            justifyContent: "center",
+            justifyContent: "flex-start",
+            overflowX: "auto",
             bgcolor: "#f0f2f5",
-            py: 4,
+            py: { xs: 2, sm: 4 },
+            px: { xs: 1, sm: 3 },
           }}
         >
+          {/* Conteneur d'aperçu : centré quand il y a la place, défilant sinon (le modèle A4 garde ses dimensions) */}
+          <Box sx={{ mx: "auto", flexShrink: 0 }}>
           {certStudent &&
             (() => {
               if (certStudent) {
@@ -2470,6 +2486,7 @@ export default function StudentsPage() {
                 </Box>
               );
             })()}
+          </Box>
         </DialogContent>
         <DialogActions className="no-print-cert">
           <Button onClick={() => setOpenCertDialog(false)}>Fermer</Button>

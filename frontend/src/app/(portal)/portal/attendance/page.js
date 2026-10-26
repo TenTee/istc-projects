@@ -53,11 +53,11 @@ export default function StudentAttendancePage() {
       <Typography variant="h4" fontWeight="bold" color="primary" gutterBottom>
         Mon Assiduité
       </Typography>
-      <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
+      <Typography variant="body1" color="text.secondary" sx={{ mb: { xs: 3, md: 4 } }}>
         Consultez l'historique de vos absences et leur état de justification.
       </Typography>
 
-      <Grid container spacing={3} sx={{ mb: 4 }}>
+      <Grid container spacing={{ xs: 2, md: 3 }} sx={{ mb: { xs: 3, md: 4 } }}>
         <Grid item xs={12} sm={4}>
           <Card sx={{ borderRadius: 3, bgcolor: '#193A7F', color: 'white' }}>
             <CardContent>
@@ -85,7 +85,7 @@ export default function StudentAttendancePage() {
       </Grid>
 
       <TableContainer component={Paper} sx={{ borderRadius: 3, boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
-        <Table>
+        <Table sx={{ minWidth: 650 }}>
           <TableHead sx={{ bgcolor: '#f8f9fa' }}>
             <TableRow>
               <TableCell sx={{ fontWeight: 'bold' }}>Date</TableCell>
@@ -105,7 +105,7 @@ export default function StudentAttendancePage() {
             ) : (
               absences.map((abs) => (
                 <TableRow key={abs.id}>
-                  <TableCell>{formatDate(abs.date)}</TableCell>
+                  <TableCell sx={{ whiteSpace: 'nowrap' }}>{formatDate(abs.date)}</TableCell>
                   <TableCell>{abs.module_nom || 'N/A'}</TableCell>
                   <TableCell>{abs.type_absence || 'Absence'}</TableCell>
                   <TableCell>

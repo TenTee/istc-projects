@@ -1,5 +1,8 @@
 # Mise en ligne sur un serveur
 
+!!! tip "Plus rapide : la livraison automatique"
+    Le script `outils/deploiement/deployer_backend.sh` fait toutes les étapes du backend (1 à 4, Nginx, HTTPS, sauvegardes) en une commande. Voir [Livraison automatique du backend](deploiement-automatique.md). Cette page décrit la procédure manuelle équivalente.
+
 Ce guide décrit une installation complète sur un serveur **Linux (Ubuntu ou Bitnami)** avec :
 
 - **PostgreSQL** pour la base de données ;
@@ -13,8 +16,8 @@ Les exemples utilisent :
 |---|---|
 | Utilisateur Linux | `bitnami` |
 | Dossier de l'application | `/home/bitnami/istc-projects` |
-| Adresse de l'interface | `https://istc.exemple.cm` |
-| Adresse de l'API | `https://api.istc.exemple.cm` |
+| Adresse de l'interface | `https://smartcampus.exemple.cm` |
+| Adresse de l'API | `https://api.smartcampus.exemple.cm` |
 | Base de données / utilisateur | `smartcampus` / `smartcampus` |
 
 !!! tip "Une seule adresse ?"
@@ -65,9 +68,9 @@ Renseignez au minimum (détails dans [Configuration](configuration.md)) :
 ```ini
 SECRET_KEY=<une longue chaîne aléatoire>
 DEBUG=False
-ALLOWED_HOSTS=api.istc.exemple.cm,istc.exemple.cm
+ALLOWED_HOSTS=api.smartcampus.exemple.cm,smartcampus.exemple.cm
 DATABASE_URL=postgresql://smartcampus:MotDePasseFort@127.0.0.1:5432/smartcampus
-CORS_ALLOWED_ORIGINS=https://istc.exemple.cm
+CORS_ALLOWED_ORIGINS=https://smartcampus.exemple.cm
 RECAPTCHA_SECRET_KEY=<clé secrète reCAPTCHA, ou vide>
 ```
 
@@ -122,7 +125,7 @@ nano .env.local
 ```
 
 ```ini
-NEXT_PUBLIC_API_BASE_URL=https://api.istc.exemple.cm
+NEXT_PUBLIC_API_BASE_URL=https://api.smartcampus.exemple.cm
 NEXT_PUBLIC_RECAPTCHA_SITE_KEY=<clé du site reCAPTCHA, ou vide>
 ```
 
@@ -164,7 +167,7 @@ Créez `/etc/nginx/sites-available/smartcampus` :
 ```nginx
 # API
 server {
-    server_name api.istc.exemple.cm;
+    server_name api.smartcampus.exemple.cm;
     client_max_body_size 25M;   # taille max des fichiers déposés
 
     location /static/ { alias /home/bitnami/istc-projects/back-istc/staticfiles/; }
@@ -180,7 +183,7 @@ server {
 
 # Interface
 server {
-    server_name istc.exemple.cm;
+    server_name smartcampus.exemple.cm;
     location / {
         proxy_pass http://127.0.0.1:3000;
         proxy_set_header Host $host;
@@ -199,15 +202,15 @@ Activez et ajoutez HTTPS :
 sudo ln -s /etc/nginx/sites-available/smartcampus /etc/nginx/sites-enabled/
 sudo nginx -t && sudo systemctl reload nginx
 sudo apt install -y certbot python3-certbot-nginx
-sudo certbot --nginx -d istc.exemple.cm -d api.istc.exemple.cm
+sudo certbot --nginx -d smartcampus.exemple.cm -d api.smartcampus.exemple.cm
 ```
 
 Vérifiez que le dossier `media/` est lisible par Nginx (`sudo chmod o+x /home/bitnami /home/bitnami/istc-projects /home/bitnami/istc-projects/back-istc`).
 
 ## 7. Vérifications finales
 
-- [ ] <https://api.istc.exemple.cm/api/docs/> affiche la documentation de l'API.
-- [ ] <https://istc.exemple.cm> affiche la page de connexion.
+- [ ] <https://api.smartcampus.exemple.cm/api/docs/> affiche la documentation de l'API.
+- [ ] <https://smartcampus.exemple.cm> affiche la page de connexion.
 - [ ] La connexion avec le super-administrateur fonctionne.
 - [ ] Une photo déposée (logo dans **Système** → *Apparence & École*) s'affiche.
 - [ ] La [sauvegarde automatique](sauvegardes.md) est en place.

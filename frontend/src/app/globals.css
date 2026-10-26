@@ -3,3 +3,26 @@ body {
   padding: 0;
   background-color: #F5F7FA;
 }
+
+/* ---- Responsive : filets de sécurité communs ---- */
+img, video, canvas { max-width: 100%; }
+
+/* Un tableau posé directement dans un Paper/Card défile horizontalement au lieu d'élargir la page. */
+.MuiPaper-root:has(> .MuiTable-root),
+.MuiCardContent-root:has(> .MuiTable-root) {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Les graphiques Recharts ne dépassent jamais leur conteneur. */
+.recharts-responsive-container { min-width: 0; }
+
+@media (max-width: 599.95px) {
+  /* Les longues chaînes (e-mails, références) passent à la ligne. */
+  .MuiTypography-root { overflow-wrap: break-word; }
+}
+
+@media (max-width: 599.95px) {
+  /* Message « Aucun… » d'un tableau vide défilant : aligné à gauche pour rester visible sans défiler. */
+  .MuiTableCell-root.MuiTableCell-alignCenter[colspan] { text-align: left; }
+}

@@ -145,7 +145,7 @@ export default function RolesTab() {
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'stretch', sm: 'center' }, gap: 2, mb: 3 }}>
         <Typography variant="h6" fontWeight="bold">Rôles & Autorisations</Typography>
         <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleOpenModal()}>
           Nouveau Rôle
@@ -156,7 +156,7 @@ export default function RolesTab() {
 
       <Paper sx={{ width: '100%', overflow: 'hidden', boxShadow: 3, borderRadius: 2 }}>
         <TableContainer sx={{ maxHeight: 600 }}>
-          <Table stickyHeader>
+          <Table stickyHeader sx={{ minWidth: 600 }}>
             <TableHead>
               <TableRow>
                 <TableCell sx={{ fontWeight: 'bold' }}>Code</TableCell>
@@ -184,7 +184,7 @@ export default function RolesTab() {
                         <AccessChip key={pf.name} level={role[pf.name]} label={pf.label} />
                       ))}
                     </TableCell>
-                    <TableCell align="right">
+                    <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
                       <IconButton color="primary" onClick={() => handleOpenModal(role)}><EditIcon /></IconButton>
                       <IconButton color="error" onClick={() => handleDelete(role.id)}><DeleteIcon /></IconButton>
                     </TableCell>

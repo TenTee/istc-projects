@@ -211,10 +211,17 @@ DEFAULT_FROM_EMAIL = 'no-reply@example.com'
 # -------------------------
 # DRF Spectacular (Swagger)
 # -------------------------
+# Version livrée : fichier VERSION à la racine du dépôt, mis à jour à chaque livraison
+# par outils/version/versionner.py (GitHub Action « Version »).
+try:
+    APP_VERSION = (BASE_DIR.parent / 'VERSION').read_text(encoding='utf-8').strip() or '0.0.0'
+except OSError:
+    APP_VERSION = '0.0.0'
+
 SPECTACULAR_SETTINGS = {
     'TITLE': 'SmartCampus API',
     'DESCRIPTION': 'API pour la gestion des utilisateurs, rôles, programmes et modules.',
-    'VERSION': '1.0.0',
+    'VERSION': APP_VERSION,
     'SERVE_INCLUDE_SCHEMA': False,
     'COMPONENT_SPLIT_REQUEST': True,
 }

@@ -69,7 +69,7 @@ import {
 import { getStoredPermissions, hasReadAccess, hasWriteAccess } from "../../../utils/permissions";
 
 const premiumStyles = {
-  container: { p: 4, bgcolor: "#f8fafc", minHeight: "100vh" },
+  container: { p: { xs: 2, sm: 3, md: 4 }, bgcolor: "#f8fafc", minHeight: "100vh" },
   header: {
     display: "flex",
     justifyContent: "space-between",
@@ -82,7 +82,7 @@ const premiumStyles = {
     fontWeight: 800,
     color: "#1e293b",
     letterSpacing: "-0.02em",
-    fontSize: "2rem",
+    fontSize: { xs: "1.5rem", sm: "2rem" },
   },
   actionBtn: { borderRadius: "10px", textTransform: "none", fontWeight: 600 },
   card: {
@@ -90,7 +90,7 @@ const premiumStyles = {
     boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.05)",
     overflow: "hidden",
     bgcolor: "white",
-    p: 3,
+    p: { xs: 2, md: 3 },
     mb: 3,
   },
   tableCell: {
@@ -108,7 +108,7 @@ const premiumStyles = {
     py: 2,
   },
   transcriptHeader: { textAlign: "center", mb: 4 },
-  tabsWrapper: { mb: 4, borderBottom: "1px solid #e2e8f0" },
+  tabsWrapper: { mb: { xs: 3, md: 4 }, borderBottom: "1px solid #e2e8f0" },
   input: {
     "& .MuiInputBase-root": { borderRadius: "8px" },
     "& .MuiOutlinedInput-input": { py: 1.5 },
@@ -799,8 +799,8 @@ const handleBatchInputChange = (index, field, value) => {
             >
               Sélection du Cours
             </Typography>
-            <Grid container spacing={3} alignItems="flex-end">
-              <Grid item xs={12} md={3}>
+            <Grid container spacing={{ xs: 2, md: 3 }} alignItems="flex-end">
+              <Grid item xs={12} sm={6} md={3}>
                 <FormControl fullWidth>
                   <InputLabel>Classe</InputLabel>
                   <Select
@@ -818,7 +818,7 @@ const handleBatchInputChange = (index, field, value) => {
                   </Select>
                 </FormControl>
               </Grid>
-              <Grid item xs={12} md={3}>
+              <Grid item xs={12} sm={6} md={3}>
                 <FormControl fullWidth>
                   <InputLabel>Module / Matière</InputLabel>
                   <Select
@@ -838,7 +838,7 @@ const handleBatchInputChange = (index, field, value) => {
                 </FormControl>
               </Grid>
 
-              <Grid item xs={12} md={3}>
+              <Grid item xs={12} sm={6} md={3}>
                 <Button
                   variant="contained"
                   fullWidth
@@ -861,8 +861,10 @@ const handleBatchInputChange = (index, field, value) => {
               <Box
                 sx={{
                   display: "flex",
+                  flexDirection: { xs: "column", sm: "row" },
                   justifyContent: "space-between",
-                  alignItems: "center",
+                  alignItems: { xs: "stretch", sm: "center" },
+                  gap: 2,
                   mb: 3,
                 }}
               >
@@ -935,7 +937,8 @@ const handleBatchInputChange = (index, field, value) => {
                 sx={{
                   mb: 3,
                   display: "flex",
-                  gap: 4,
+                  flexWrap: "wrap",
+                  gap: { xs: 2, md: 4 },
                   alignItems: "center",
                   bgcolor: "#f8fafc",
                   p: 2,
@@ -1018,7 +1021,7 @@ const handleBatchInputChange = (index, field, value) => {
               </Alert>
 
               <TableContainer>
-                <Table>
+                <Table sx={{ minWidth: 750 }}>
                   <TableHead>
                     <TableRow>
                       <TableCell sx={premiumStyles.tableHeadCell}>
@@ -1127,7 +1130,7 @@ const handleBatchInputChange = (index, field, value) => {
               Génération du Relevé de Notes
             </Typography>
             <Grid container spacing={2} alignItems="center">
-              <Grid item xs={12} md={3}>
+              <Grid item xs={12} sm={6} md={3}>
                 <FormControl fullWidth size="small">
                   <InputLabel>Filière</InputLabel>
                   <Select
@@ -1152,7 +1155,7 @@ const handleBatchInputChange = (index, field, value) => {
                   </Select>
                 </FormControl>
               </Grid>
-              <Grid item xs={12} md={3}>
+              <Grid item xs={12} sm={6} md={3}>
                 <FormControl fullWidth size="small" disabled={!transcriptFiliere}>
                   <InputLabel>Cycle</InputLabel>
                   <Select
@@ -1176,7 +1179,7 @@ const handleBatchInputChange = (index, field, value) => {
                   </Select>
                 </FormControl>
               </Grid>
-              <Grid item xs={12} md={3}>
+              <Grid item xs={12} sm={6} md={3}>
                 <FormControl fullWidth size="small" disabled={!transcriptCycle}>
                   <InputLabel>Classe</InputLabel>
                   <Select
@@ -1199,7 +1202,7 @@ const handleBatchInputChange = (index, field, value) => {
                   </Select>
                 </FormControl>
               </Grid>
-              <Grid item xs={12} md={3}>
+              <Grid item xs={12} sm={6} md={3}>
                 <FormControl fullWidth size="small" disabled={!transcriptClasse}>
                   <InputLabel>Étudiant</InputLabel>
                   <Select
@@ -1224,7 +1227,7 @@ const handleBatchInputChange = (index, field, value) => {
             </Grid>
 
             {selectedStudentForTranscript && (
-              <Box sx={{ mt: 3, display: "flex", justifyContent: "flex-end", gap: 2 }}>
+              <Box sx={{ mt: 3, display: "flex", flexDirection: { xs: "column", sm: "row" }, justifyContent: "flex-end", gap: { xs: 1, sm: 2 } }}>
                 <Button
                   variant="outlined"
                   startIcon={<RefreshIcon />}
@@ -1253,7 +1256,7 @@ const handleBatchInputChange = (index, field, value) => {
               <Typography sx={{ mt: 2 }}>Chargement du relevé...</Typography>
             </Box>
           ) : releveData ? (
-            <Box sx={{ overflow: "auto" }}>
+            <Box sx={{ overflowX: "auto", maxWidth: "100%" }}>
               <ReleveNotesTemplate ref={releveRef} data={releveData} />
             </Box>
           ) : selectedStudentForTranscript ? (
@@ -1475,7 +1478,14 @@ const handleBatchInputChange = (index, field, value) => {
 
                 {transcriptClasse && classStudents.length > 0 && (
                   <Box
-                    sx={{ mt: 3, display: "flex", justifyContent: "flex-end" }}
+                    sx={{
+                      mt: 3,
+                      display: "flex",
+                      flexDirection: { xs: "column", sm: "row" },
+                      flexWrap: "wrap",
+                      justifyContent: "flex-end",
+                      gap: 1,
+                    }}
                   >
                     <Button
                       variant="contained"
@@ -1546,7 +1556,7 @@ const handleBatchInputChange = (index, field, value) => {
                     <Button
                       variant="outlined"
                       startIcon={<DownloadIcon />}
-                      sx={{ ml: 1, textTransform: "none" }}
+                      sx={{ textTransform: "none" }}
                       onClick={async () => {
                         if (!transcriptClasse) {
                           setToast({
@@ -1603,7 +1613,7 @@ const handleBatchInputChange = (index, field, value) => {
                     </Typography>
                   </Box>
                 ) : (
-                  <Card sx={premiumStyles.card} id="printable-class-recap">
+                  <Card sx={{ ...premiumStyles.card, p: 3 }} id="printable-class-recap">
                     <Box sx={{ textAlign: "center", mb: 3 }}>
                       <Typography variant="h5" fontWeight={800} gutterBottom>
                         Récapitulatif des Notes
@@ -1961,7 +1971,7 @@ const handleBatchInputChange = (index, field, value) => {
 
       {tabValue === 3 && (
         <Card sx={premiumStyles.card}>
-          <Box sx={{ display: "flex", justifyContent: "space-between", gap: 2, mb: 3, flexWrap: "wrap" }}>
+          <Box sx={{ display: "flex", flexDirection: { xs: "column", sm: "row" }, justifyContent: "space-between", gap: 2, mb: 3, flexWrap: "wrap" }}>
             <Box>
               <Typography variant="h6" fontWeight={700}>Étudiants en rattrapage</Typography>
               <Typography variant="body2" color="text.secondary">
@@ -1973,7 +1983,7 @@ const handleBatchInputChange = (index, field, value) => {
             </Button>
           </Box>
           <Grid container spacing={2} sx={{ mb: 3 }}>
-            <Grid item xs={12} md={4}>
+            <Grid item xs={12} sm={6} md={4}>
               <FormControl fullWidth size="small">
                 <InputLabel>Classe</InputLabel>
                 <Select value={rattrapageClasse} label="Classe" onChange={(e) => setRattrapageClasse(e.target.value)}>
@@ -1982,7 +1992,7 @@ const handleBatchInputChange = (index, field, value) => {
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} sm={6} md={6}>
               <FormControl fullWidth size="small">
                 <InputLabel>Semestre</InputLabel>
                 <Select value={rattrapageSession} label="Semestre" onChange={(e) => setRattrapageSession(e.target.value)}>
@@ -1995,7 +2005,7 @@ const handleBatchInputChange = (index, field, value) => {
           </Grid>
           {rattrapageLoading ? <TableSkeleton rows={5} columns={6} /> : (
             <TableContainer component={Paper} variant="outlined">
-              <Table size="small">
+              <Table size="small" sx={{ minWidth: 750 }}>
                 <TableHead><TableRow>
                   <TableCell sx={premiumStyles.tableHeadCell}>Étudiant</TableCell>
                   <TableCell sx={premiumStyles.tableHeadCell}>Matricule</TableCell>

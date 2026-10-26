@@ -57,7 +57,7 @@ export default function StudentDiscipline() {
         </Alert>
       )}
 
-      <Card sx={{ borderRadius: 4, mb: 4, boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
+      <Card sx={{ borderRadius: 4, mb: { xs: 3, md: 4 }, boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
         <CardContent>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
             <GavelIcon color="primary" />
@@ -66,7 +66,7 @@ export default function StudentDiscipline() {
           <Divider sx={{ mb: 3 }} />
           
           <TableContainer component={Box}>
-            <Table>
+            <Table sx={{ minWidth: 650 }}>
               <TableHead sx={{ bgcolor: '#F5F7FA' }}>
                 <TableRow>
                   <TableCell sx={{ fontWeight: 'bold' }}>Date</TableCell>
@@ -80,7 +80,7 @@ export default function StudentDiscipline() {
                 {student.sanctions?.length > 0 ? (
                   student.sanctions.map((sanction) => (
                     <TableRow key={sanction.id} hover>
-                      <TableCell>{new Date(sanction.date_sanction).toLocaleDateString()}</TableCell>
+                      <TableCell sx={{ whiteSpace: 'nowrap' }}>{new Date(sanction.date_sanction).toLocaleDateString()}</TableCell>
                       <TableCell>
                         <Typography variant="body2" fontWeight="bold">{sanction.type_sanction}</Typography>
                       </TableCell>

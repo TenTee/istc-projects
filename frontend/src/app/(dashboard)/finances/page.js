@@ -280,13 +280,13 @@ export default function FinancesPage() {
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'stretch', sm: 'center' }, gap: 2, mb: 3 }}>
         <Typography variant="h5" fontWeight="bold" color="primary">Aperçu Financier Global</Typography>
         {currentTab === 1 && canWriteFinance && (
-          <Button variant="contained" startIcon={<AddIcon />} onClick={() => { setIsEditingRevenu(false); setFormRevenu({ ...initialRevenuForm, date_entree: new Date().toISOString().split('T')[0] }); setSelectedRevenu(null); setOpenRevenuForm(true); }}>Ajouter un revenu</Button>
+          <Button variant="contained" startIcon={<AddIcon />} sx={{ width: { xs: '100%', sm: 'auto' } }} onClick={() => { setIsEditingRevenu(false); setFormRevenu({ ...initialRevenuForm, date_entree: new Date().toISOString().split('T')[0] }); setSelectedRevenu(null); setOpenRevenuForm(true); }}>Ajouter un revenu</Button>
         )}
         {currentTab === 2 && canWriteFinance && (
-          <Button variant="contained" startIcon={<AddIcon />} onClick={() => { setIsEditingDepense(false); setFormDepense({ ...initialDepenseForm, date_depense: new Date().toISOString().split('T')[0] }); setSelectedDepense(null); setOpenDepenseForm(true); }}>Ajouter une dépense</Button>
+          <Button variant="contained" startIcon={<AddIcon />} sx={{ width: { xs: '100%', sm: 'auto' } }} onClick={() => { setIsEditingDepense(false); setFormDepense({ ...initialDepenseForm, date_depense: new Date().toISOString().split('T')[0] }); setSelectedDepense(null); setOpenDepenseForm(true); }}>Ajouter une dépense</Button>
         )}
       </Box>
 
@@ -469,7 +469,7 @@ export default function FinancesPage() {
                       Historique salaires mensuels
                     </Typography>
                     <TableContainer>
-                      <Table size="small">
+                      <Table size="small" sx={{ minWidth: 600 }}>
                         <TableHead sx={{ bgcolor: '#F5F7FA' }}>
                           <TableRow>
                             <TableCell sx={{ fontWeight: 'bold' }}>Mois</TableCell>
@@ -531,7 +531,7 @@ export default function FinancesPage() {
               {/* Section 6: Dernières transactions */}
               <Typography variant="h6" fontWeight="bold" mb={2}>Dernières transactions</Typography>
               <TableContainer component={Paper} sx={{ borderRadius: 3 }}>
-                <Table>
+                <Table sx={{ minWidth: 650 }}>
                   <TableHead sx={{ bgcolor: '#F5F7FA' }}>
                     <TableRow>
                       <TableCell sx={{ fontWeight: 'bold' }}>Date</TableCell>
@@ -576,7 +576,7 @@ export default function FinancesPage() {
       {currentTab === 1 && (
         <Box>
           <TableContainer component={Paper} sx={{ borderRadius: 3 }}>
-            <Table>
+            <Table sx={{ minWidth: 800 }}>
               <TableHead sx={{ bgcolor: '#F5F7FA' }}>
                 <TableRow>
                   <TableCell sx={{ fontWeight: 'bold' }}>Date</TableCell>
@@ -598,7 +598,7 @@ export default function FinancesPage() {
                     <TableCell>{rev.responsable || '-'}</TableCell>
                     <TableCell sx={{ fontWeight: 'bold', color: 'success.main' }}>+{Number(rev.montant).toLocaleString()} FCFA</TableCell>
                     <TableCell><Chip label={rev.statut || 'N/A'} color={rev.statut === 'Validé' ? 'success' : 'warning'} size="small" /></TableCell>
-                    <TableCell align="right">
+                    <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
                       {canWriteFinance && (
                         <IconButton size="small" color="primary" onClick={() => { setIsEditingRevenu(true); setFormRevenu({ libelle: rev.libelle || '', montant: rev.montant || '', categorie: rev.categorie || 'Inscription', date_entree: rev.date_entree ? rev.date_entree.split('T')[0] : '', responsable: rev.responsable || '', statut: rev.statut || 'Validé', justificatif: null }); setSelectedRevenu(rev); setOpenRevenuForm(true); }}><EditIcon fontSize="small" /></IconButton>
                       )}
@@ -620,7 +620,7 @@ export default function FinancesPage() {
       {currentTab === 2 && (
         <Box>
           <TableContainer component={Paper} sx={{ borderRadius: 3 }}>
-            <Table>
+            <Table sx={{ minWidth: 800 }}>
               <TableHead sx={{ bgcolor: '#F5F7FA' }}>
                 <TableRow>
                   <TableCell sx={{ fontWeight: 'bold' }}>Date</TableCell>
@@ -642,7 +642,7 @@ export default function FinancesPage() {
                     <TableCell>{dep.responsable_nom || '-'}</TableCell>
                     <TableCell sx={{ fontWeight: 'bold', color: 'error.main' }}>-{Number(dep.montant).toLocaleString()} FCFA</TableCell>
                     <TableCell><Chip label={dep.statut || 'N/A'} color={dep.statut === 'Validée' ? 'success' : dep.statut === 'Rejetée' ? 'error' : 'warning'} size="small" /></TableCell>
-                    <TableCell align="right">
+                    <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
                       {canWriteFinance && (
                         <IconButton size="small" color="primary" onClick={() => { setIsEditingDepense(true); setFormDepense({ libelle: dep.libelle || '', montant: dep.montant || '', categorie: dep.categorie || 'Materiel', date_depense: dep.date_depense ? dep.date_depense.split('T')[0] : '', statut: dep.statut || 'En attente', responsable: demandeurs.find(d => d.nom === dep.responsable_nom) || null, justificatif: null }); setSelectedDepense(dep); setOpenDepenseForm(true); }}><EditIcon fontSize="small" /></IconButton>
                       )}
@@ -668,10 +668,10 @@ export default function FinancesPage() {
         <DialogContent dividers>
           <Grid container spacing={2}>
             <Grid item xs={12}><TextField fullWidth label="Libellé" value={formRevenu.libelle} onChange={(e) => setFormRevenu({ ...formRevenu, libelle: e.target.value })} required /></Grid>
-            <Grid item xs={6}><TextField fullWidth type="number" label="Montant (FCFA)" value={formRevenu.montant} onChange={(e) => setFormRevenu({ ...formRevenu, montant: e.target.value })} required /></Grid>
-            <Grid item xs={6}><TextField fullWidth type="date" label="Date" InputLabelProps={{ shrink: true }} value={formRevenu.date_entree} onChange={(e) => setFormRevenu({ ...formRevenu, date_entree: e.target.value })} required /></Grid>
-            <Grid item xs={6}><FormControl fullWidth><InputLabel>Catégorie</InputLabel><Select value={formRevenu.categorie} label="Catégorie" onChange={(e) => setFormRevenu({ ...formRevenu, categorie: e.target.value })}>{CATEGORIES_REVENU.map(c => <MenuItem key={c} value={c}>{c}</MenuItem>)}</Select></FormControl></Grid>
-            <Grid item xs={6}><FormControl fullWidth><InputLabel>Statut</InputLabel><Select value={formRevenu.statut} label="Statut" onChange={(e) => setFormRevenu({ ...formRevenu, statut: e.target.value })}>{STATUTS_REVENU.map(s => <MenuItem key={s} value={s}>{s}</MenuItem>)}</Select></FormControl></Grid>
+            <Grid item xs={12} sm={6}><TextField fullWidth type="number" label="Montant (FCFA)" value={formRevenu.montant} onChange={(e) => setFormRevenu({ ...formRevenu, montant: e.target.value })} required /></Grid>
+            <Grid item xs={12} sm={6}><TextField fullWidth type="date" label="Date" InputLabelProps={{ shrink: true }} value={formRevenu.date_entree} onChange={(e) => setFormRevenu({ ...formRevenu, date_entree: e.target.value })} required /></Grid>
+            <Grid item xs={12} sm={6}><FormControl fullWidth><InputLabel>Catégorie</InputLabel><Select value={formRevenu.categorie} label="Catégorie" onChange={(e) => setFormRevenu({ ...formRevenu, categorie: e.target.value })}>{CATEGORIES_REVENU.map(c => <MenuItem key={c} value={c}>{c}</MenuItem>)}</Select></FormControl></Grid>
+            <Grid item xs={12} sm={6}><FormControl fullWidth><InputLabel>Statut</InputLabel><Select value={formRevenu.statut} label="Statut" onChange={(e) => setFormRevenu({ ...formRevenu, statut: e.target.value })}>{STATUTS_REVENU.map(s => <MenuItem key={s} value={s}>{s}</MenuItem>)}</Select></FormControl></Grid>
             <Grid item xs={12}><TextField fullWidth label="Responsable" value={formRevenu.responsable} onChange={(e) => setFormRevenu({ ...formRevenu, responsable: e.target.value })} /></Grid>
             <Grid item xs={12}><Box><input accept=".pdf,.png,.jpg,.jpeg" style={{ display: 'none' }} id="justif-rev" type="file" onChange={(e) => { if (e.target.files[0]) setFormRevenu({ ...formRevenu, justificatif: e.target.files[0] }); }} /><label htmlFor="justif-rev"><Button variant="outlined" component="span" fullWidth startIcon={<CloudUploadIcon />}>{formRevenu.justificatif ? formRevenu.justificatif.name : 'Justificatif'}</Button></label></Box></Grid>
           </Grid>
@@ -688,10 +688,10 @@ export default function FinancesPage() {
         <DialogContent dividers>
           <Grid container spacing={2}>
             <Grid item xs={12}><TextField fullWidth label="Libellé" value={formDepense.libelle} onChange={(e) => setFormDepense({ ...formDepense, libelle: e.target.value })} required /></Grid>
-            <Grid item xs={6}><TextField fullWidth type="number" label="Montant (FCFA)" value={formDepense.montant} onChange={(e) => setFormDepense({ ...formDepense, montant: e.target.value })} required /></Grid>
-            <Grid item xs={6}><TextField fullWidth type="date" label="Date" InputLabelProps={{ shrink: true }} value={formDepense.date_depense} onChange={(e) => setFormDepense({ ...formDepense, date_depense: e.target.value })} required /></Grid>
-            <Grid item xs={6}><FormControl fullWidth><InputLabel>Catégorie</InputLabel><Select value={formDepense.categorie} label="Catégorie" onChange={(e) => setFormDepense({ ...formDepense, categorie: e.target.value })}>{CATEGORIES_DEPENSE.map(c => <MenuItem key={c} value={c}>{c}</MenuItem>)}</Select></FormControl></Grid>
-            <Grid item xs={6}><FormControl fullWidth><InputLabel>Statut</InputLabel><Select value={formDepense.statut} label="Statut" onChange={(e) => setFormDepense({ ...formDepense, statut: e.target.value })}>{STATUTS_DEPENSE.map(s => <MenuItem key={s} value={s}>{s}</MenuItem>)}</Select></FormControl></Grid>
+            <Grid item xs={12} sm={6}><TextField fullWidth type="number" label="Montant (FCFA)" value={formDepense.montant} onChange={(e) => setFormDepense({ ...formDepense, montant: e.target.value })} required /></Grid>
+            <Grid item xs={12} sm={6}><TextField fullWidth type="date" label="Date" InputLabelProps={{ shrink: true }} value={formDepense.date_depense} onChange={(e) => setFormDepense({ ...formDepense, date_depense: e.target.value })} required /></Grid>
+            <Grid item xs={12} sm={6}><FormControl fullWidth><InputLabel>Catégorie</InputLabel><Select value={formDepense.categorie} label="Catégorie" onChange={(e) => setFormDepense({ ...formDepense, categorie: e.target.value })}>{CATEGORIES_DEPENSE.map(c => <MenuItem key={c} value={c}>{c}</MenuItem>)}</Select></FormControl></Grid>
+            <Grid item xs={12} sm={6}><FormControl fullWidth><InputLabel>Statut</InputLabel><Select value={formDepense.statut} label="Statut" onChange={(e) => setFormDepense({ ...formDepense, statut: e.target.value })}>{STATUTS_DEPENSE.map(s => <MenuItem key={s} value={s}>{s}</MenuItem>)}</Select></FormControl></Grid>
             <Grid item xs={12}><FormControl fullWidth><InputLabel>Responsable</InputLabel><Select value={formDepense.responsable ? `${formDepense.responsable.type}-${formDepense.responsable.id}` : ''} label="Responsable" onChange={(e) => { const sel = demandeurs.find(d => `${d.type}-${d.id}` === e.target.value); setFormDepense({ ...formDepense, responsable: sel }); }}>{demandeurs.map(d => <MenuItem key={`${d.type}-${d.id}`} value={`${d.type}-${d.id}`}>{d.nom} ({d.type})</MenuItem>)}</Select></FormControl></Grid>
             <Grid item xs={12}><Box><input accept=".pdf,.png,.jpg,.jpeg" style={{ display: 'none' }} id="justif-dep" type="file" onChange={(e) => { if (e.target.files[0]) setFormDepense({ ...formDepense, justificatif: e.target.files[0] }); }} /><label htmlFor="justif-dep"><Button variant="outlined" component="span" fullWidth startIcon={<CloudUploadIcon />}>{formDepense.justificatif ? formDepense.justificatif.name : 'Justificatif'}</Button></label></Box></Grid>
           </Grid>

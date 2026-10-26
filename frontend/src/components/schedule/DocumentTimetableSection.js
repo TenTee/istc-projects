@@ -21,6 +21,8 @@ import {
   MenuItem,
   CircularProgress,
   Alert,
+  useTheme,
+  useMediaQuery,
 } from "@mui/material";
 import {
   PictureAsPdf as PdfIcon,
@@ -48,6 +50,8 @@ export default function DocumentTimetableSection({
   title = "Emplois du temps importés (PDF / Images)",
   subtitle = "Consultez et téléchargez les plannings officiels sous format PDF ou Image.",
 }) {
+  const theme = useTheme();
+  const fullScreen = useMediaQuery(theme.breakpoints.down("sm"));
   const [openUpload, setOpenUpload] = useState(false);
   const [openPreview, setOpenPreview] = useState(false);
   const [selectedDoc, setSelectedDoc] = useState(null);
@@ -213,7 +217,7 @@ export default function DocumentTimetableSection({
           mb: 2.5,
         }}
       >
-        <Box>
+        <Box sx={{ minWidth: 0 }}>
           <Typography
             variant="h6"
             fontWeight="700"
@@ -239,6 +243,7 @@ export default function DocumentTimetableSection({
             startIcon={<UploadIcon />}
             onClick={handleOpenUpload}
             sx={{
+              width: { xs: "100%", sm: "auto" },
               borderRadius: 2.5,
               px: 2.5,
               py: 1,
@@ -486,8 +491,8 @@ export default function DocumentTimetableSection({
         fullWidth
         PaperProps={{ sx: { borderRadius: 3.5, p: 1 } }}
       >
-        <DialogTitle sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <Typography component="span" variant="h6" fontWeight="bold">
+        <DialogTitle sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 1 }}>
+          <Typography component="span" variant="h6" fontWeight="bold" sx={{ minWidth: 0 }}>
             Importer un Emploi du Temps (PDF / Image)
           </Typography>
           <IconButton onClick={() => setOpenUpload(false)} disabled={submitting}>
@@ -595,10 +600,24 @@ export default function DocumentTimetableSection({
         onClose={() => setOpenPreview(false)}
         maxWidth="lg"
         fullWidth
-        PaperProps={{ sx: { borderRadius: 3.5, height: "85vh" } }}
+        fullScreen={fullScreen}
+        PaperProps={{
+          sx: {
+            borderRadius: { xs: 0, sm: 3.5 },
+            height: { xs: "100%", sm: "85vh" },
+          },
+        }}
       >
-        <DialogTitle sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <Box>
+        <DialogTitle
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            flexWrap: "wrap",
+            gap: 1,
+          }}
+        >
+          <Box sx={{ minWidth: 0 }}>
             <Typography component="span" variant="h6" fontWeight="bold">
               {selectedDoc?.titre}
             </Typography>

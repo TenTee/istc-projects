@@ -26,9 +26,9 @@ export default function DocFAQ() {
   };
 
   return (
-    <Box sx={{ py: 8, backgroundColor: "#F8FAFC", borderTop: "1px solid #E2E8F0" }}>
+    <Box sx={{ py: { xs: 5, md: 8 }, backgroundColor: "#F8FAFC", borderTop: "1px solid #E2E8F0" }}>
       <Container maxWidth="lg">
-        <Box sx={{ textAlign: "center", mb: 6, maxWidth: 700, mx: "auto" }}>
+        <Box sx={{ textAlign: "center", mb: { xs: 4, md: 6 }, maxWidth: 700, mx: "auto" }}>
           <Box sx={{ display: "inline-flex", alignItems: "center", gap: 1, color: "#2563EB", mb: 1 }}>
             <HelpOutlineIcon fontSize="medium" />
             <Typography variant="overline" sx={{ fontWeight: 800, letterSpacing: 1.2 }}>
@@ -43,7 +43,7 @@ export default function DocFAQ() {
           </Typography>
         </Box>
 
-        <Grid container spacing={4} justifyContent="center">
+        <Grid container spacing={{ xs: 2, md: 4 }} justifyContent="center">
           <Grid item xs={12} md={9}>
             {docFaqs.map((faq, idx) => {
               const panelId = `panel-${idx}`;
@@ -68,7 +68,7 @@ export default function DocFAQ() {
                   <AccordionSummary
                     expandIcon={<ExpandMoreIcon sx={{ color: expanded === panelId ? "#2563EB" : "#64748B" }} />}
                     sx={{
-                      px: 3,
+                      px: { xs: 2, sm: 3 },
                       py: 1,
                       backgroundColor: expanded === panelId ? "#EFF6FF" : "#FFFFFF",
                     }}
@@ -84,7 +84,7 @@ export default function DocFAQ() {
                       {faq.question}
                     </Typography>
                   </AccordionSummary>
-                  <AccordionDetails sx={{ px: 3, pb: 3, pt: 1.5, backgroundColor: "#FFFFFF" }}>
+                  <AccordionDetails sx={{ px: { xs: 2, sm: 3 }, pb: { xs: 2, sm: 3 }, pt: 1.5, backgroundColor: "#FFFFFF" }}>
                     <Typography variant="body2" sx={{ color: "#475569", lineHeight: 1.7, fontSize: "0.95rem" }}>
                       {faq.answer}
                     </Typography>
@@ -120,7 +120,7 @@ export default function DocFAQ() {
                 </Typography>
               </Box>
 
-              <Box sx={{ display: "flex", gap: 1.5, flexShrink: 0, flexWrap: "wrap" }}>
+              <Box sx={{ display: "flex", gap: 1.5, flexShrink: 0, flexWrap: "wrap", justifyContent: "center" }}>
                 <Button
                   variant="contained"
                   startIcon={<WhatsAppIcon />}

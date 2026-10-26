@@ -23,6 +23,8 @@ import {
   Switch,
   TextField,
   Typography,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import VisibilityIcon from '@mui/icons-material/Visibility';
@@ -42,6 +44,8 @@ function toList(data) {
 }
 
 export default function ExamsBankAdminPage() {
+  const theme = useTheme();
+  const fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
   const { canWrite } = useUserPermissions();
   const canWritePedagogie = canWrite('can_manage_pedagogie');
   const [items, setItems] = useState([]);
@@ -239,13 +243,23 @@ export default function ExamsBankAdminPage() {
   }, [formData.classe, options.classes, options.modules]);
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+    <Box sx={{ p: { xs: 0, sm: 3 } }}>
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: { xs: 'column', sm: 'row' },
+          justifyContent: 'space-between',
+          alignItems: { xs: 'stretch', sm: 'center' },
+          gap: 2,
+          mb: 3,
+        }}
+      >
         <Typography variant="h5">Banque d&apos;épreuves (Administration)</Typography>
         {canWritePedagogie && (
           <Button
             variant="contained"
             startIcon={<AddIcon />}
+            sx={{ width: { xs: '100%', sm: 'auto' }, flexShrink: 0 }}
             onClick={() => {
               setSelectedEpreuve(null);
               setFormData({
@@ -279,11 +293,11 @@ export default function ExamsBankAdminPage() {
             <Grid item xs={12} sm={6} md={4} key={it.id}>
               <Card>
                 <CardContent>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                    <Typography variant="subtitle1">{it.nom}</Typography>
-                    <Chip label={it.type_epreuve} size="small" />
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 1, mb: 1 }}>
+                    <Typography variant="subtitle1" sx={{ minWidth: 0, overflowWrap: 'anywhere' }}>{it.nom}</Typography>
+                    <Chip label={it.type_epreuve} size="small" sx={{ flexShrink: 0 }} />
                   </Box>
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography variant="body2" color="text.secondary" sx={{ overflowWrap: 'anywhere' }}>
                     {it.module_nom} — {it.filiere_nom} / {it.niveau_nom}
                   </Typography>
                   <Typography variant="caption" display="block">
@@ -317,7 +331,7 @@ export default function ExamsBankAdminPage() {
         </Grid>
       )}
 
-      <Dialog open={openImporter} onClose={() => setOpenImporter(false)} maxWidth="md" fullWidth>
+      <Dialog open={openImporter} onClose={() => setOpenImporter(false)} maxWidth="md" fullWidth fullScreen={fullScreen}>
         <DialogTitle>Importer une épreuve</DialogTitle>
         <DialogContent dividers>
           {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
@@ -491,8 +505,8 @@ export default function ExamsBankAdminPage() {
         </DialogActions>
       </Dialog>
 
-      <Dialog open={previewDialog.open} onClose={() => setPreviewDialog({ open: false, url: '', title: '' })} maxWidth="lg" fullWidth>
-        <DialogTitle>{previewDialog.title}</DialogTitle>
+      <Dialog open={previewDialog.open} onClose={() => setPreviewDialog({ open: false, url: '', title: '' })} maxWidth="lg" fullWidth fullScreen={fullScreen}>
+        <DialogTitle sx={{ overflowWrap: 'anywhere' }}>{previewDialog.title}</DialogTitle>
         <DialogContent sx={{ p: 0, height: '75vh' }}>
           {previewDialog.url && (
             <iframe

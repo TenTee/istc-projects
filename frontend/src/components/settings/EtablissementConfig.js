@@ -136,30 +136,30 @@ export default function EtablissementConfig({ setToast }) {
   if (!config) return null;
 
   return (
-    <Paper sx={{ p: 3, borderRadius: 3, mb: 3 }}>
+    <Paper sx={{ p: { xs: 2, sm: 3 }, borderRadius: 3, mb: 3 }}>
       <Typography variant="h6" gutterBottom>
         Configuration de l'Établissement & Apparence Globale
       </Typography>
-      <Typography variant="body2" color="text.secondary" mb={4}>
+      <Typography variant="body2" color="text.secondary" mb={{ xs: 3, md: 4 }}>
         Modifiez les informations de contact, l'identité visuelle et les informations du directeur. Ces données s'appliqueront partout et sur les documents PDF générés.
       </Typography>
 
-      <Grid container spacing={4}>
+      <Grid container spacing={{ xs: 3, md: 4 }}>
         {/* SECTION IDENTITE VISUELLE */}
         <Grid item xs={12} md={4}>
           <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
             Identité Visuelle
           </Typography>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
               <Avatar
                 src={logoPreview}
                 variant="rounded"
-                sx={{ width: 80, height: 80, bgcolor: 'grey.200' }}
+                sx={{ width: 80, height: 80, bgcolor: 'grey.200', flexShrink: 0 }}
               >
                 Logo
               </Avatar>
-              <Box>
+              <Box sx={{ minWidth: 0 }}>
                 <Button variant="outlined" component="label" startIcon={<PhotoCamera />}>
                   Logo principal
                   <input hidden accept="image/*" type="file" onChange={handleLogoChange} />
@@ -170,15 +170,15 @@ export default function EtablissementConfig({ setToast }) {
               </Box>
             </Box>
 
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
               <Avatar
                 src={logoEntetePreview}
                 variant="rounded"
-                sx={{ width: 80, height: 80, bgcolor: 'grey.200' }}
+                sx={{ width: 80, height: 80, bgcolor: 'grey.200', flexShrink: 0 }}
               >
                 Doc
               </Avatar>
-              <Box>
+              <Box sx={{ minWidth: 0 }}>
                 <Button variant="outlined" component="label" startIcon={<PhotoCamera />}>
                   Logo documents
                   <input hidden accept="image/*" type="file" onChange={handleLogoEnteteChange} />
@@ -310,11 +310,12 @@ export default function EtablissementConfig({ setToast }) {
               <Typography variant="body2" color="text.secondary" gutterBottom>
                 Signature (affichée sur les documents)
               </Typography>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 2, mt: 1 }}>
                 <Box
                   sx={{
                     width: 120,
                     height: 60,
+                    flexShrink: 0,
                     border: '1px dashed grey',
                     borderRadius: 1,
                     display: 'flex',
@@ -341,7 +342,7 @@ export default function EtablissementConfig({ setToast }) {
       </Grid>
 
       <Box sx={{ mt: 4, display: 'flex', justifyContent: 'flex-end' }}>
-        <Button variant="contained" onClick={handleSave} disabled={saving} size="large">
+        <Button variant="contained" onClick={handleSave} disabled={saving} size="large" sx={{ width: { xs: '100%', sm: 'auto' } }}>
           {saving ? <CircularProgress size={24} color="inherit" /> : 'Enregistrer la configuration'}
         </Button>
       </Box>

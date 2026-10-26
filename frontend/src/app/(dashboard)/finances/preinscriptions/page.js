@@ -115,12 +115,12 @@ export default function PreinscriptionsPage() {
           value={searchTerm}
           onChange={(event) => setSearchTerm(event.target.value)}
           InputProps={{ startAdornment: <InputAdornment position="start"><SearchIcon /></InputAdornment> }}
-          sx={{ minWidth: 320 }}
+          sx={{ width: { xs: '100%', sm: 'auto' }, minWidth: { xs: 0, sm: 320 } }}
         />
       </Card>
 
       <TableContainer component={Paper} sx={{ borderRadius: 3 }}>
-        <Table>
+        <Table sx={{ minWidth: 1000 }}>
           <TableHead sx={{ bgcolor: '#F5F7FA' }}>
             <TableRow>
               <TableCell sx={{ fontWeight: 'bold' }}>Candidat</TableCell>

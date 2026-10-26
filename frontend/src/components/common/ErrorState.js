@@ -23,6 +23,9 @@ export default function ErrorState({
         mb: 3,
         boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
         alignItems: 'center',
+        flexWrap: { xs: 'wrap', sm: 'nowrap' },
+        '& .MuiAlert-message': { minWidth: 0, overflowWrap: 'anywhere' },
+        '& .MuiAlert-action': { pl: { xs: 0, sm: 2 } },
         ...sx,
       }}
       action={

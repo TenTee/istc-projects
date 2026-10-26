@@ -118,7 +118,7 @@ export default function PaymentModal({
               >
                 <CloudUploadIcon fontSize="small" /> Scan / Photo du reçu de paiement * (Obligatoire)
               </Typography>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: { xs: 1, sm: 2 }, mt: 1 }}>
                 <Button
                   variant="contained"
                   component="label"
@@ -141,7 +141,7 @@ export default function PaymentModal({
                     onDelete={() => setForm({ ...form, justificatif: null })}
                     color="primary"
                     size="small"
-                    sx={{ maxWidth: 300 }}
+                    sx={{ maxWidth: { xs: '100%', sm: 300 } }}
                   />
                 ) : (
                   <Typography variant="caption" color="text.secondary">

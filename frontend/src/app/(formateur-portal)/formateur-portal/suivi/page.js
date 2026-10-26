@@ -65,12 +65,12 @@ export default function MonSuiviPage() {
       <Typography variant="h5" fontWeight="bold" gutterBottom>Mon Suivi</Typography>
 
       {/* Stats grid */}
-      <Grid container spacing={3} sx={{ mb: 3 }}>
+      <Grid container spacing={{ xs: 2, md: 3 }} sx={{ mb: 3 }}>
         {stats.map((stat) => (
           <Grid item xs={12} sm={6} md={3} key={stat.label}>
-            <Paper sx={{ p: 3, display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Avatar sx={{ bgcolor: stat.color, width: 48, height: 48 }}>{stat.icon}</Avatar>
-              <Box>
+            <Paper sx={{ p: { xs: 2, sm: 3 }, display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Avatar sx={{ bgcolor: stat.color, width: 48, height: 48, flexShrink: 0 }}>{stat.icon}</Avatar>
+              <Box sx={{ minWidth: 0 }}>
                 <Typography variant="h4" fontWeight="bold">{stat.value}</Typography>
                 <Typography variant="body2" color="text.secondary">{stat.label}</Typography>
               </Box>
@@ -80,9 +80,9 @@ export default function MonSuiviPage() {
       </Grid>
 
       {/* Effectifs par classe */}
-      <Grid container spacing={3}>
+      <Grid container spacing={{ xs: 2, md: 3 }}>
         <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 3 }}>
+          <Paper sx={{ p: { xs: 2, sm: 3 } }}>
             <Typography variant="h6" fontWeight="bold" gutterBottom>
               Effectifs par classe ({totalEtudiants} étudiants au total)
             </Typography>
@@ -113,13 +113,13 @@ export default function MonSuiviPage() {
 
         {/* Répartition par jour */}
         <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 3 }}>
+          <Paper sx={{ p: { xs: 2, sm: 3 } }}>
             <Typography variant="h6" fontWeight="bold" gutterBottom>
               Répartition des séances par jour
             </Typography>
             {Object.entries(jourCount).map(([jour, count]) => (
               <Box key={jour} sx={{ mb: 2 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 1, mb: 0.5 }}>
                   <Typography variant="body2">{jour}</Typography>
                   <Typography variant="body2" fontWeight="bold">{count} séance(s)</Typography>
                 </Box>

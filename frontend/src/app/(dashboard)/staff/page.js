@@ -279,19 +279,22 @@ export default function StaffPage() {
       <Box
         sx={{
           display: "flex",
+          flexDirection: { xs: "column", sm: "row" },
           justifyContent: "space-between",
-          alignItems: "center",
+          alignItems: { xs: "stretch", sm: "center" },
+          gap: 2,
           mb: 3,
         }}
       >
         <Typography variant="h5" fontWeight="bold" color="primary">
           Gestion du Personnel
         </Typography>
-        <Box sx={{ display: "flex", gap: 1 }}>
+        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
           <Button
             variant="outlined"
             startIcon={<DownloadIcon />}
             onClick={() => setOpenImportExport(true)}
+            sx={{ flex: { xs: "1 1 auto", sm: "0 0 auto" } }}
           >
             Import / Export
           </Button>
@@ -300,7 +303,7 @@ export default function StaffPage() {
               variant="contained"
               color="primary"
               startIcon={<AddIcon />}
-              sx={{ borderRadius: 2 }}
+              sx={{ borderRadius: 2, flex: { xs: "1 1 auto", sm: "0 0 auto" } }}
               onClick={handleOpenCreate}
             >
               Ajouter un membre
@@ -348,7 +351,7 @@ export default function StaffPage() {
         component={Paper}
         sx={{ borderRadius: 3, boxShadow: "0 4px 20px rgba(0,0,0,0.05)" }}
       >
-        <Table sx={{ minWidth: 650 }}>
+        <Table sx={{ minWidth: 800 }}>
           <TableHead sx={{ bgcolor: "#F5F7FA" }}>
             <TableRow>
               <TableCell sx={{ fontWeight: "bold" }}>Nom complet</TableCell>
@@ -387,6 +390,7 @@ export default function StaffPage() {
                             display: "flex",
                             alignItems: "center",
                             gap: 4,
+                            whiteSpace: "nowrap",
                           }}
                         >
                           <PhoneIcon sx={{ fontSize: 16 }} />
@@ -444,7 +448,7 @@ export default function StaffPage() {
                     <TableCell>
                       {member.salaire ? `${member.salaire} Fcfa` : "-"}
                     </TableCell>
-                    <TableCell align="right">
+                    <TableCell align="right" sx={{ whiteSpace: "nowrap" }}>
                       {canWriteRh && (
                         <IconButton
                           size="small"
@@ -520,7 +524,7 @@ export default function StaffPage() {
             </Grid>
             <Grid item xs={12} sm={6}>
               <Box sx={{ display: "flex", gap: 1, alignItems: "flex-start" }}>
-                <FormControl size="small" margin="dense" sx={{ minWidth: 140 }}>
+                <FormControl size="small" margin="dense" sx={{ minWidth: 140, flexShrink: 0 }}>
                   <Select
                     value={form.indicatif}
                     onChange={(e) =>

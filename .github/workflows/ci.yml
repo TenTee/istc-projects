@@ -49,6 +49,18 @@ jobs:
       - run: npm run lint
       - run: npm run build
 
+  outils:
+    name: Outils — tests du versionnage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pytest
+      - run: python -m pytest outils/version -q
+      - run: bash -n outils/deploiement/deployer_backend.sh && bash outils/deploiement/test_deployer_backend.sh
+
   docs:
     name: Documentation — build MkDocs
     runs-on: ubuntu-latest

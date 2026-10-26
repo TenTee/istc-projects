@@ -18,23 +18,23 @@ export default function PageSkeleton({
   return (
     <Box sx={{ animation: 'fadeIn 0.3s ease-in-out' }}>
       {/* Header Banner Skeleton */}
-      <Paper sx={{ p: 3, mb: 3, borderRadius: 3 }}>
+      <Paper sx={{ p: { xs: 2, sm: 3 }, mb: 3, borderRadius: 3 }}>
         <Skeleton variant="text" width="30%" height={32} sx={{ mb: 1 }} />
         <Skeleton variant="text" width="50%" height={20} />
       </Paper>
 
       {/* KPI Cards Skeleton (Optional) */}
       {hasCards && (
-        <Box sx={{ mb: 4 }}>
+        <Box sx={{ mb: { xs: 3, md: 4 } }}>
           <CardSkeletonGrid count={cardCount} />
         </Box>
       )}
 
       {/* Filter Row Skeleton */}
       <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
-        <Skeleton variant="rectangular" width={220} height={40} sx={{ borderRadius: 2 }} />
-        <Skeleton variant="rectangular" width={180} height={40} sx={{ borderRadius: 2 }} />
-        <Skeleton variant="rectangular" width={180} height={40} sx={{ borderRadius: 2 }} />
+        <Skeleton variant="rectangular" width={220} height={40} sx={{ borderRadius: 2, maxWidth: '100%' }} />
+        <Skeleton variant="rectangular" width={180} height={40} sx={{ borderRadius: 2, maxWidth: '100%' }} />
+        <Skeleton variant="rectangular" width={180} height={40} sx={{ borderRadius: 2, maxWidth: '100%' }} />
       </Box>
 
       {/* Main Table Skeleton */}

@@ -52,7 +52,7 @@ export default function StudentFinance() {
     <Box>
       <Typography variant="h5" fontWeight="bold" color="primary" gutterBottom>Ma Situation Financière</Typography>
       
-      <Grid container spacing={3} sx={{ mb: 4 }}>
+      <Grid container spacing={{ xs: 2, md: 3 }} sx={{ mb: { xs: 3, md: 4 } }}>
         <Grid item xs={12} md={8}>
           <Card sx={{ borderRadius: 4, bgcolor: 'primary.main', color: 'white', p: 1 }}>
             <CardContent>
@@ -73,7 +73,7 @@ export default function StudentFinance() {
                     }}
                   />
                 </Box>
-                <Typography variant="h6">{percent}%</Typography>
+                <Typography variant="h6" sx={{ flexShrink: 0 }}>{percent}%</Typography>
               </Box>
               <Typography variant="body2" sx={{ opacity: 0.8 }}>
                 Total payé : {formatCurrency(totalPaye)} / {formatCurrency(totalDu)}
@@ -94,14 +94,14 @@ export default function StudentFinance() {
         </Grid>
       </Grid>
 
-      <Grid container spacing={3}>
+      <Grid container spacing={{ xs: 2, md: 3 }}>
         <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 3, borderRadius: 3 }}>
+          <Paper sx={{ p: { xs: 2, sm: 3 }, borderRadius: 3 }}>
             <Typography variant="h6" gutterBottom>Détails par catégorie</Typography>
             <Divider sx={{ mb: 2 }} />
             <Stack spacing={2}>
               <Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1, mb: 0.5 }}>
                   <Typography variant="body2">Frais d'inscription</Typography>
                   <Chip 
                     label={data.inscription.reste <= 0 ? 'Soldé' : 'Partiel'} 
@@ -112,7 +112,7 @@ export default function StudentFinance() {
                 <Typography variant="body1" fontWeight="bold">{formatCurrency(data.inscription.paye)} / {formatCurrency(data.inscription.du)}</Typography>
               </Box>
               <Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1, mb: 0.5 }}>
                   <Typography variant="body2">Frais de formation</Typography>
                   <Chip 
                     label={data.formation.reste <= 0 ? 'Soldé' : 'En cours'} 
@@ -129,7 +129,7 @@ export default function StudentFinance() {
         <Grid item xs={12} md={6}>
           <Typography variant="h6" sx={{ mb: 2 }}>Échéancier de paiement</Typography>
           <TableContainer component={Paper} sx={{ borderRadius: 3 }}>
-            <Table size="small">
+            <Table size="small" sx={{ minWidth: 480 }}>
               <TableHead sx={{ bgcolor: '#F5F7FA' }}>
                 <TableRow>
                   <TableCell>Tranche</TableCell>
@@ -142,8 +142,8 @@ export default function StudentFinance() {
                 {data.echeances?.map((inst, idx) => (
                   <TableRow key={idx}>
                     <TableCell>{inst.label}</TableCell>
-                    <TableCell>{new Date(inst.due_date).toLocaleDateString()}</TableCell>
-                    <TableCell align="right">{formatCurrency(inst.amount_due)}</TableCell>
+                    <TableCell sx={{ whiteSpace: 'nowrap' }}>{new Date(inst.due_date).toLocaleDateString()}</TableCell>
+                    <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>{formatCurrency(inst.amount_due)}</TableCell>
                     <TableCell align="center">
                       <Chip 
                         label={inst.status === 'PAID' ? 'Payé' : inst.status === 'OVERDUE' ? 'Retard' : inst.status === 'PARTIAL' ? 'Partiel' : 'À venir'} 

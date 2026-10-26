@@ -59,7 +59,7 @@ export function MonthPicker({ mois, annee, onChange, sx }) {
   const currentYear = new Date().getFullYear();
   const years = [currentYear - 1, currentYear, currentYear + 1];
   return (
-    <Box sx={{ display: 'flex', gap: 1.5, ...sx }}>
+    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5, ...sx }}>
       <FormControl size="small" sx={{ minWidth: 140 }}>
         <InputLabel>Mois</InputLabel>
         <Select value={mois} label="Mois" onChange={(e) => onChange({ mois: Number(e.target.value), annee })}>

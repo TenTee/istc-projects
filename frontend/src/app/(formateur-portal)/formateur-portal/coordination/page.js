@@ -32,6 +32,8 @@ import {
   ToggleButtonGroup,
   Tooltip,
   Typography,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
@@ -162,7 +164,7 @@ function PointageDuJour({ filiere, enseignants, notify }) {
   return (
     <Box>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2, mb: 2 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1, minWidth: 0 }}>
           <IconButton onClick={() => setDate(decalerDate(date, -1))}><ChevronLeftIcon /></IconButton>
           <TextField
             type="date"
@@ -170,14 +172,15 @@ function PointageDuJour({ filiere, enseignants, notify }) {
             value={date}
             onChange={(e) => e.target.value && setDate(e.target.value)}
             inputProps={{ max: todayIso() }}
+            sx={{ flex: { xs: '1 1 140px', sm: '0 1 auto' } }}
           />
           <IconButton onClick={() => setDate(decalerDate(date, 1))} disabled={estAujourdhui}><ChevronRightIcon /></IconButton>
           {!estAujourdhui && <Button size="small" onClick={() => setDate(todayIso())}>Aujourd&apos;hui</Button>}
-          <Typography variant="body2" color="text.secondary" sx={{ ml: 1, textTransform: 'capitalize' }}>
+          <Typography variant="body2" color="text.secondary" sx={{ ml: { xs: 0, sm: 1 }, textTransform: 'capitalize', flexBasis: { xs: '100%', sm: 'auto' } }}>
             {formatDateFr(date)} · {nbPointes}/{lignes.length} pointée(s)
           </Typography>
         </Box>
-        <Button variant="outlined" startIcon={<AddIcon />} onClick={() => setOpenAjout(true)}>
+        <Button variant="outlined" startIcon={<AddIcon />} onClick={() => setOpenAjout(true)} sx={{ width: { xs: '100%', sm: 'auto' } }}>
           Séance non planifiée
         </Button>
       </Box>
@@ -185,14 +188,14 @@ function PointageDuJour({ filiere, enseignants, notify }) {
       {loading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}><CircularProgress /></Box>
       ) : lignes.length === 0 ? (
-        <Paper variant="outlined" sx={{ p: 4, textAlign: 'center' }}>
+        <Paper variant="outlined" sx={{ p: { xs: 2, sm: 4 }, textAlign: 'center' }}>
           <Typography color="text.secondary">
             Aucune séance planifiée ce jour dans l&apos;emploi du temps. Utilisez « Séance non planifiée » pour un rattrapage.
           </Typography>
         </Paper>
       ) : (
         <TableContainer component={Paper} variant="outlined">
-          <Table size="small">
+          <Table size="small" sx={{ minWidth: 1100 }}>
             <TableHead sx={{ bgcolor: '#F5F7FA' }}>
               <TableRow>
                 <TableCell>Prévu</TableCell>
@@ -356,6 +359,8 @@ function AjoutSeanceDialog({ open, onClose, date, enseignants, notify, onSaved }
   const vide = { formateur: '', cours: '', date, heure_debut_prevue: '', heure_fin_prevue: '', heure_arrivee: '', heure_fin: '', commentaire: '' };
   const [form, setForm] = useState(vide);
   const [saving, setSaving] = useState(false);
+  const theme = useTheme();
+  const fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
   useEffect(() => {
     if (open) setForm({ ...vide, date });
@@ -395,7 +400,7 @@ function AjoutSeanceDialog({ open, onClose, date, enseignants, notify, onSaved }
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth fullScreen={fullScreen}>
       <DialogTitle>Séance non planifiée (rattrapage, séance supplémentaire)</DialogTitle>
       <DialogContent dividers>
         <Grid container spacing={2}>
@@ -472,7 +477,7 @@ function ListeEnseignants({ enseignants, loading }) {
   }
   return (
     <TableContainer component={Paper} variant="outlined">
-      <Table size="small">
+      <Table size="small" sx={{ minWidth: 800 }}>
         <TableHead sx={{ bgcolor: '#F5F7FA' }}>
           <TableRow>
             <TableCell>Enseignant</TableCell>
@@ -494,7 +499,7 @@ function ListeEnseignants({ enseignants, loading }) {
                   variant="outlined"
                 />
               </TableCell>
-              <TableCell>{e.type_formateur === 'vacataire' ? `${formatMontant(e.taux_horaire)}/h` : '—'}</TableCell>
+              <TableCell sx={{ whiteSpace: 'nowrap' }}>{e.type_formateur === 'vacataire' ? `${formatMontant(e.taux_horaire)}/h` : '—'}</TableCell>
               <TableCell>
                 <Typography variant="body2">{e.contact}</Typography>
                 <Typography variant="caption" color="text.secondary">{e.email}</Typography>
@@ -524,6 +529,8 @@ function RecapMensuel({ filiere, notify }) {
   const [loading, setLoading] = useState(false);
   const [detail, setDetail] = useState(null);
   const [detailPointages, setDetailPointages] = useState([]);
+  const theme = useTheme();
+  const fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -574,13 +581,14 @@ function RecapMensuel({ filiere, notify }) {
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2, mb: 2 }}>
         <MonthPicker mois={periode.mois} annee={periode.annee} onChange={setPeriode} />
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 2, width: { xs: '100%', sm: 'auto' } }}>
           <Typography variant="body2" color="text.secondary">
             Total : <strong>{formatHeures(totaux.heures)}</strong> · <strong>{formatMontant(totaux.montant)}</strong>
           </Typography>
           <Button
             variant="contained"
             disabled={!data.mois_termine || aCloturer === 0}
+            sx={{ width: { xs: '100%', sm: 'auto' } }}
             onClick={() => {
               if (window.confirm(`Clôturer les ${aCloturer} récapitulatif(s) de ${MOIS[periode.mois - 1]} ${periode.annee} et les transmettre à la finance ?`)) {
                 action(() => vacationsService.cloturerTout({ ...periode, ...(filiere ? { filiere } : {}) }), 'Récapitulatifs clôturés et transmis à la finance.');
@@ -601,12 +609,12 @@ function RecapMensuel({ filiere, notify }) {
       {loading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}><CircularProgress /></Box>
       ) : data.recaps.length === 0 ? (
-        <Paper variant="outlined" sx={{ p: 4, textAlign: 'center' }}>
+        <Paper variant="outlined" sx={{ p: { xs: 2, sm: 4 }, textAlign: 'center' }}>
           <Typography color="text.secondary">Aucun pointage pour cette période.</Typography>
         </Paper>
       ) : (
         <TableContainer component={Paper} variant="outlined">
-          <Table size="small">
+          <Table size="small" sx={{ minWidth: 900 }}>
             <TableHead sx={{ bgcolor: '#F5F7FA' }}>
               <TableRow>
                 <TableCell>Enseignant</TableCell>
@@ -632,7 +640,7 @@ function RecapMensuel({ filiere, notify }) {
                   <TableCell align="right">{r.nombre_seances}</TableCell>
                   <TableCell align="right">{r.nombre_absences}</TableCell>
                   <TableCell align="right" sx={{ fontWeight: 600 }}>{formatHeures(r.total_heures)}</TableCell>
-                  <TableCell align="right">{r.type_formateur === 'vacataire' ? formatMontant(r.montant) : '—'}</TableCell>
+                  <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>{r.type_formateur === 'vacataire' ? formatMontant(r.montant) : '—'}</TableCell>
                   <TableCell>
                     <StatutRecapChip statut={r.statut} />
                     {r.statut === 'rejete' && r.motif_rejet && (
@@ -665,7 +673,7 @@ function RecapMensuel({ filiere, notify }) {
         </TableContainer>
       )}
 
-      <Dialog open={Boolean(detail)} onClose={() => setDetail(null)} maxWidth="md" fullWidth>
+      <Dialog open={Boolean(detail)} onClose={() => setDetail(null)} maxWidth="md" fullWidth fullScreen={fullScreen}>
         <DialogTitle>
           {detail?.formateur_nom} – {detail ? `${MOIS[detail.mois - 1]} ${detail.annee}` : ''} ({detail?.filiere_nom})
         </DialogTitle>
@@ -736,7 +744,7 @@ export default function CoordinationPage() {
           </Typography>
         </Box>
         {filieres.length > 1 && (
-          <FormControl size="small" sx={{ minWidth: 220 }}>
+          <FormControl size="small" sx={{ minWidth: { xs: 0, sm: 220 }, width: { xs: '100%', sm: 'auto' } }}>
             <InputLabel>Filière</InputLabel>
             <Select label="Filière" value={filiere} onChange={(e) => setFiliere(e.target.value)}>
               <MenuItem value="">Toutes mes filières</MenuItem>

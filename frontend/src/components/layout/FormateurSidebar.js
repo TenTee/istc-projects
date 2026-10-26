@@ -22,6 +22,7 @@ import { formateurRoutes } from '../../config/routes';
 import { ConfigContext } from '../../theme/ThemeRegistry';
 import { getMediaUrl, clearSession } from '../../services/api/client';
 import { useSidebar } from '../../context/SidebarContext';
+import VersionInfo from './VersionInfo';
 import { formateurPortalService } from '../../services/api/services';
 
 const EXPANDED_WIDTH = 260;
@@ -175,6 +176,8 @@ export default function FormateurSidebar() {
                           fontSize: '0.9rem',
                           fontWeight: isActive ? 600 : 400,
                           whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
                         }}
                       />
                     )}
@@ -220,6 +223,7 @@ export default function FormateurSidebar() {
             </Tooltip>
           </ListItem>
         </List>
+        <VersionInfo compact={isCollapsed && !isMobile} />
       </Box>
     </Box>
   );

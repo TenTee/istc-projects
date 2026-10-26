@@ -315,18 +315,18 @@ export default function PedagogyPage() {
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'stretch', sm: 'center' }, gap: 2, mb: 3 }}>
         <Typography variant="h5" fontWeight="bold" color="primary">
           Structure Académique
         </Typography>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: { xs: 'stretch', sm: 'center' }, gap: 1 }}>
           {(tabValue === 4 || tabValue === 5) && (
             <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
               {tabValue === 4 ? '🔒 Niveaux générés automatiquement via les spécialités' : '🔒 Classes générées automatiquement via les spécialités'}
             </Typography>
           )}
           {canWritePedagogie && canAdd && (
-            <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleOpenDialog()}>
+            <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleOpenDialog()} sx={{ width: { xs: '100%', sm: 'auto' }, flexShrink: 0 }}>
               Ajouter
             </Button>
           )}
@@ -342,13 +342,13 @@ export default function PedagogyPage() {
           sx={{ borderBottom: 1, borderColor: 'divider', bgcolor: 'white' }}
         >
           {tabs.map((tab, index) => (
-            <Tab key={index} icon={tab.icon} iconPosition="start" label={tab.label} sx={{ textTransform: 'none', minHeight: 60 }} />
+            <Tab key={index} icon={tab.icon} iconPosition="start" label={tab.label} sx={{ textTransform: 'none', minHeight: { xs: 52, sm: 60 } }} />
           ))}
         </Tabs>
       </Paper>
 
       <TableContainer component={Paper} sx={{ borderRadius: 3, boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
-        <Table>
+        <Table sx={{ minWidth: getTableColumns().length > 4 ? 700 : 480 }}>
           <TableHead sx={{ bgcolor: '#F5F7FA' }}>
             <TableRow>
               {getTableColumns().map((col) => (
@@ -443,7 +443,7 @@ export default function PedagogyPage() {
                 )}
                 {/* Boutons Actions : masqués pour Niveaux et Classes (auto-gérés) */}
                 {![4, 5].includes(tabValue) && canWritePedagogie && (
-                  <TableCell align="right">
+                  <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
                     <IconButton color="primary" size="small" onClick={() => handleOpenDialog(item)}><EditIcon fontSize="small" /></IconButton>
                     <IconButton color="error" size="small" onClick={() => handleDelete(item.id)}><DeleteIcon fontSize="small" /></IconButton>
                   </TableCell>

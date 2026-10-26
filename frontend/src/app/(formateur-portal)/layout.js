@@ -26,6 +26,8 @@ function FormateurPortalLayoutContent({ children }) {
           display: 'flex',
           flexDirection: 'column',
           width: mainWidth,
+          // minWidth 0 : un tableau large défile dans son conteneur au lieu d'élargir toute la page.
+          minWidth: 0,
           p: { xs: 2, md: 3 },
           transition: (theme) =>
             theme.transitions.create(['width', 'margin'], {

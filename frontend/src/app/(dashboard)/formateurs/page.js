@@ -350,19 +350,21 @@ export default function FormateursPage() {
       <Box
         sx={{
           display: "flex",
+          flexDirection: { xs: "column", sm: "row" },
           justifyContent: "space-between",
-          alignItems: "center",
+          alignItems: { xs: "stretch", sm: "center" },
+          gap: 2,
           mb: 3,
         }}
       >
         <Typography variant="h5" fontWeight="bold" color="primary">
           Gestion des Formateurs
         </Typography>
-        <Box sx={{ display: "flex", gap: 1 }}>
+        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
           <Button
             variant="outlined"
             startIcon={<DownloadIcon />}
-            sx={{ borderRadius: 2 }}
+            sx={{ borderRadius: 2, width: { xs: "100%", sm: "auto" } }}
             onClick={() => setOpenImportExport(true)}
           >
             Import / Export
@@ -372,7 +374,7 @@ export default function FormateursPage() {
               variant="contained"
               color="primary"
               startIcon={<AddIcon />}
-              sx={{ borderRadius: 2 }}
+              sx={{ borderRadius: 2, width: { xs: "100%", sm: "auto" } }}
               onClick={handleOpenCreate}
             >
               Ajouter un formateur
@@ -424,7 +426,7 @@ export default function FormateursPage() {
         component={Paper}
         sx={{ borderRadius: 3, boxShadow: "0 4px 20px rgba(0,0,0,0.05)" }}
       >
-        <Table sx={{ minWidth: 650 }}>
+        <Table sx={{ minWidth: 800 }}>
           <TableHead sx={{ bgcolor: "#F5F7FA" }}>
             <TableRow>
               <TableCell sx={{ fontWeight: "bold" }}>Nom complet</TableCell>
@@ -540,7 +542,7 @@ export default function FormateursPage() {
                         "-"
                       )}
                     </TableCell>
-                    <TableCell align="right">
+                    <TableCell align="right" sx={{ whiteSpace: "nowrap" }}>
                       {/* ACTIONS SUR LE TABLEAU DE LISTING */}
                       <IconButton
                         size="small"
@@ -639,7 +641,7 @@ export default function FormateursPage() {
             </Grid>
             <Grid item xs={12} sm={6}>
               <Box sx={{ display: "flex", gap: 1, alignItems: "flex-start" }}>
-                <FormControl size="small" margin="dense" sx={{ minWidth: 140 }}>
+                <FormControl size="small" margin="dense" sx={{ minWidth: { xs: 120, sm: 140 }, flexShrink: 0 }}>
                   <Select
                     value={form.indicatif}
                     onChange={(e) =>
@@ -817,7 +819,7 @@ export default function FormateursPage() {
             </Grid>
           </Grid>
         </DialogContent>
-        <DialogActions sx={{ px: 3, py: 2 }}>
+        <DialogActions sx={{ px: { xs: 2, sm: 3 }, py: 2 }}>
           <Button
             onClick={() => setOpenCreate(false)}
             color="inherit"
@@ -865,7 +867,7 @@ export default function FormateursPage() {
         open={openDrawer}
         onClose={() => setOpenDrawer(false)}
       >
-        <Box sx={{ width: 400, p: 3 }}>
+        <Box sx={{ width: { xs: "100vw", sm: 400 }, maxWidth: "100vw", p: { xs: 2, sm: 3 } }}>
           <Typography
             variant="h6"
             gutterBottom
@@ -1156,13 +1158,13 @@ export default function FormateursPage() {
             <Typography variant="body2" color="text.secondary">
               Nom d&apos;utilisateur
             </Typography>
-            <Typography variant="h6" fontWeight="bold" sx={{ mb: 1 }}>
+            <Typography variant="h6" fontWeight="bold" sx={{ mb: 1, wordBreak: "break-all" }}>
               {credentials?.username}
             </Typography>
             <Typography variant="body2" color="text.secondary">
               Mot de passe
             </Typography>
-            <Typography variant="h6" fontWeight="bold">
+            <Typography variant="h6" fontWeight="bold" sx={{ wordBreak: "break-all" }}>
               {credentials?.password}
             </Typography>
           </Paper>

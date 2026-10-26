@@ -198,9 +198,9 @@ export default function TrainersPage() {
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'stretch', sm: 'center' }, gap: 2, mb: 3 }}>
         <Typography variant="h5" fontWeight="bold" color="primary">Liste des formateurs</Typography>
-        <Button variant="contained" color="primary" startIcon={<AddIcon />} sx={{ borderRadius: 2 }} onClick={handleOpenCreate}>
+        <Button variant="contained" color="primary" startIcon={<AddIcon />} sx={{ borderRadius: 2, width: { xs: '100%', sm: 'auto' } }} onClick={handleOpenCreate}>
           Ajouter un formateur
         </Button>
       </Box>
@@ -214,7 +214,7 @@ export default function TrainersPage() {
       </Card>
 
       <TableContainer component={Paper} sx={{ borderRadius: 3, boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
-        <Table sx={{ minWidth: 650 }}>
+        <Table sx={{ minWidth: 800 }}>
           <TableHead sx={{ bgcolor: '#F5F7FA' }}>
             <TableRow>
               <TableCell sx={{ fontWeight: 'bold' }}>Nom complet</TableCell>
@@ -234,7 +234,7 @@ export default function TrainersPage() {
                 <TableCell>{trainer.email}</TableCell>
                 <TableCell>
                   {trainer.contact ? (
-                    <a href={`tel:${trainer.contact.replace(/\s/g, '')}`} style={{ textDecoration: 'none', color: '#1976d2', display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <a href={`tel:${trainer.contact.replace(/\s/g, '')}`} style={{ textDecoration: 'none', color: '#1976d2', display: 'flex', alignItems: 'center', gap: 4, whiteSpace: 'nowrap' }}>
                       <PhoneIcon sx={{ fontSize: 16 }} />
                       {trainer.contact}
                     </a>
@@ -249,7 +249,7 @@ export default function TrainersPage() {
                   ) : '-'}
                 </TableCell>
                 <TableCell>{trainer.salaire ? `${trainer.salaire} Fcfa` : '-'}</TableCell>
-                <TableCell align="right">
+                <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
                   <IconButton size="small" color="info" onClick={() => handleEdit(trainer)}>
                     <EditIcon fontSize="small" />
                   </IconButton>
@@ -292,7 +292,7 @@ export default function TrainersPage() {
             </Grid>
             <Grid item xs={12} sm={6}>
               <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start' }}>
-                <FormControl size="small" margin="dense" sx={{ minWidth: 140 }}>
+                <FormControl size="small" margin="dense" sx={{ minWidth: { xs: 120, sm: 140 }, flexShrink: 0 }}>
                   <Select
                     value={form.indicatif}
                     onChange={(e) => setForm({ ...form, indicatif: e.target.value })}

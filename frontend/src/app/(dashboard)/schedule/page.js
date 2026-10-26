@@ -410,7 +410,24 @@ export default function SchedulePage() {
 
   const exportPDF = () => {
     const input = document.getElementById("schedule-grid");
-    html2canvas(input, { scale: 2 }).then((canvas) => {
+    // Sur petit écran la grille défile dans son conteneur : on l'élargit
+    // dans le clone capturé pour exporter la grille complète (inchangé sur bureau).
+    const isClipped = input && input.scrollWidth > input.clientWidth;
+    html2canvas(input, {
+      scale: 2,
+      ...(isClipped && {
+        // Grille tronquée (écran étroit) : capturer toute sa largeur.
+        width: input.scrollWidth,
+        windowWidth: Math.max(window.innerWidth, input.scrollWidth + 64),
+        onclone: (clonedDoc) => {
+          const el = clonedDoc.getElementById("schedule-grid");
+          if (el) {
+            el.style.overflow = "visible";
+            el.style.width = `${input.scrollWidth}px`;
+          }
+        },
+      }),
+    }).then((canvas) => {
       const imgData = canvas.toDataURL("image/png");
       const pdf = new jsPDF("l", "mm", "a4");
       const imgProps = pdf.getImageProperties(imgData);
@@ -494,9 +511,10 @@ export default function SchedulePage() {
           borderRadius: 2,
           bgcolor: "white",
           overflow: "auto",
+          maxWidth: "100%",
         }}
       >
-        <Table size="small">
+        <Table size="small" sx={{ minWidth: 980 }}>
           <TableHead sx={{ bgcolor: "#F5F7FA" }}>
             <TableRow>
               <TableCell
@@ -644,22 +662,31 @@ export default function SchedulePage() {
   };
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ p: { xs: 0, sm: 2, md: 3 } }}>
       <Box
         sx={{
           display: "flex",
+          flexDirection: { xs: "column", sm: "row" },
           justifyContent: "space-between",
-          alignItems: "center",
+          alignItems: { xs: "stretch", sm: "center" },
+          gap: 2,
           mb: 3,
         }}
       >
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-          <CalendarIcon color="primary" sx={{ fontSize: 32 }} />
+          <CalendarIcon color="primary" sx={{ fontSize: { xs: 28, sm: 32 } }} />
           <Typography variant="h5" fontWeight="bold">
             Emploi du temps
           </Typography>
         </Box>
-        <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
+        <Box
+          sx={{
+            display: "flex",
+            gap: 1,
+            flexWrap: "wrap",
+            "& > .MuiButton-root": { flex: { xs: "1 1 auto", sm: "0 0 auto" } },
+          }}
+        >
           <Button
             variant="outlined"
             startIcon={<DownloadIcon />}
@@ -710,7 +737,7 @@ export default function SchedulePage() {
         }}
       >
         <FilterListIcon color="action" />
-        <FormControl size="small" sx={{ minWidth: 150 }}>
+        <FormControl size="small" sx={{ minWidth: 150, flex: { xs: "1 1 150px", sm: "0 0 auto" } }}>
           <InputLabel>Filière</InputLabel>
           <Select
             value={filterFiliere}
@@ -728,7 +755,7 @@ export default function SchedulePage() {
 
         <FormControl
           size="small"
-          sx={{ minWidth: 150 }}
+          sx={{ minWidth: 150, flex: { xs: "1 1 150px", sm: "0 0 auto" } }}
           disabled={!filterFiliere}
         >
           <InputLabel>Cycle</InputLabel>
@@ -748,7 +775,7 @@ export default function SchedulePage() {
 
         <FormControl
           size="small"
-          sx={{ minWidth: 150 }}
+          sx={{ minWidth: 150, flex: { xs: "1 1 150px", sm: "0 0 auto" } }}
           disabled={!filterCycle}
         >
           <InputLabel>Classe</InputLabel>
@@ -794,7 +821,7 @@ export default function SchedulePage() {
       ) : (
         <Paper
           sx={{
-            p: 5,
+            p: { xs: 3, sm: 5 },
             textAlign: "center",
             borderRadius: 3,
             bgcolor: "#f8f9fa",
@@ -816,8 +843,8 @@ export default function SchedulePage() {
         <DialogTitle sx={{ bgcolor: "#193A7F", color: "white" }}>
           {isEditing ? "Modifier le créneau" : "Nouveau créneau"}
         </DialogTitle>
-        <DialogContent dividers sx={{ p: 3 }}>
-          <Grid container spacing={3}>
+        <DialogContent dividers sx={{ p: { xs: 2, sm: 3 } }}>
+          <Grid container spacing={{ xs: 2, sm: 3 }}>
             {!isEditing && (
               <Grid item xs={12}>
                 <FormControlLabel

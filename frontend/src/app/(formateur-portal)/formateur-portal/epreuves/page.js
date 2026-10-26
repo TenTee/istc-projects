@@ -28,6 +28,8 @@ import {
   Alert,
   Switch,
   FormControlLabel,
+  useTheme,
+  useMediaQuery,
 } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import ShareIcon from '@mui/icons-material/Share';
@@ -47,6 +49,8 @@ export default function EpreuvesPage() {
   const [loading, setLoading] = useState(true);
   const [openDialog, setOpenDialog] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const theme = useTheme();
+  const fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
   const [formData, setFormData] = useState({
     nom: '',
     module_id: '',
@@ -125,16 +129,16 @@ export default function EpreuvesPage() {
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'stretch', sm: 'center' }, gap: 2, mb: 3 }}>
         <Typography variant="h5" fontWeight="bold">Mes Épreuves</Typography>
-        <Button variant="contained" startIcon={<CloudUploadIcon />} onClick={() => setOpenDialog(true)}>
+        <Button variant="contained" startIcon={<CloudUploadIcon />} onClick={() => setOpenDialog(true)} sx={{ width: { xs: '100%', sm: 'auto' } }}>
           Importer une épreuve
         </Button>
       </Box>
 
       <Paper>
         <TableContainer>
-          <Table>
+          <Table sx={{ minWidth: 700 }}>
             <TableHead>
               <TableRow>
                 <TableCell><strong>Nom</strong></TableCell>
@@ -162,7 +166,7 @@ export default function EpreuvesPage() {
                         size="small"
                       />
                     </TableCell>
-                    <TableCell align="center">
+                    <TableCell align="center" sx={{ whiteSpace: 'nowrap' }}>
                       {TYPES_A_VALIDER.has(ep.type_epreuve) ? (
                         <Chip label="Validation administrative" size="small" color="warning" variant="outlined" />
                       ) : (
@@ -190,7 +194,7 @@ export default function EpreuvesPage() {
       </Paper>
 
       {/* Upload Dialog */}
-      <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="sm" fullWidth>
+      <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="sm" fullWidth fullScreen={fullScreen}>
         <DialogTitle>Importer une épreuve</DialogTitle>
         <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 2 }}>
           <TextField
@@ -233,11 +237,11 @@ export default function EpreuvesPage() {
               {semestres.map(s => <MenuItem key={s.id} value={s.id}>{s.nom || s.libelle || `Semestre ${s.id}`}</MenuItem>)}
             </Select>
           </FormControl>
-          <Button variant="outlined" component="label">
+          <Button variant="outlined" component="label" sx={{ wordBreak: 'break-word' }}>
             {formData.fichier ? `Sujet: ${formData.fichier.name}` : 'Choisir le fichier sujet *'}
             <input type="file" hidden onChange={(e) => setFormData(f => ({ ...f, fichier: e.target.files[0] }))} />
           </Button>
-          <Button variant="outlined" component="label" color="secondary">
+          <Button variant="outlined" component="label" color="secondary" sx={{ wordBreak: 'break-word' }}>
             {formData.corrige ? `Corrigé: ${formData.corrige.name}` : 'Choisir le corrigé (optionnel)'}
             <input type="file" hidden onChange={(e) => setFormData(f => ({ ...f, corrige: e.target.files[0] }))} />
           </Button>

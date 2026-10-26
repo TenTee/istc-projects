@@ -310,11 +310,11 @@ export default function PublicPreinscriptionPage() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          p: 3,
+          p: { xs: 2, sm: 3 },
         }}
       >
         <Card
-          sx={{ p: 5, borderRadius: 4, maxWidth: 600, textAlign: "center" }}
+          sx={{ p: { xs: 3, sm: 5 }, borderRadius: 4, maxWidth: 600, width: "100%", textAlign: "center" }}
         >
           <Typography
             variant="h4"
@@ -345,8 +345,8 @@ export default function PublicPreinscriptionPage() {
     <Box
       sx={{
         minHeight: "100vh",
-        py: 8,
-        px: 2,
+        py: { xs: 3, sm: 5, md: 8 },
+        px: { xs: 1.5, sm: 2 },
         backgroundImage: "linear-gradient(135deg, #193A7F 0%, #17A2B8 100%)",
       }}
     >
@@ -354,12 +354,12 @@ export default function PublicPreinscriptionPage() {
         <Grid item xs={12} md={10} lg={8}>
           <Card
             sx={{
-              p: { xs: 3, md: 5 },
+              p: { xs: 2, sm: 3, md: 5 },
               borderRadius: 4,
               boxShadow: "0 8px 30px rgba(0,0,0,0.1)",
             }}
           >
-            <Box sx={{ textAlign: "center", mb: 4 }}>
+            <Box sx={{ textAlign: "center", mb: { xs: 3, md: 4 } }}>
               <Typography
                 variant="h4"
                 fontWeight="bold"
@@ -374,7 +374,7 @@ export default function PublicPreinscriptionPage() {
               </Typography>
             </Box>
 
-            <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
+            <Stepper activeStep={activeStep} sx={{ mb: { xs: 3, md: 4 } }}>
               {STEPS.map((label) => (
                 <Step key={label}>
                   <StepLabel>{label}</StepLabel>
@@ -385,7 +385,7 @@ export default function PublicPreinscriptionPage() {
             <form onSubmit={handleSubmit}>
               {/* ===== ÉTAPE 1 : Informations ===== */}
               {activeStep === 0 && (
-                <Grid container spacing={3}>
+                <Grid container spacing={{ xs: 2, md: 3 }}>
                   <Grid item xs={12}>
                     <Typography
                       variant="subtitle1"
@@ -459,7 +459,7 @@ export default function PublicPreinscriptionPage() {
                     />
                   </Grid>
                   <Grid item xs={12} sm={6}>
-                    <Box sx={{ display: "flex", gap: 1 }}>
+                    <Box sx={{ display: "flex", flexDirection: { xs: "column", md: "row" }, gap: { xs: 2, md: 1 } }}>
                       <FormControl sx={{ minWidth: 150 }}>
                         <InputLabel>Indicatif</InputLabel>
                         <Select
@@ -627,7 +627,7 @@ export default function PublicPreinscriptionPage() {
                     </Typography>
                   </Grid>
                   {/* 1. Filière */}
-                  <Grid item xs={12} sm={3}>
+                  <Grid item xs={12} sm={6} md={3}>
                     <FormControl
                       fullWidth
                       error={Boolean(formErrors.filiere_souhaitee)}
@@ -665,7 +665,7 @@ export default function PublicPreinscriptionPage() {
                     </FormControl>
                   </Grid>
                   {/* 2. Spécialité */}
-                  <Grid item xs={12} sm={3}>
+                  <Grid item xs={12} sm={6} md={3}>
                     <FormControl
                       fullWidth
                       error={Boolean(formErrors.specialite_souhaitee)}
@@ -705,7 +705,7 @@ export default function PublicPreinscriptionPage() {
                     </FormControl>
                   </Grid>
                   {/* 3. Cycle */}
-                  <Grid item xs={12} sm={3}>
+                  <Grid item xs={12} sm={6} md={3}>
                     <FormControl
                       fullWidth
                       error={Boolean(formErrors.cycle_souhaite)}
@@ -741,7 +741,7 @@ export default function PublicPreinscriptionPage() {
                     </FormControl>
                   </Grid>
                   {/* 4. Classe */}
-                  <Grid item xs={12} sm={3}>
+                  <Grid item xs={12} sm={6} md={3}>
                     <FormControl
                       fullWidth
                       error={Boolean(formErrors.classe_souhaitee)}
@@ -786,7 +786,7 @@ export default function PublicPreinscriptionPage() {
                         size="large"
                         endIcon={<ArrowForwardIcon />}
                         onClick={handleNext}
-                        sx={{ px: 4, py: 1.5, borderRadius: 2 }}
+                        sx={{ px: 4, py: 1.5, borderRadius: 2, width: { xs: "100%", sm: "auto" } }}
                       >
                         Suivant
                       </Button>
@@ -797,7 +797,7 @@ export default function PublicPreinscriptionPage() {
 
               {/* ===== ÉTAPE 2 : Documents (Optionnels) ===== */}
               {activeStep === 1 && (
-                <Grid container spacing={3}>
+                <Grid container spacing={{ xs: 2, md: 3 }}>
                   <Grid item xs={12}>
                     <Alert severity="info" sx={{ mb: 1 }}>
                       Les documents sont optionnels lors de la pré-inscription et pourront être transmis ultérieurement lors de l&apos;inscription définitive.
@@ -830,8 +830,10 @@ export default function PublicPreinscriptionPage() {
                           startIcon={<CloudUploadIcon />}
                           color="primary"
                           sx={{
-                            height: "56px",
+                            minHeight: "56px",
                             justifyContent: "flex-start",
+                            textAlign: "left",
+                            wordBreak: "break-word",
                             px: 2,
                           }}
                         >
@@ -863,8 +865,10 @@ export default function PublicPreinscriptionPage() {
                           fullWidth
                           startIcon={<CloudUploadIcon />}
                           sx={{
-                            height: "56px",
+                            minHeight: "56px",
                             justifyContent: "flex-start",
+                            textAlign: "left",
+                            wordBreak: "break-word",
                             px: 2,
                           }}
                         >
@@ -896,8 +900,10 @@ export default function PublicPreinscriptionPage() {
                           fullWidth
                           startIcon={<CloudUploadIcon />}
                           sx={{
-                            height: "56px",
+                            minHeight: "56px",
                             justifyContent: "flex-start",
+                            textAlign: "left",
+                            wordBreak: "break-word",
                             px: 2,
                           }}
                         >
@@ -929,8 +935,10 @@ export default function PublicPreinscriptionPage() {
                           fullWidth
                           startIcon={<CloudUploadIcon />}
                           sx={{
-                            height: "56px",
+                            minHeight: "56px",
                             justifyContent: "flex-start",
+                            textAlign: "left",
+                            wordBreak: "break-word",
                             px: 2,
                           }}
                         >
@@ -963,8 +971,10 @@ export default function PublicPreinscriptionPage() {
                           fullWidth
                           startIcon={<CloudUploadIcon />}
                           sx={{
-                            height: "56px",
+                            minHeight: "56px",
                             justifyContent: "flex-start",
+                            textAlign: "left",
+                            wordBreak: "break-word",
                             px: 2,
                           }}
                         >
@@ -996,7 +1006,9 @@ export default function PublicPreinscriptionPage() {
                     <Box
                       sx={{
                         display: "flex",
-                        justify: "space-between",
+                        justifyContent: "space-between",
+                        flexDirection: { xs: "column-reverse", sm: "row" },
+                        gap: { xs: 1.5, sm: 0 },
                         mt: 2,
                       }}
                     >
@@ -1004,6 +1016,7 @@ export default function PublicPreinscriptionPage() {
                         variant="outlined"
                         startIcon={<ArrowBackIcon />}
                         onClick={handleBack}
+                        sx={{ width: { xs: "100%", sm: "auto" } }}
                       >
                         Retour
                       </Button>
@@ -1012,7 +1025,7 @@ export default function PublicPreinscriptionPage() {
                         variant="contained"
                         size="large"
                         disabled={submitting}
-                        sx={{ px: 4, py: 1.5, borderRadius: 2 }}
+                        sx={{ px: 4, py: 1.5, borderRadius: 2, width: { xs: "100%", sm: "auto" } }}
                       >
                         {submitting ? (
                           <CircularProgress size={24} color="inherit" />

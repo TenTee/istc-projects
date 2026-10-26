@@ -29,7 +29,7 @@ export default function CoursEtudiantsPage() {
   }, []);
 
   if (loading) {
-    return <Box sx={{ display: 'flex', justifyContent: 'center', mt: 10 }}><CircularProgress /></Box>;
+    return <Box sx={{ display: 'flex', justifyContent: 'center', mt: { xs: 5, md: 10 } }}><CircularProgress /></Box>;
   }
 
   return (
@@ -40,7 +40,7 @@ export default function CoursEtudiantsPage() {
       </Typography>
 
       {documents.length === 0 ? (
-        <Paper sx={{ p: 4, textAlign: 'center' }}>
+        <Paper sx={{ p: { xs: 3, sm: 4 }, textAlign: 'center' }}>
           <MenuBookIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 1 }} />
           <Typography color="text.secondary">Aucun document de cours disponible pour le moment.</Typography>
         </Paper>
@@ -50,8 +50,8 @@ export default function CoursEtudiantsPage() {
             <Grid item xs={12} sm={6} md={4} key={doc.id}>
               <Card variant="outlined" sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
                 <CardContent sx={{ flexGrow: 1 }}>
-                  <Typography variant="subtitle1" fontWeight="bold" gutterBottom>{doc.titre}</Typography>
-                  <Chip label={doc.module_nom} size="small" color="primary" variant="outlined" sx={{ mb: 1 }} />
+                  <Typography variant="subtitle1" fontWeight="bold" gutterBottom sx={{ wordBreak: 'break-word' }}>{doc.titre}</Typography>
+                  <Chip label={doc.module_nom} size="small" color="primary" variant="outlined" sx={{ mb: 1, maxWidth: '100%' }} />
                   {doc.description && (
                     <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
                       {doc.description}

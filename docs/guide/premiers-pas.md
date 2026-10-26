@@ -104,6 +104,12 @@ Toutes les données (classes, inscriptions, notes, emplois du temps, paiements) 
 
 Déconnectez-vous toujours sur un ordinateur partagé. Par sécurité, la session expire aussi d'elle-même : après une longue inactivité (environ une journée), la plateforme vous renvoie vers la page de connexion.
 
+## Version et nouveautés
+
+Le numéro de la version installée est affiché tout en bas du menu de gauche (par exemple « Version 0.2.0 · 24/10/2026 »). Une **pastille orange** signale une nouvelle version que vous n'avez pas encore consultée.
+
+Cliquez sur ce numéro pour ouvrir la fenêtre **Nouveautés**. Elle liste les nouveautés et corrections de chaque version, de la plus récente à la plus ancienne. Indiquez ce numéro quand vous signalez un problème à l'administration.
+
 ## Importer une liste depuis Excel (Import / Export)
 
 Les pages Enseignants, Personnel, Inventaire et Emploi du temps proposent un bouton **Import / Export** pour éviter la saisie ligne par ligne.

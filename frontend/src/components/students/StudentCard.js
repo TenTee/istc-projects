@@ -588,13 +588,25 @@ export default function StudentCard({
   };
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 1.5 }}>
+    <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 1.5, maxWidth: "100%", minWidth: 0 }}>
+      {/* Zone d'aperçu : défile horizontalement sur téléphone, la carte garde ses dimensions exactes */}
+      <Box
+        sx={{
+          alignSelf: "stretch",
+          maxWidth: "100%",
+          overflowX: { xs: "auto", sm: "visible" },
+          WebkitOverflowScrolling: "touch",
+          p: { xs: "4px 4px 28px", sm: 0 },
+        }}
+      >
       {/* Conteneur de prévisualisation à l'écran */}
       <Box
         id={id}
         sx={{
           width: `${width}px`,
           height: `${height}px`,
+          flexShrink: 0,
+          mx: "auto",
           borderRadius: "14px",
           boxShadow: "0 12px 30px rgba(15, 23, 42, 0.18), 0 2px 6px rgba(0, 0, 0, 0.08)",
           transition: "all 0.3s ease-in-out",
@@ -605,6 +617,7 @@ export default function StudentCard({
         ) : (
           <FrontFaceContent studentData={studentData} configProps={config} width={width} height={height} />
         )}
+      </Box>
       </Box>
 
       {/* Conteneurs 2D Hors-champ dédiés à la capture html2canvas (Garantie 0 chevauchement) */}

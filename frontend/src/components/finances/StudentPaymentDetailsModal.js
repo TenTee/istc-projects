@@ -20,6 +20,8 @@ import {
   TableRow,
   Tabs,
   Typography,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
 import AttachFileIcon from '@mui/icons-material/AttachFile';
 import AddCardIcon from '@mui/icons-material/AddCard';
@@ -47,6 +49,8 @@ export default function StudentPaymentDetailsModal({
   const [scheduleData, setScheduleData] = useState(null);
   const [loadingPayments, setLoadingPayments] = useState(true);
   const [loadingSchedule, setLoadingSchedule] = useState(true);
+  const theme = useTheme();
+  const fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
   useEffect(() => {
     if (open && student?.etudiant) {
@@ -75,8 +79,8 @@ export default function StudentPaymentDetailsModal({
   if (!student) return null;
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
-      <DialogTitle sx={{ fontWeight: 700, color: 'primary.main', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="md" fullScreen={fullScreen}>
+      <DialogTitle sx={{ fontWeight: 700, color: 'primary.main', display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'flex-start', sm: 'center' }, gap: 1.5 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <PersonIcon color="primary" />
           <span>Fiche Financière & Historique des Paiements</span>
@@ -100,7 +104,7 @@ export default function StudentPaymentDetailsModal({
         {/* Banner Étudiant & Synthèse */}
         <Paper variant="outlined" sx={{ p: 2, mb: 3, borderRadius: 2, bgcolor: '#f8fafc' }}>
           <Grid container spacing={2} alignItems="center">
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12} md={6}>
               <Typography variant="caption" color="text.secondary" fontWeight={700}>ÉTUDIANT & FORMATION</Typography>
               <Typography variant="h6" fontWeight={700} color="primary.dark">
                 {student.etudiant_nom}
@@ -126,24 +130,24 @@ export default function StudentPaymentDetailsModal({
               )}
             </Grid>
 
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12} md={6}>
               <Grid container spacing={1}>
                 <Grid item xs={4}>
                   <Card variant="outlined" sx={{ bgcolor: '#fff', textCenter: 'center', p: 1 }}>
                     <Typography variant="caption" color="text.secondary">TOTAL DÛ</Typography>
-                    <Typography variant="body2" fontWeight={700}>{formatFCFA(student.montant_du)}</Typography>
+                    <Typography variant="body2" fontWeight={700} sx={{ overflowWrap: 'anywhere' }}>{formatFCFA(student.montant_du)}</Typography>
                   </Card>
                 </Grid>
                 <Grid item xs={4}>
                   <Card variant="outlined" sx={{ bgcolor: '#f0fdf4', textCenter: 'center', p: 1, borderColor: '#bbf7d0' }}>
                     <Typography variant="caption" color="success.main">PAYÉ</Typography>
-                    <Typography variant="body2" fontWeight={700} color="success.main">{formatFCFA(student.montant_paye_total)}</Typography>
+                    <Typography variant="body2" fontWeight={700} color="success.main" sx={{ overflowWrap: 'anywhere' }}>{formatFCFA(student.montant_paye_total)}</Typography>
                   </Card>
                 </Grid>
                 <Grid item xs={4}>
                   <Card variant="outlined" sx={{ bgcolor: '#fef2f2', textCenter: 'center', p: 1, borderColor: '#fecaca' }}>
                     <Typography variant="caption" color="error.main">SOLDE</Typography>
-                    <Typography variant="body2" fontWeight={700} color="error.main">{formatFCFA(student.solde_restant)}</Typography>
+                    <Typography variant="body2" fontWeight={700} color="error.main" sx={{ overflowWrap: 'anywhere' }}>{formatFCFA(student.solde_restant)}</Typography>
                   </Card>
                 </Grid>
               </Grid>
@@ -165,7 +169,7 @@ export default function StudentPaymentDetailsModal({
               </Box>
             ) : payments.length > 0 ? (
               <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 2 }}>
-                <Table size="small">
+                <Table size="small" sx={{ minWidth: 700 }}>
                   <TableHead sx={{ bgcolor: '#f1f5f9' }}>
                     <TableRow>
                       <TableCell><strong>Date & Heure</strong></TableCell>
@@ -191,7 +195,7 @@ export default function StudentPaymentDetailsModal({
                           {formatFCFA(p.montant_paye)}
                         </TableCell>
                         <TableCell sx={{ textTransform: 'capitalize' }}>{p.moyen_paiement || 'Cash'}</TableCell>
-                        <TableCell align="center">
+                        <TableCell align="center" sx={{ whiteSpace: 'nowrap' }}>
                           {p.justificatif ? (
                             <Button
                               variant="outlined"
@@ -233,7 +237,7 @@ export default function StudentPaymentDetailsModal({
               </Box>
             ) : scheduleData?.installments?.length > 0 ? (
               <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 2 }}>
-                <Table size="small">
+                <Table size="small" sx={{ minWidth: 750 }}>
                   <TableHead sx={{ bgcolor: '#f1f5f9' }}>
                     <TableRow>
                       <TableCell><strong>Ordre</strong></TableCell>

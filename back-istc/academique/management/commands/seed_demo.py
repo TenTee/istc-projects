@@ -59,7 +59,7 @@ def pdf_factice(titre):
     return out.getvalue()
 
 
-def image_logo(texte="ISTC", fond=(31, 56, 100)):
+def image_logo(texte="SC", fond=(31, 56, 100)):
     try:
         from PIL import Image, ImageDraw, ImageFont
     except ImportError:
@@ -126,14 +126,13 @@ class Command(BaseCommand):
     def _etablissement(self):
         from academique.models import ConfigurationEtablissement, CycleGlobal, ParametresGlobaux
         conf = ConfigurationEtablissement.objects.first() or ConfigurationEtablissement()
-        conf.nom = "Institut Supérieur de Technologie et de Commerce"
+        conf.nom = "Établissement de démonstration"
         conf.adresse, conf.ville = "Rue des Écoles, Bonamoussadi", "Douala"
         conf.telephone, conf.email = "+237 6 00 00 00 00", "contact@istc-demo.cm"
         conf.site_web, conf.slogan = "www.istc-demo.cm", "Former pour réussir"
         conf.nom_directeur, conf.titre_directeur = "Dr Jean DUPONT", "Directeur Général"
         conf.couleur_primaire, conf.couleur_secondaire = "#1F3864", "#F5A623"
-        logo_projet = settings.BASE_DIR.parent / "frontend" / "public" / "logoistc2.png"
-        logo = logo_projet.read_bytes() if logo_projet.exists() else image_logo()
+        logo = image_logo()
         if logo:
             conf.logo.save("logo_demo.png", ContentFile(logo), save=False)
             conf.logo_entete.save("logo_entete_demo.png", ContentFile(logo), save=False)

@@ -25,6 +25,8 @@ import {
   FormControlLabel,
   FormControl,
   Alert,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import AttachFileIcon from '@mui/icons-material/AttachFile';
@@ -54,6 +56,8 @@ export default function ValidatePreinscriptionModal({
   submitting,
   preinscription,
 }) {
+  const theme = useTheme();
+  const fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
   const [amounts, setAmounts] = useState({
     montant_inscription_verse: '0',
     montant_formation_verse: '0',
@@ -192,7 +196,7 @@ export default function ValidatePreinscriptionModal({
 
 
   return (
-    <Dialog open={open} onClose={handleClose} fullWidth maxWidth="md">
+    <Dialog open={open} onClose={handleClose} fullWidth maxWidth="md" fullScreen={fullScreen}>
       <DialogTitle sx={{ fontWeight: 700, color: 'primary.main' }}>
         Approuver et valider la pré-inscription
       </DialogTitle>
@@ -308,7 +312,7 @@ export default function ValidatePreinscriptionModal({
                     fullWidth
                     size="small"
                     startIcon={<AttachFileIcon />}
-                    sx={{ textTransform: 'none', height: 40 }}
+                    sx={{ textTransform: 'none', minHeight: 40, overflowWrap: 'anywhere' }}
                   >
                     {newDocFile ? newDocFile.name : "Sélectionner un fichier"}
                     <input
@@ -519,7 +523,7 @@ export default function ValidatePreinscriptionModal({
               <Typography variant="body2" fontWeight={700} color="primary" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <CloudUploadIcon fontSize="small" /> Scan / Photo du reçu de paiement
               </Typography>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: { xs: 1, sm: 2 }, mt: 1 }}>
                 <Button
                   variant="contained"
                   component="label"
@@ -542,7 +546,7 @@ export default function ValidatePreinscriptionModal({
                     onDelete={() => setPaymentReceipt(null)}
                     color="primary"
                     size="small"
-                    sx={{ maxWidth: 300 }}
+                    sx={{ maxWidth: { xs: '100%', sm: 300 } }}
                   />
                 ) : (
                   <Typography variant="caption" color="text.secondary">

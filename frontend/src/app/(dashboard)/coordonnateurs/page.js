@@ -123,7 +123,7 @@ export default function CoordonnateursPage() {
           </Typography>
         </Box>
         {canEdit && (
-          <Button variant="contained" startIcon={<AddIcon />} onClick={() => { setForm({ formateur: '', filiere: '', date_debut: todayIso() }); setOpen(true); }}>
+          <Button variant="contained" startIcon={<AddIcon />} onClick={() => { setForm({ formateur: '', filiere: '', date_debut: todayIso() }); setOpen(true); }} sx={{ width: { xs: '100%', sm: 'auto' } }}>
             Attribuer un coordonnateur
           </Button>
         )}
@@ -139,7 +139,7 @@ export default function CoordonnateursPage() {
         <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}><CircularProgress /></Box>
       ) : (
         <TableContainer component={Paper}>
-          <Table>
+          <Table sx={{ minWidth: 650 }}>
             <TableHead sx={{ bgcolor: '#F5F7FA' }}>
               <TableRow>
                 <TableCell>Filière</TableCell>
@@ -175,7 +175,7 @@ export default function CoordonnateursPage() {
                     )}
                   </TableCell>
                   {canEdit && (
-                    <TableCell align="right">
+                    <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
                       <Tooltip title="Supprimer">
                         <IconButton color="error" onClick={() => remove(c)}><DeleteIcon /></IconButton>
                       </Tooltip>

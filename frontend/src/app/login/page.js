@@ -364,7 +364,7 @@ export default function LoginPage() {
               )}
             </Button>
 
-            <Divider sx={{ my: 3 }}>
+            <Divider sx={{ my: 3, '& .MuiDivider-wrapper': { whiteSpace: 'nowrap', px: { xs: 1, sm: 1.5 } } }}>
               <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 500 }}>
                 Nouveau candidat ou futur étudiant ?
               </Typography>

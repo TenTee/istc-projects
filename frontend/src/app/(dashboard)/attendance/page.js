@@ -215,7 +215,15 @@ export default function AttendancePage() {
 
   return (
     <Box>
-      <Box sx={{ display: "flex", justifyContent: "space-between", mb: 3 }}>
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: { xs: "column", sm: "row" },
+          justifyContent: "space-between",
+          gap: 2,
+          mb: 3,
+        }}
+      >
         <Typography variant="h5" fontWeight="bold" color="primary">
           Assiduité
         </Typography>
@@ -224,6 +232,7 @@ export default function AttendancePage() {
             variant="contained"
             startIcon={<AddIcon />}
             onClick={() => handleOpenDialog()}
+            sx={{ width: { xs: "100%", sm: "auto" } }}
           >
             Ajouter une absence / un retard
           </Button>
@@ -231,7 +240,8 @@ export default function AttendancePage() {
       </Box>
 
       <Paper sx={{ borderRadius: 3, overflow: "hidden" }}>
-        <Table>
+        <Box sx={{ overflowX: "auto" }}>
+        <Table sx={{ minWidth: 900 }}>
           <TableHead sx={{ bgcolor: "#F5F7FA" }}>
             <TableRow>
               <TableCell sx={{ fontWeight: "bold" }}>Date</TableCell>
@@ -399,6 +409,7 @@ export default function AttendancePage() {
                 ))}
           </TableBody>
         </Table>
+        </Box>
       </Paper>
       <TablePagination
         rowsPerPageOptions={[20, 50, 100]}

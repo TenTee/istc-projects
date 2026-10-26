@@ -272,14 +272,14 @@ export default function Header() {
         paddingY: 1,
       }}
     >
-      <Toolbar>
+      <Toolbar disableGutters sx={{ px: { xs: 0, sm: 2 }, gap: { xs: 1, sm: 0 }, minHeight: { xs: 56, sm: 64 } }}>
         <Tooltip title="Menu principal">
           <IconButton
             color="inherit"
             aria-label="open sidebar"
             onClick={toggleSidebar}
             sx={{
-              mr: 2,
+              mr: { xs: 0, sm: 2 },
               backgroundColor: 'white',
               boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
               '&:hover': { backgroundColor: '#f0f0f0' },
@@ -288,13 +288,24 @@ export default function Header() {
             <MenuIcon sx={{ color: primaryColor }} />
           </IconButton>
         </Tooltip>
-        <Typography variant="h6" sx={{ fontWeight: 'bold', color: primaryColor }}>
+        <Typography
+          variant="h6"
+          noWrap
+          sx={{
+            fontWeight: 'bold',
+            color: primaryColor,
+            minWidth: 0,
+            flexShrink: 1,
+            // Sur téléphone, le nom de l'établissement laisse la place au sélecteur d'année.
+            display: { xs: 'none', md: 'block' },
+          }}
+        >
           {config?.nom ? config.nom : (userInfo.role === 'ETUDIANT' ? 'Espace Étudiant' : "Vue d'ensemble")}
         </Typography>
 
         <Box sx={{ flexGrow: 1 }} />
 
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 2 }, minWidth: 0, flexWrap: { xs: 'wrap', sm: 'nowrap' }, justifyContent: 'flex-end' }}>
           {/* Année Académique Selector */}
           <Box
             sx={{
@@ -302,13 +313,14 @@ export default function Header() {
               alignItems: 'center',
               backgroundColor: 'white',
               borderRadius: 4,
-              px: 2,
+              px: { xs: 1, sm: 2 },
               py: 0.5,
+              minWidth: 0,
               boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
               border: '1px solid #eef2f6'
             }}
           >
-            <CalendarMonthIcon sx={{ color: primaryColor, mr: 1, fontSize: 20 }} />
+            <CalendarMonthIcon sx={{ color: primaryColor, mr: 1, fontSize: 20, display: { xs: 'none', sm: 'block' } }} />
             <Select
               value={selectedYear?.id || ''}
               onChange={(e) => {
@@ -324,7 +336,19 @@ export default function Header() {
                 fontSize: '0.85rem', 
                 fontWeight: 600, 
                 color: primaryColor,
-                '& .MuiSelect-select': { py: 0, minWidth: 100 }
+                maxWidth: { xs: 150, sm: 'none' },
+                '& .MuiSelect-select': { py: 0, minWidth: { xs: 0, sm: 100 } }
+              }}
+              renderValue={(id) => {
+                const year = academicYears.find((y) => y.id === id);
+                if (!year) return '';
+                return (
+                  <>
+                    <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>Année </Box>
+                    {year.libelle}
+                    <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>{year.est_active ? ' (Active)' : ''}</Box>
+                  </>
+                );
               }}
             >
               {academicYears.map(year => (
@@ -344,7 +368,10 @@ export default function Header() {
                 backgroundColor: '#fdecea',
                 border: '1px solid #f5c2c7',
                 color: '#842029',
-                maxWidth: 320,
+                maxWidth: { xs: '100%', sm: 320 },
+                // Sur téléphone, le message d'erreur passe sur sa propre ligne.
+                order: { xs: 10, sm: 0 },
+                flexBasis: { xs: '100%', sm: 'auto' },
               }}
             >
               <Typography variant="body2" sx={{ fontWeight: 600 }}>
@@ -374,7 +401,7 @@ export default function Header() {
             transformOrigin={{ horizontal: 'right', vertical: 'top' }}
             anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
             PaperProps={{
-              sx: { width: 350, maxHeight: 400 }
+              sx: { width: 350, maxWidth: 'calc(100vw - 24px)', maxHeight: 400 }
             }}
           >
             <Box sx={{ px: 2, py: 1.5 }}>
@@ -427,7 +454,7 @@ export default function Header() {
               gap: 1,
               backgroundColor: 'white',
               borderRadius: 4,
-              px: 1.5,
+              px: { xs: 0.5, sm: 1.5 },
               py: 0.5,
               boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
               cursor: 'pointer',
@@ -439,8 +466,8 @@ export default function Header() {
             <Avatar sx={{ width: 32, height: 32, bgcolor: primaryColor, fontSize: '0.9rem' }}>
               {userInfo.username.charAt(0).toUpperCase()}
             </Avatar>
-            <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-              <Typography variant="body2" fontWeight="bold" sx={{ lineHeight: 1.1 }}>
+            <Box sx={{ display: { xs: 'none', sm: 'flex' }, flexDirection: 'column', minWidth: 0 }}>
+              <Typography variant="body2" fontWeight="bold" noWrap sx={{ lineHeight: 1.1, maxWidth: 160 }}>
                 {userInfo.username}
               </Typography>
               <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.65rem' }}>

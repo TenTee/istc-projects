@@ -38,6 +38,7 @@ sudo systemctl restart smartcampus-web
 - [ ] `sudo systemctl status smartcampus-api smartcampus-web` : les deux services sont « active (running) ».
 - [ ] La page de connexion s'affiche et la connexion fonctionne.
 - [ ] Le tableau de bord se charge.
+- [ ] Le numéro affiché en bas du menu latéral est celui de la nouvelle version (voir `VERSION` à la racine du dépôt).
 
 ## Revenir en arrière
 

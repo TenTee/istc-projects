@@ -1,6 +1,5 @@
-site_name: SmartCampus ISTC — Guide d'utilisation
+site_name: SmartCampus — Guide d'utilisation
 site_description: Guide complet de la plateforme SmartCampus (administration, formateurs, étudiants, installation et développement)
-site_author: ISTC
 docs_dir: docs
 site_dir: site
 use_directory_urls: true
@@ -95,6 +94,7 @@ nav:
       - installation/index.md
       - Prérequis: installation/prerequis.md
       - Installation sur un poste (test): installation/installation-locale.md
+      - Livraison automatique du backend: installation/deploiement-automatique.md
       - Mise en ligne sur un serveur: installation/deploiement-serveur.md
       - Fichier de configuration (.env): installation/configuration.md
       - Sauvegardes et restauration: installation/sauvegardes.md
@@ -108,4 +108,5 @@ nav:
       - Tests automatisés: developpeurs/tests.md
       - Ajouter une fonctionnalité: developpeurs/ajouter-une-fonctionnalite.md
       - Conventions de code: developpeurs/conventions.md
+      - Versions et livraisons: developpeurs/versions.md
       - Référence API: developpeurs/api.md

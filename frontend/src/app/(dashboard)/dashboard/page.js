@@ -8,6 +8,8 @@ import {
   Typography,
   Grid,
   Paper,
+  useTheme,
+  useMediaQuery,
 } from '@mui/material';
 import PeopleIcon from '@mui/icons-material/People';
 import PersonIcon from '@mui/icons-material/Person';
@@ -43,8 +45,8 @@ function sortByMonth(data) {
 
 const StatCard = ({ title, value, icon, color }) => (
   <Card sx={{ height: '100%', borderRadius: 3, boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
-    <CardContent sx={{ display: 'flex', alignItems: 'center', p: 3 }}>
-      <Box sx={{ flexGrow: 1 }}>
+    <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1, p: { xs: 2, sm: 3 } }}>
+      <Box sx={{ flexGrow: 1, minWidth: 0 }}>
         <Typography color="text.secondary" variant="subtitle2" gutterBottom>
           {title}
         </Typography>
@@ -67,6 +69,7 @@ const StatCard = ({ title, value, icon, color }) => (
           justifyContent: 'center',
           alignItems: 'center',
           color: color,
+          flexShrink: 0,
         }}
       >
         {icon}
@@ -88,6 +91,8 @@ export default function Dashboard() {
 
   const [kpis, setKpis] = useState({ etudiants: 0, formateurs: 0, filieres: 0 });
   const { selectedYear } = useAcademicYear();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   const [inscriptionsData, setInscriptionsData] = useState([]);
   const [financesData, setFinancesData] = useState([]);
@@ -186,8 +191,8 @@ export default function Dashboard() {
     <Box>
       <Paper
         sx={{
-          p: 4,
-          mb: 4,
+          p: { xs: 2.5, sm: 4 },
+          mb: { xs: 3, md: 4 },
           background: 'linear-gradient(90deg, #193A7F 0%, #2A52A1 100%)',
           color: 'white',
           borderRadius: 3,
@@ -205,10 +210,10 @@ export default function Dashboard() {
 
       {loading ? (
         <Box>
-          <Box sx={{ mb: 4 }}>
+          <Box sx={{ mb: { xs: 3, md: 4 } }}>
             <CardSkeletonGrid count={3} md={4} />
           </Box>
-          <Grid container spacing={3} sx={{ mb: 4 }}>
+          <Grid container spacing={{ xs: 2, md: 3 }} sx={{ mb: { xs: 3, md: 4 } }}>
             <Grid item xs={12} md={8}>
               <ChartSkeleton height={350} titleWidth="50%" />
             </Grid>
@@ -216,7 +221,7 @@ export default function Dashboard() {
               <ChartSkeleton height={350} titleWidth="60%" />
             </Grid>
           </Grid>
-          <Grid container spacing={3}>
+          <Grid container spacing={{ xs: 2, md: 3 }}>
             <Grid item xs={12}>
               <ChartSkeleton height={300} titleWidth="35%" />
             </Grid>
@@ -224,7 +229,7 @@ export default function Dashboard() {
         </Box>
       ) : (
           <>
-            <Grid container spacing={3} sx={{ mb: 4 }}>
+            <Grid container spacing={{ xs: 2, md: 3 }} sx={{ mb: { xs: 3, md: 4 } }}>
               <Grid item xs={12} sm={6} md={4}>
                 <StatCard
                   title="Étudiants Inscrits"
@@ -252,19 +257,19 @@ export default function Dashboard() {
             </Grid>
 
             {/* CHARTS ROW 1 */}
-            <Grid container spacing={3} sx={{ mb: 4 }}>
+            <Grid container spacing={{ xs: 2, md: 3 }} sx={{ mb: { xs: 3, md: 4 } }}>
               <Grid item xs={12} md={8}>
                 <Card sx={{ borderRadius: 3, boxShadow: '0 4px 20px rgba(0,0,0,0.05)', height: '100%' }}>
                   <CardContent>
-                    <Typography variant="h6" fontWeight="bold" mb={3}>
+                    <Typography variant="h6" fontWeight="bold" mb={{ xs: 2, sm: 3 }}>
                       Flux Financier Mensuel (Revenus vs Dépenses)
                     </Typography>
-                    <Box sx={{ height: 350 }}>
+                    <Box sx={{ height: { xs: 260, sm: 350 }, minWidth: 0 }}>
                       {financesData.length > 0 ? (
                         <ResponsiveContainer width="100%" height="100%">
                           <BarChart
                             data={financesData}
-                            margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                            margin={isMobile ? { top: 10, right: 10, left: 0, bottom: 5 } : { top: 20, right: 30, left: 20, bottom: 5 }}
                           >
                             <CartesianGrid strokeDasharray="3 3" />
                             <XAxis dataKey="name" />
@@ -286,10 +291,10 @@ export default function Dashboard() {
               <Grid item xs={12} md={4}>
                 <Card sx={{ borderRadius: 3, boxShadow: '0 4px 20px rgba(0,0,0,0.05)', height: '100%' }}>
                   <CardContent>
-                    <Typography variant="h6" fontWeight="bold" mb={3}>
+                    <Typography variant="h6" fontWeight="bold" mb={{ xs: 2, sm: 3 }}>
                       Répartition des étudiants par filière
                     </Typography>
-                    <Box sx={{ height: 350, minWidth: 0 }}>
+                    <Box sx={{ height: { xs: 260, sm: 350 }, minWidth: 0 }}>
                       {filieresData.length > 0 ? (
                         <ResponsiveContainer width="100%" height="100%">
                           <PieChart>
@@ -297,18 +302,19 @@ export default function Dashboard() {
                               data={filieresData}
                               cx="50%"
                               cy="50%"
-                              innerRadius={70}
-                              outerRadius={100}
+                              innerRadius={isMobile ? 55 : 70}
+                              outerRadius={isMobile ? 80 : 100}
                               fill="#8884d8"
                               paddingAngle={5}
                               dataKey="value"
-                              label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                              label={isMobile ? false : ({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                             >
                               {filieresData.map((entry, index) => (
                                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                               ))}
                             </Pie>
                             <RechartsTooltip />
+                            {isMobile && <Legend wrapperStyle={{ fontSize: 12 }} />}
                           </PieChart>
                         </ResponsiveContainer>
                       ) : (
@@ -321,19 +327,19 @@ export default function Dashboard() {
             </Grid>
 
             {/* CHARTS ROW 2 */}
-            <Grid container spacing={3}>
+            <Grid container spacing={{ xs: 2, md: 3 }}>
                 <Grid item xs={12}>
                 <Card sx={{ borderRadius: 3, boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
                   <CardContent>
-                    <Typography variant="h6" fontWeight="bold" mb={3}>
+                    <Typography variant="h6" fontWeight="bold" mb={{ xs: 2, sm: 3 }}>
                       Évolution des pré-inscriptions
                     </Typography>
-                    <Box sx={{ height: 300, minWidth: 0 }}>
+                    <Box sx={{ height: { xs: 250, sm: 300 }, minWidth: 0 }}>
                       {inscriptionsData.length > 0 ? (
                         <ResponsiveContainer width="100%" height="100%">
                           <LineChart
                             data={inscriptionsData}
-                            margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                            margin={{ top: 10, right: isMobile ? 10 : 30, left: 0, bottom: 0 }}
                           >
                             <CartesianGrid strokeDasharray="3 3" />
                             <XAxis dataKey="name" />

@@ -162,11 +162,11 @@ def page_md(chemin):
 
 SAUT = '\n```{=openxml}\n<w:p><w:r><w:br w:type="page"/></w:r></w:p>\n```\n'
 
-doc = ["---\ntitle: \"SmartCampus ISTC\"\nsubtitle: \"Documentation complète : guide d'utilisation, installation et développement\"\nauthor: \"ISTC — Plateforme SmartCampus\"\ndate: \"Version d'octobre 2026\"\ntoc-title: \"Sommaire\"\nlang: fr-FR\n---\n"]
+doc = ["---\ntitle: \"SmartCampus\"\nsubtitle: \"Documentation complète : guide d'utilisation, installation et développement\"\nauthor: \"Plateforme SmartCampus\"\ndate: \"Version d'octobre 2026\"\ntoc-title: \"Sommaire\"\nlang: fr-FR\n---\n"]
 intro = open(os.path.join(DOCS, "index.md"), encoding="utf-8").read()
 intro = re.sub(r'!!! info "Version Word".*?\n\n', "", intro, flags=re.S)
 intro = convertir(intro, "index.md")
-intro = re.sub(r"^# SmartCampus ISTC\s*\n", "# Présentation de SmartCampus\n", intro)
+intro = re.sub(r"^# SmartCampus\s*\n", "# Présentation de SmartCampus\n", intro)
 intro = re.sub(r"^## ", "### ", intro, flags=re.M)
 doc.append(intro)
 for titre, pages in PARTIES:

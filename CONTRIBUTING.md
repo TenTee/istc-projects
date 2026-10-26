@@ -37,7 +37,9 @@ git checkout -b feature/<sujet>      # ou fix/<sujet>
 - [ ] Documentation mise à jour (`mkdocs build --strict` passe)
 - [ ] Description de la PR : contexte, captures d'écran, migrations, nouvelles variables `.env`
 
-## 5. Déploiement
+## 5. Versions et déploiement
+
+Chaque push sur `main` crée automatiquement une nouvelle version (X.Y.Z). Elle est affichée en bas du menu latéral avec ses nouveautés. Avant de pousser, décrivez ce que voient les utilisateurs dans [`NOUVEAUTES.md`](NOUVEAUTES.md). Après le push, faites `git pull` pour récupérer le commit de version du robot. Pour livrer le backend sur un serveur : `sudo bash outils/deploiement/deployer_backend.sh` (voir [Livraison automatique](docs/installation/deploiement-automatique.md)). Détails : [Versions et livraisons](docs/developpeurs/versions.md).
 
 Après fusion, la mise en production suit [Mettre à jour la plateforme](docs/installation/mise-a-jour.md) : sauvegarde, `git pull`, `migrate`, `collectstatic`, `npm run build`, redémarrage des services.
 

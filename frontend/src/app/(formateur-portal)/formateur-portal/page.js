@@ -133,13 +133,13 @@ export default function FormateurDashboard() {
   return (
     <Box>
       {/* Profile header */}
-      <Paper sx={{ p: 3, mb: 3, display: 'flex', alignItems: 'center', gap: 3 }}>
-        <Avatar sx={{ width: 64, height: 64, bgcolor: '#1B3A5C', fontSize: '1.5rem' }}>
+      <Paper sx={{ p: { xs: 2, sm: 3 }, mb: 3, display: 'flex', alignItems: 'center', gap: { xs: 2, sm: 3 } }}>
+        <Avatar sx={{ width: { xs: 48, sm: 64 }, height: { xs: 48, sm: 64 }, bgcolor: '#1B3A5C', fontSize: '1.5rem', flexShrink: 0 }}>
           {profil.nom?.charAt(0)?.toUpperCase() || 'F'}
         </Avatar>
-        <Box>
-          <Typography variant="h5" fontWeight="bold">{profil.nom}</Typography>
-          <Typography variant="body2" color="text.secondary">{profil.email}</Typography>
+        <Box sx={{ minWidth: 0 }}>
+          <Typography variant="h5" fontWeight="bold" sx={{ wordBreak: 'break-word' }}>{profil.nom}</Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ wordBreak: 'break-word' }}>{profil.email}</Typography>
           <Box sx={{ mt: 1, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
             <Chip
               label={profil.type_formateur === 'vacataire' ? 'Vacataire' : 'Permanent'}
@@ -155,23 +155,24 @@ export default function FormateurDashboard() {
       </Paper>
 
       {/* Stats */}
-      <Grid container spacing={3}>
+      <Grid container spacing={{ xs: 2, md: 3 }}>
         {statCards.map((card) => (
-          <Grid item xs={12} sm={6} md={3} key={card.label}>
+          <Grid item xs={6} sm={6} md={3} key={card.label}>
             <Paper
               sx={{
-                p: 3,
+                p: { xs: 1.5, sm: 3 },
+                height: '100%',
                 cursor: 'pointer',
                 transition: 'transform 0.2s',
                 '&:hover': { transform: 'translateY(-4px)', boxShadow: 4 },
               }}
               onClick={() => router.push(card.path)}
             >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Avatar sx={{ bgcolor: card.color, width: 48, height: 48 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1.25, sm: 2 } }}>
+                <Avatar sx={{ bgcolor: card.color, width: { xs: 36, sm: 48 }, height: { xs: 36, sm: 48 }, flexShrink: 0 }}>
                   {card.icon}
                 </Avatar>
-                <Box>
+                <Box sx={{ minWidth: 0 }}>
                   <Typography variant="h4" fontWeight="bold">{card.value}</Typography>
                   <Typography variant="body2" color="text.secondary">{card.label}</Typography>
                 </Box>
@@ -186,12 +187,12 @@ export default function FormateurDashboard() {
 
       {/* Prochaines séances */}
       {prochaines_seances?.length > 0 && (
-        <Paper sx={{ p: 3, mt: 3 }}>
+        <Paper sx={{ p: { xs: 2, sm: 3 }, mt: 3 }}>
           <Typography variant="h6" fontWeight="bold" gutterBottom>
             Prochaines Séances
           </Typography>
           <TableContainer>
-            <Table size="small">
+            <Table size="small" sx={{ minWidth: 600 }}>
               <TableHead>
                 <TableRow>
                   <TableCell>Jour</TableCell>
@@ -205,7 +206,7 @@ export default function FormateurDashboard() {
                 {prochaines_seances.map((s, idx) => (
                   <TableRow key={idx}>
                     <TableCell sx={{ textTransform: 'capitalize' }}>{s.jour}</TableCell>
-                    <TableCell>{s.heure_debut} - {s.heure_fin}</TableCell>
+                    <TableCell sx={{ whiteSpace: 'nowrap' }}>{s.heure_debut} - {s.heure_fin}</TableCell>
                     <TableCell>{s.module_nom}</TableCell>
                     <TableCell>{s.classe_nom}</TableCell>
                     <TableCell>{s.salle_nom}</TableCell>
@@ -219,7 +220,7 @@ export default function FormateurDashboard() {
 
       {/* Classes overview */}
       {classes_resume?.length > 0 && (
-        <Paper sx={{ p: 3, mt: 3 }}>
+        <Paper sx={{ p: { xs: 2, sm: 3 }, mt: 3 }}>
           <Typography variant="h6" fontWeight="bold" gutterBottom>
             Mes Classes
           </Typography>

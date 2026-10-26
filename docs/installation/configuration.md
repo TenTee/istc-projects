@@ -15,10 +15,10 @@ Modèle : `back-istc/.env.example`.
 |---|---|---|---|
 | `SECRET_KEY` | **Oui** | `k3J…` (50 caractères aléatoires) | Clé de chiffrement des sessions et jetons. Unique par installation, à ne jamais divulguer. La changer déconnecte tout le monde. |
 | `DEBUG` | **Oui** (`False`) | `False` | `True` uniquement sur un poste de test : affiche le détail des erreurs (dangereux en ligne). |
-| `ALLOWED_HOSTS` | **Oui** | `api.istc.exemple.cm,istc.exemple.cm` | Noms de domaine autorisés pour joindre l'API, séparés par des virgules, **sans** `https://`. Si la variable est absente, une liste par défaut (localhost, istc.tenteeglobal.com, smart.tenteeglobal.com) est utilisée ; si elle est présente, **elle remplace** cette liste. Les origines HTTPS de confiance (CSRF) en sont déduites automatiquement. |
+| `ALLOWED_HOSTS` | **Oui** | `api.smartcampus.exemple.cm,smartcampus.exemple.cm` | Noms de domaine autorisés pour joindre l'API, séparés par des virgules, **sans** `https://`. Si la variable est absente, une liste par défaut (localhost, istc.tenteeglobal.com, smart.tenteeglobal.com) est utilisée ; si elle est présente, **elle remplace** cette liste. Les origines HTTPS de confiance (CSRF) en sont déduites automatiquement. |
 | `DATABASE_URL` | **Oui** | `postgresql://utilisateur:motdepasse@127.0.0.1:5432/smartcampus` | Connexion à PostgreSQL. Vide = base SQLite locale (`db.sqlite3`), réservée aux essais. |
 | `DB_SSL_REQUIRE` | Non | `False` | `True` si la base est hébergée chez un fournisseur exigeant SSL. |
-| `CORS_ALLOWED_ORIGINS` | Selon le cas | `https://istc.exemple.cm` | Adresses **complètes** (avec `https://`) des interfaces autorisées à appeler l'API, séparées par des virgules. Elles **s'ajoutent** aux adresses déjà autorisées dans le code (localhost:3000, istc.tenteeglobal.com, smart.tenteeglobal.com, istc-smartcampus.vercel.app). |
+| `CORS_ALLOWED_ORIGINS` | Selon le cas | `https://smartcampus.exemple.cm` | Adresses **complètes** (avec `https://`) des interfaces autorisées à appeler l'API, séparées par des virgules. Elles **s'ajoutent** aux adresses déjà autorisées dans le code (localhost:3000, istc.tenteeglobal.com, smart.tenteeglobal.com, istc-smartcampus.vercel.app). |
 | `RECAPTCHA_SECRET_KEY` | Recommandé | `6Lc…` | Clé **secrète** reCAPTCHA v2. Si renseignée, la connexion et la préinscription exigent le reCAPTCHA. Vide = pas de vérification. |
 | `CONTROLE_DROITS_PERSONNEL` | Non | `True` | Contrôle des droits du personnel par le serveur (activé par défaut). `False` le désactive temporairement en cas de blocage après une mise à jour, le temps de corriger les rôles. |
 | `CELERY_BROKER_URL`, `CELERY_RESULT_BACKEND` | Non | `redis://127.0.0.1:6379/0` | Tâches en arrière-plan (facultatif, non nécessaire au fonctionnement courant). |
@@ -32,7 +32,7 @@ Modèle : `frontend/.env.example`.
 
 | Variable | Exemple | Rôle |
 |---|---|---|
-| `NEXT_PUBLIC_API_BASE_URL` | `https://api.istc.exemple.cm` | Adresse de l'API, **sans** `/api` et sans `/` final. |
+| `NEXT_PUBLIC_API_BASE_URL` | `https://api.smartcampus.exemple.cm` | Adresse de l'API, **sans** `/api` et sans `/` final. |
 | `NEXT_PUBLIC_RECAPTCHA_SITE_KEY` | `6Lc…` | Clé **du site** (publique) reCAPTCHA v2. Doit correspondre à la clé secrète du backend. Vide = reCAPTCHA masqué. |
 
 !!! warning "reCAPTCHA : les deux clés vont ensemble"
