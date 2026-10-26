@@ -8,9 +8,5 @@ Facultatif : indiquez le niveau (correctif, mineure ou majeure) sur la ligne « 
 Sans aucune ligne « - », les messages de commit sont utilisés.
 -->
 
-Niveau : mineure
+Niveau : correctif
 
-- Les droits des rôles du personnel sont désormais appliqués par le serveur : un compte sans droit sur un domaine ne peut plus consulter ni modifier ses données.
-- Toutes les pages de l'administration et des portails s'adaptent au téléphone et à la tablette.
-- Les longs formulaires s'ouvrent en plein écran sur téléphone, et les tableaux larges défilent dans leur cadre.
-- Le numéro de version et les nouveautés sont affichés en bas du menu latéral.
