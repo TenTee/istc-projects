@@ -5,6 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:dev": "node scripts/build-cible.mjs dev",
+    "build:prod": "node scripts/build-cible.mjs production",
     "build:istc": "cp .env.istc .env.local && next build && rm -f .env.local",
     "start": "next start",
     "lint": "eslint"

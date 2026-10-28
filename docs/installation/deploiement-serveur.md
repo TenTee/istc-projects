@@ -218,5 +218,13 @@ Vérifiez que le dossier `media/` est lisible par Nginx (`sudo chmod o+x /home/b
 ## Variante : frontend sur Vercel
 
 1. Importez le dépôt sur <https://vercel.com>, dossier racine `frontend`.
-2. Dans *Settings → Environment Variables*, ajoutez `NEXT_PUBLIC_API_BASE_URL` et `NEXT_PUBLIC_RECAPTCHA_SITE_KEY`.
-3. Ajoutez l'adresse Vercel (ex. `https://istc-smartcampus.vercel.app`) dans `CORS_ALLOWED_ORIGINS` du backend, puis redémarrez l'API (`sudo systemctl restart smartcampus-api`).
+2. Dans *Settings → Environment Variables*, ajoutez `NEXT_PUBLIC_RECAPTCHA_SITE_KEY`, et `NEXT_PUBLIC_API_BASE_URL` avec l'adresse de l'API **de développement**.
+3. Dans *Settings → Build and Deployment → Build Command*, choisissez l'API intégrée à l'interface :
+
+    | Commande de build | API utilisée |
+    |---|---|
+    | `npm run build:prod` | production : adresse `"production"` de `frontend/api-cibles.json` (`https://back.smartcampus.isare-istc.education`) |
+    | `npm run build:dev` (ou `npm run build`) | développement : la variable `NEXT_PUBLIC_API_BASE_URL` de Vercel (ou de `.env.local` sur un poste) |
+
+    L'adresse est figée au moment du build : changer de commande demande un nouveau déploiement. Pour changer l'adresse de production, modifiez `frontend/api-cibles.json`.
+4. Ajoutez l'adresse Vercel (ex. `https://istc-smartcampus.vercel.app`) dans `CORS_ALLOWED_ORIGINS` du backend, puis redémarrez l'API (`sudo systemctl restart smartcampus-api`).

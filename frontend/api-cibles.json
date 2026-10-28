@@ -1,0 +1,5 @@
+{
+  "_aide": "Adresse de l'API (backend) intégrée à l'interface selon la commande de build. null = garder la valeur déjà configurée (NEXT_PUBLIC_API_BASE_URL dans .env.local ou dans les variables Vercel).",
+  "production": "https://back.smartcampus.isare-istc.education",
+  "dev": null
+}
