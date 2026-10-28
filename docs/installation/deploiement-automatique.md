@@ -13,7 +13,7 @@ Systèmes pris en charge : **Ubuntu 22.04 / 24.04** et les **images Bitnami** (D
 | Code | `git pull` de la branche `main` | `git pull` (relance automatique si le script a changé) |
 | Base de données | **sur le serveur** si aucune adresse n'est donnée, sinon base distante testée | conservée |
 | `back-istc/.env` | créé : clé secrète générée, `DEBUG=False`, hôtes, base, CORS | complété, jamais écrasé |
-| Dépendances Python (+ Gunicorn) | installées dans `back-istc/venv` | mises à jour |
+| Dépendances Python (+ Gunicorn) | installées dans `back-istc/.venv` (le dossier `venv/` du dépôt n'est pas utilisé) | mises à jour |
 | Sauvegarde de sécurité | — | **avant** les migrations |
 | `migrate`, `collectstatic` | oui | oui |
 | Compte administrateur | demandé s'il n'en existe aucun | — |

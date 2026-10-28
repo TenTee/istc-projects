@@ -40,6 +40,12 @@ est_locale 'postgresql://u:p@127.0.0.1:5432/b'; verifier "est_locale 127.0.0.1" 
 est_locale 'postgresql://u:p@localhost/b'; verifier "est_locale localhost" "0" "$?"
 est_locale 'postgresql://u:p@db.exemple.cm/b'; verifier "est_locale distante" "1" "$?"
 
+# Les fonctions doivent réussir dans les conditions réelles du script (set -Eeuo pipefail).
+( set -Eeuo pipefail; trap 'exit 99' ERR; v="$(lire_env "$F" ABSENTE)"; [[ -z "$v" ]] ); verifier "lire_env clé absente sous pipefail" "0" "$?"
+( set -Eeuo pipefail; trap 'exit 99' ERR; v="$(lire_env "$T/inexistant" X)"; [[ -z "$v" ]] ); verifier "lire_env fichier absent sous pipefail" "0" "$?"
+( set -Eeuo pipefail; trap 'exit 99' ERR; for i in $(seq 1 50); do m="$(aleatoire 64)"; [[ ${#m} -eq 64 ]]; done ); verifier "aleatoire sous pipefail (50 tirages)" "0" "$?"
+( set -Eeuo pipefail; trap 'exit 99' ERR; v="$(fusionner_liste "a" "b")"; [[ "$v" == "a,b" ]] ); verifier "fusionner_liste sous pipefail" "0" "$?"
+
 mdp="$(aleatoire 32)"
 verifier "aleatoire : 32 caractères" "32" "${#mdp}"
 [[ "$mdp" =~ ^[A-Za-z0-9]+$ ]]; verifier "aleatoire : alphanumérique" "0" "$?"

@@ -83,13 +83,18 @@ aide() { awk 'NR > 1 && /^set -E/ { exit } NR > 1' "$0" | sed -e 's/^# \{0,1\}//
 # ----------------------------------------------------------------------------- outils (testables)
 
 # Génère une chaîne aléatoire sans caractère spécial (sûre dans une URL et dans .env).
-aleatoire() { local n="${1:-32}"; LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c "$n"; }
+# (lecture par blocs finis : pas de « tr | head » qui échouerait en SIGPIPE avec pipefail)
+aleatoire() {
+  local n="${1:-32}" s=""
+  while (( ${#s} < n )); do s+="$(head -c 512 /dev/urandom | LC_ALL=C tr -dc 'A-Za-z0-9')"; done
+  printf '%s' "${s:0:n}"
+}
 
 # Lit la valeur d'une clé dans un fichier .env (vide si absente).
 lire_env() {
   local fichier="$1" cle="$2"
   [[ -f "$fichier" ]] || return 0
-  grep -E "^${cle}=" "$fichier" | tail -n1 | cut -d= -f2- | sed -e 's/^["'\'']//' -e 's/["'\'']$//'
+  { grep -E "^${cle}=" "$fichier" || true; } | tail -n1 | cut -d= -f2- | sed -e 's/^["'\'']//' -e 's/["'\'']$//'
 }
 
 # Écrit (ou remplace) une clé dans un fichier .env sans toucher aux autres lignes.
@@ -182,6 +187,7 @@ verifier_systeme() {
   [[ "$IP_PUBLIQUE" =~ ^[0-9a-fA-F.:]+$ ]] || IP_PUBLIQUE="$IP_PRIVEE"
   DEPOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
   BACKEND="$DEPOT/back-istc"
+  VENV="$BACKEND/.venv"
   [[ -f "$BACKEND/manage.py" ]] || erreur "back-istc/manage.py introuvable : lancez le script depuis le dépôt cloné."
   ok "Dépôt : $DEPOT"
 }
@@ -356,17 +362,24 @@ configurer_env() {
 
 installer_python() {
   etape "Environnement Python et dépendances"
-  if [[ -x "$BACKEND/venv/bin/python" ]] && ! "$BACKEND/venv/bin/python" -c 'import sys; sys.exit(0 if sys.version_info >= (3, 11) else 1)'; then
-    alerte "Ancien environnement Python < 3.11 : recréation."
-    rm -rf "$BACKEND/venv"
+  # Le dossier back-istc/venv/ peut avoir été envoyé dans Git depuis un autre poste (liens cassés ici) :
+  # le serveur utilise son propre environnement back-istc/.venv, ignoré par Git.
+  if [[ -e "$VENV" ]] && ! "$VENV/bin/python" -c 'import sys; sys.exit(0 if sys.version_info >= (3, 11) else 1)' 2>/dev/null; then
+    alerte "Environnement Python absent, cassé ou < 3.11 : recréation."
+    rm -rf "$VENV"
   fi
-  [[ -x "$BACKEND/venv/bin/python" ]] || sudo -u "$UTILISATEUR" "$PYTHON" -m venv "$BACKEND/venv"
-  sudo -u "$UTILISATEUR" "$BACKEND/venv/bin/pip" install -q --upgrade pip wheel
-  sudo -u "$UTILISATEUR" "$BACKEND/venv/bin/pip" install -q -r "$BACKEND/requirements.txt" gunicorn
-  ok "Dépendances installées"
+  if [[ ! -e "$VENV" ]]; then
+    sudo -u "$UTILISATEUR" "$PYTHON" -m venv "$VENV" || erreur "Création de l'environnement Python impossible ($PYTHON -m venv)."
+  fi
+  sudo -u "$UTILISATEUR" "$VENV/bin/python" -m pip install -q --upgrade pip wheel
+  sudo -u "$UTILISATEUR" "$VENV/bin/python" -m pip install -q -r "$BACKEND/requirements.txt" gunicorn
+  ok "Dépendances installées dans back-istc/.venv ($("$VENV/bin/python" --version))"
+  if [[ -d "$DEPOT/.git" ]] && git -C "$DEPOT" ls-files --error-unmatch back-istc/venv/bin/activate >/dev/null 2>&1; then
+    alerte "Le dossier back-istc/venv/ est suivi par Git : retirez-le du dépôt (git rm -r --cached back-istc/venv)."
+  fi
 }
 
-django() { (cd "$BACKEND" && sudo -u "$UTILISATEUR" "$BACKEND/venv/bin/python" manage.py "$@"); }
+django() { (cd "$BACKEND" && sudo -u "$UTILISATEUR" "$VENV/bin/python" manage.py "$@"); }
 
 sauvegarde_avant_migration() {
   [[ "$PREMIERE" == "oui" ]] && return
@@ -394,7 +407,7 @@ mettre_a_jour_django() {
       if [[ -z "$mdp" && "$INTERACTIF" == "oui" ]]; then read -r -s -p "    Mot de passe du compte « $nom » : " mdp; echo; fi
       [[ -n "$mdp" ]] || erreur "Mot de passe administrateur manquant (variable SMARTCAMPUS_ADMIN_PASSWORD)."
       (cd "$BACKEND" && sudo -u "$UTILISATEUR" env DJANGO_SUPERUSER_USERNAME="$nom" DJANGO_SUPERUSER_EMAIL="$mail" \
-        DJANGO_SUPERUSER_PASSWORD="$mdp" "$BACKEND/venv/bin/python" manage.py createsuperuser --noinput >/dev/null)
+        DJANGO_SUPERUSER_PASSWORD="$mdp" "$VENV/bin/python" manage.py createsuperuser --noinput >/dev/null)
       ok "Compte administrateur « $nom » créé"
     fi
   elif [[ "$PREMIERE" == "oui" ]]; then
@@ -403,7 +416,7 @@ mettre_a_jour_django() {
         info "Création du premier compte administrateur :"
         django createsuperuser
       else
-        alerte "Aucun administrateur : créez-en un avec « cd $BACKEND && sudo -u $UTILISATEUR venv/bin/python manage.py createsuperuser »."
+        alerte "Aucun administrateur : créez-en un avec « cd $BACKEND && sudo -u $UTILISATEUR .venv/bin/python manage.py createsuperuser »."
       fi
     fi
   fi
@@ -423,7 +436,7 @@ After=network.target postgresql.service
 User=$UTILISATEUR
 Group=$UTILISATEUR
 WorkingDirectory=$BACKEND
-ExecStart=$BACKEND/venv/bin/gunicorn smart_back.wsgi:application --bind 127.0.0.1:$PORT --workers $workers --timeout 120 --access-logfile - --error-logfile -
+ExecStart=$VENV/bin/gunicorn smart_back.wsgi:application --bind 127.0.0.1:$PORT --workers $workers --timeout 120 --access-logfile - --error-logfile -
 Restart=always
 RestartSec=3
 
