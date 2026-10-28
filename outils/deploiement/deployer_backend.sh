@@ -268,18 +268,71 @@ preparer_utilisateur() {
   ok "Le code appartient à « $UTILISATEUR »"
 }
 
+# Fichiers suivis par Git mais produits ou propres à chaque machine : Python les régénère (__pycache__),
+# le script écrit le .env du serveur. On les remet à l'état du dépôt avant la mise à jour.
+est_fichier_genere() {
+  case "$1" in
+    back-istc/.env|*__pycache__/*|*.pyc|back-istc/venv/*|*/db.sqlite3|back-istc/staticfiles/*) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+sauver_env_serveur() {
+  [[ -f "$BACKEND/.env" ]] || return 0
+  mkdir -p "$CONF_DIR"
+  cp -p "$BACKEND/.env" "$CONF_DIR/backend.env"
+  chmod 600 "$CONF_DIR/backend.env"
+}
+
+# Remet le .env du serveur en place (même si le dépôt l'a modifié ou supprimé).
+restaurer_env_serveur() {
+  [[ -f "$CONF_DIR/backend.env" ]] || return 0
+  cp -p "$CONF_DIR/backend.env" "$BACKEND/.env"
+  chown "$UTILISATEUR":"$UTILISATEUR" "$BACKEND/.env"
+  chmod 600 "$BACKEND/.env"
+}
+
+git_depot() { sudo -u "$UTILISATEUR" git -C "$DEPOT" "$@"; }
+
 recuperer_code() {
   etape "Récupération du code"
   if [[ "$AVEC_PULL" == "non" ]]; then info "--sans-pull : code livré tel quel."; return; fi
   if [[ ! -d "$DEPOT/.git" ]]; then alerte "Pas un dépôt Git : code livré tel quel."; return; fi
-  local avant apres
-  avant="$(sudo -u "$UTILISATEUR" git -C "$DEPOT" rev-parse --short HEAD)"
-  sudo -u "$UTILISATEUR" git -C "$DEPOT" fetch --tags origin "$BRANCHE" \
-    || erreur "git fetch impossible. Dépôt privé ? Ajoutez une clé de déploiement au compte $UTILISATEUR (voir la documentation)."
-  sudo -u "$UTILISATEUR" git -C "$DEPOT" checkout -q "$BRANCHE"
-  sudo -u "$UTILISATEUR" git -C "$DEPOT" merge --ff-only -q "origin/$BRANCHE" \
-    || erreur "Des modifications locales empêchent la mise à jour. Voir : git -C $DEPOT status"
-  apres="$(sudo -u "$UTILISATEUR" git -C "$DEPOT" rev-parse --short HEAD)"
+  local avant apres f generes=() autres=()
+  avant="$(git_depot rev-parse --short HEAD)"
+
+  # 1. Le .env du serveur est mis de côté : il ne doit jamais être remplacé par celui du dépôt.
+  sauver_env_serveur
+
+  # 2. Fichiers modifiés sur le serveur : les fichiers générés sont remis à l'état du dépôt,
+  #    une vraie modification de code arrête la livraison.
+  while IFS= read -r f; do
+    if est_fichier_genere "$f"; then generes+=("$f"); else autres+=("$f"); fi
+  done < <(git_depot ls-files -m)
+  if (( ${#autres[@]} )); then
+    alerte "Fichiers de code modifiés directement sur le serveur :"
+    printf '        %s\n' "${autres[@]:0:15}"
+    (( ${#autres[@]} > 15 )) && info "    … et $(( ${#autres[@]} - 15 )) autre(s)"
+    erreur "Livraison arrêtée pour ne pas perdre ces modifications. Pour les abandonner : sudo git -C $DEPOT checkout -- . puis relancez."
+  fi
+  if (( ${#generes[@]} )); then
+    printf '%s\0' "${generes[@]}" | sudo -u "$UTILISATEUR" xargs -0 git -C "$DEPOT" checkout --
+    info "${#generes[@]} fichier(s) généré(s) suivi(s) par Git remis à l'état du dépôt (.env du serveur conservé)."
+  fi
+
+  # 3. Mise à jour.
+  if ! git_depot fetch --tags origin "$BRANCHE"; then
+    restaurer_env_serveur
+    erreur "git fetch impossible. Dépôt privé ? Ajoutez une clé de déploiement au compte $UTILISATEUR (voir la documentation)."
+  fi
+  git_depot checkout -q "$BRANCHE"
+  if ! git_depot merge --ff-only -q "origin/$BRANCHE"; then
+    restaurer_env_serveur
+    erreur "Mise à jour impossible (historique divergent ?). Voir : sudo git -C $DEPOT status"
+  fi
+  restaurer_env_serveur
+
+  apres="$(git_depot rev-parse --short HEAD)"
   if [[ "$avant" == "$apres" ]]; then ok "Code déjà à jour ($apres)"; return; fi
   ok "Code mis à jour : $avant → $apres"
   # Le script de livraison lui-même a changé : on relance la nouvelle version.
@@ -336,6 +389,14 @@ preparer_base() {
 configurer_env() {
   etape "Fichier de configuration back-istc/.env"
   local f="$BACKEND/.env" hotes origines
+  # Première installation avec un .env venu du dépôt Git (celui d'un autre poste) : on repart du modèle,
+  # pour ne reprendre ni sa clé secrète ni ses réglages.
+  if [[ "$PREMIERE" == "oui" && -f "$f" && -d "$DEPOT/.git" ]] \
+     && git -C "$DEPOT" ls-files --error-unmatch back-istc/.env >/dev/null 2>&1 \
+     && git -C "$DEPOT" diff --quiet -- back-istc/.env; then
+    alerte "back-istc/.env vient du dépôt Git : nouveau .env créé pour ce serveur."
+    rm -f "$f"
+  fi
   if [[ ! -f "$f" ]]; then
     cp "$BACKEND/.env.example" "$f"
     ecrire_env "$f" SECRET_KEY "$(aleatoire 64)"
@@ -356,6 +417,7 @@ configurer_env() {
   fi
   completer_env "$f" CONTROLE_DROITS_PERSONNEL True
   chown "$UTILISATEUR":"$UTILISATEUR" "$f"; chmod 600 "$f"
+  sauver_env_serveur      # copie de référence : /etc/smartcampus/backend.env
   ok "ALLOWED_HOSTS = $hotes"
   [[ -n "$(lire_env "$f" CORS_ALLOWED_ORIGINS)" ]] || alerte "CORS_ALLOWED_ORIGINS vide : renseignez l'adresse de l'interface (option --frontend)."
 }
@@ -379,7 +441,7 @@ installer_python() {
   fi
 }
 
-django() { (cd "$BACKEND" && sudo -u "$UTILISATEUR" "$VENV/bin/python" manage.py "$@"); }
+django() { (cd "$BACKEND" && sudo -u "$UTILISATEUR" env PYTHONDONTWRITEBYTECODE=1 "$VENV/bin/python" manage.py "$@"); }
 
 sauvegarde_avant_migration() {
   [[ "$PREMIERE" == "oui" ]] && return
@@ -406,7 +468,7 @@ mettre_a_jour_django() {
       local mdp="${SMARTCAMPUS_ADMIN_PASSWORD:-}"
       if [[ -z "$mdp" && "$INTERACTIF" == "oui" ]]; then read -r -s -p "    Mot de passe du compte « $nom » : " mdp; echo; fi
       [[ -n "$mdp" ]] || erreur "Mot de passe administrateur manquant (variable SMARTCAMPUS_ADMIN_PASSWORD)."
-      (cd "$BACKEND" && sudo -u "$UTILISATEUR" env DJANGO_SUPERUSER_USERNAME="$nom" DJANGO_SUPERUSER_EMAIL="$mail" \
+      (cd "$BACKEND" && sudo -u "$UTILISATEUR" env PYTHONDONTWRITEBYTECODE=1 DJANGO_SUPERUSER_USERNAME="$nom" DJANGO_SUPERUSER_EMAIL="$mail" \
         DJANGO_SUPERUSER_PASSWORD="$mdp" "$VENV/bin/python" manage.py createsuperuser --noinput >/dev/null)
       ok "Compte administrateur « $nom » créé"
     fi
@@ -436,6 +498,7 @@ After=network.target postgresql.service
 User=$UTILISATEUR
 Group=$UTILISATEUR
 WorkingDirectory=$BACKEND
+Environment=PYTHONDONTWRITEBYTECODE=1
 ExecStart=$VENV/bin/gunicorn smart_back.wsgi:application --bind 127.0.0.1:$PORT --workers $workers --timeout 120 --access-logfile - --error-logfile -
 Restart=always
 RestartSec=3

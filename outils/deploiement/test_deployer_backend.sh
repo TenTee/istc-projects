@@ -46,6 +46,11 @@ est_locale 'postgresql://u:p@db.exemple.cm/b'; verifier "est_locale distante" "1
 ( set -Eeuo pipefail; trap 'exit 99' ERR; for i in $(seq 1 50); do m="$(aleatoire 64)"; [[ ${#m} -eq 64 ]]; done ); verifier "aleatoire sous pipefail (50 tirages)" "0" "$?"
 ( set -Eeuo pipefail; trap 'exit 99' ERR; v="$(fusionner_liste "a" "b")"; [[ "$v" == "a,b" ]] ); verifier "fusionner_liste sous pipefail" "0" "$?"
 
+est_fichier_genere back-istc/.env; verifier "fichier généré : .env" "0" "$?"
+est_fichier_genere back-istc/notes/__pycache__/views.cpython-314.pyc; verifier "fichier généré : __pycache__" "0" "$?"
+est_fichier_genere back-istc/venv/pyvenv.cfg; verifier "fichier généré : venv" "0" "$?"
+est_fichier_genere back-istc/notes/views.py; verifier "code : pas un fichier généré" "1" "$?"
+
 mdp="$(aleatoire 32)"
 verifier "aleatoire : 32 caractères" "32" "${#mdp}"
 [[ "$mdp" =~ ^[A-Za-z0-9]+$ ]]; verifier "aleatoire : alphanumérique" "0" "$?"
