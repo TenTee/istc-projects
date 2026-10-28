@@ -1,6 +1,14 @@
 {
   "versions": [
     {
+      "version": "0.2.6",
+      "date": "2026-10-28",
+      "niveau": "correctif",
+      "changements": [
+        "Améliorations et corrections diverses."
+      ]
+    },
+    {
       "version": "0.2.5",
       "date": "2026-10-28",
       "niveau": "correctif",
