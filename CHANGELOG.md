@@ -3,6 +3,10 @@
 Généré automatiquement à chaque livraison (`outils/version/versionner.py`). Ne pas modifier à la main :
 écrivez les nouveautés de la prochaine livraison dans `NOUVEAUTES.md`.
 
+## 0.2.2 — 28/10/2026
+
+- Améliorations et corrections diverses.
+
 ## 0.2.1 — 28/10/2026
 
 - Améliorations et corrections diverses.
