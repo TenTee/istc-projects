@@ -51,6 +51,10 @@ est_fichier_genere back-istc/notes/__pycache__/views.cpython-314.pyc; verifier "
 est_fichier_genere back-istc/venv/pyvenv.cfg; verifier "fichier généré : venv" "0" "$?"
 est_fichier_genere back-istc/notes/views.py; verifier "code : pas un fichier généré" "1" "$?"
 
+verifier "origine sans https" "https://smartcampus.isare-istc.education" "$(normaliser_origines "smartcampus.isare-istc.education")"
+verifier "origines multiples avec chemin" "https://a.cm,http://b.cm:3000" "$(normaliser_origines " a.cm/ , http://b.cm:3000/login,")"
+verifier "domaine saisi avec https" "api.ecole.cm" "$(normaliser_domaine " https://api.ecole.cm/ ")"
+
 mdp="$(aleatoire 32)"
 verifier "aleatoire : 32 caractères" "32" "${#mdp}"
 [[ "$mdp" =~ ^[A-Za-z0-9]+$ ]]; verifier "aleatoire : alphanumérique" "0" "$?"

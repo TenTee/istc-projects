@@ -21,3 +21,10 @@ def test_historique_bien_forme():
     for v in historique["versions"]:
         assert set(v) >= {"version", "date", "changements"}
         assert v["changements"], f"version {v['version']} sans nouveauté"
+
+
+def test_origine_cors_completee():
+    from smart_back.settings import _origine_cors
+    assert _origine_cors("ecole.cm") == "https://ecole.cm"
+    assert _origine_cors(" https://ecole.cm/ ") == "https://ecole.cm"
+    assert _origine_cors("http://localhost:3000/login") == "http://localhost:3000"

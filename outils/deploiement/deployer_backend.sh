@@ -130,6 +130,22 @@ fusionner_liste() {
   (IFS=','; echo "${resultat[*]}")
 }
 
+# « ecole.cm, https://www.ecole.cm/page » → « https://ecole.cm,https://www.ecole.cm » (format exigé par CORS).
+normaliser_origines() {
+  local IFS=',' e resultat=() tout="$1"
+  for e in $tout; do
+    e="$(echo "$e" | xargs)"
+    [[ -z "$e" ]] && continue
+    [[ "$e" == *://* ]] || e="https://$e"
+    e="$(echo "$e" | sed -E 's#^([A-Za-z]+://[^/]+).*#\1#')"
+    resultat+=("$e")
+  done
+  (IFS=','; echo "${resultat[*]}")
+}
+
+# « https://api.ecole.cm/ » → « api.ecole.cm » (nom de domaine seul).
+normaliser_domaine() { echo "$1" | xargs | sed -E 's#^[A-Za-z]+://##; s#[/:].*$##'; }
+
 # Hôte d'une URL PostgreSQL (postgresql://u:p@hote:port/base → hote).
 hote_bd() { echo "$1" | sed -E 's#^[a-z]+://([^@/]*@)?\[?([^]:/?]+)\]?.*#\2#'; }
 
@@ -222,6 +238,8 @@ charger_configuration() {
     local url_env; url_env="$(lire_env "$BACKEND/.env" DATABASE_URL)"
     if [[ "$url_env" == postgres* ]] && ! est_locale "$url_env"; then BD_URL="$url_env"; fi
   fi
+  DOMAINE="$(normaliser_domaine "$DOMAINE")"
+  FRONTEND="$(normaliser_origines "$FRONTEND")"
   if [[ -n "$BD_URL" ]] && ! est_locale "$BD_URL"; then MODE_BD="distante"; else MODE_BD="locale"; fi
   [[ "$BD_URL" == *sslmode=require* ]] && BD_SSL="True"
   info "Domaine        : ${DOMAINE:-aucun (adresse IP ${IP_PUBLIQUE:-?})}"
@@ -411,10 +429,10 @@ configurer_env() {
   [[ "$MODE_BD" == "distante" ]] && ecrire_env "$f" DB_SSL_REQUIRE "$BD_SSL"
   hotes="$(fusionner_liste "$(lire_env "$f" ALLOWED_HOSTS)" "localhost,127.0.0.1,${IP_PRIVEE},${IP_PUBLIQUE},${DOMAINE}")"
   ecrire_env "$f" ALLOWED_HOSTS "$hotes"
-  if [[ -n "$FRONTEND" ]]; then
-    origines="$(fusionner_liste "$(lire_env "$f" CORS_ALLOWED_ORIGINS)" "$(echo "$FRONTEND" | sed 's#/*$##; s#/,#,#g')")"
-    ecrire_env "$f" CORS_ALLOWED_ORIGINS "$origines"
-  fi
+  # (les valeurs déjà présentes sont aussi remises au bon format : « ecole.cm » → « https://ecole.cm »)
+  origines="$(normaliser_origines "$(fusionner_liste "$(lire_env "$f" CORS_ALLOWED_ORIGINS)" "$FRONTEND")")"
+  origines="$(fusionner_liste "$origines" "")"
+  ecrire_env "$f" CORS_ALLOWED_ORIGINS "$origines"
   completer_env "$f" CONTROLE_DROITS_PERSONNEL True
   chown "$UTILISATEUR":"$UTILISATEUR" "$f"; chmod 600 "$f"
   sauver_env_serveur      # copie de référence : /etc/smartcampus/backend.env

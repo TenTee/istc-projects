@@ -247,8 +247,17 @@ DEFAULT_CORS_ALLOWED_ORIGINS = [
 ]
 # Origines supplémentaires dans .env : CORS_ALLOWED_ORIGINS=https://a.com,https://b.com
 # (ajoutées aux origines par défaut ci-dessus, qui restent toujours autorisées).
+def _origine_cors(valeur):
+    """« ecole.cm » ou « https://ecole.cm/inscription » → « https://ecole.cm » (format exigé par django-cors-headers)."""
+    valeur = valeur.strip().rstrip('/')
+    if '://' not in valeur:
+        valeur = 'https://' + valeur
+    schema, reste = valeur.split('://', 1)
+    return f"{schema.lower()}://{reste.split('/', 1)[0]}"
+
+
 CORS_ALLOWED_ORIGINS = list(dict.fromkeys(DEFAULT_CORS_ALLOWED_ORIGINS + [
-    origin.strip().rstrip('/') for origin in os.getenv('CORS_ALLOWED_ORIGINS', '').split(',') if origin.strip()
+    _origine_cors(origin) for origin in os.getenv('CORS_ALLOWED_ORIGINS', '').split(',') if origin.strip()
 ]))
 
 from corsheaders.defaults import default_headers
