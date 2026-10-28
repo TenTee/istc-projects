@@ -3,6 +3,10 @@
 Généré automatiquement à chaque livraison (`outils/version/versionner.py`). Ne pas modifier à la main :
 écrivez les nouveautés de la prochaine livraison dans `NOUVEAUTES.md`.
 
+## 0.2.1 — 28/10/2026
+
+- Améliorations et corrections diverses.
+
 ## 0.2.0 — 26/10/2026
 
 - Les droits des rôles du personnel sont désormais appliqués par le serveur : un compte sans droit sur un domaine ne peut plus consulter ni modifier ses données.
