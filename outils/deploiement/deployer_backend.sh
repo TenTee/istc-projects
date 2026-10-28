@@ -32,6 +32,7 @@
 #    --email admin@ecole.cm       e-mail pour Let's Encrypt (alertes d'expiration).
 #    --bd <DATABASE_URL>          base PostgreSQL distante (sinon, base locale).
 #    --bd-ssl                     la base distante exige SSL.
+#    --bd-locale                  revenir à une base sur ce serveur (oublie la base distante mémorisée).
 #    --frontend https://ecole.cm  adresse(s) de l'interface autorisées (CORS),
 #                                 séparées par des virgules.
 #    --branche main               branche Git à livrer (défaut : main).
@@ -41,6 +42,9 @@
 #                                 crée ce compte administrateur s'il n'existe pas.
 #                                 Mot de passe : variable SMARTCAMPUS_ADMIN_PASSWORD,
 #                                 sinon il est demandé.
+#                                 Sans cette option, le nom et le mot de passe du
+#                                 super-administrateur sont demandés dès que la base
+#                                 n'en contient aucun (base neuve notamment).
 #    --sans-https                 ne pas demander de certificat.
 #    --sans-pull                  livrer le code tel qu'il est dans le dossier.
 #    --oui                        aucune question (valeurs des options / du fichier de config).
@@ -66,6 +70,8 @@ UTILISATEUR=""
 PORT="8000"
 SUPERUTILISATEUR=""
 AVEC_HTTPS="oui"
+BD_LOCALE_FORCEE="non"
+BD_CREEE="non"
 AVEC_PULL="oui"
 INTERACTIF="oui"
 
@@ -159,6 +165,7 @@ lire_options() {
       --email) EMAIL="$2"; shift ;;
       --bd) BD_URL="$2"; shift ;;
       --bd-ssl) BD_SSL="True" ;;
+      --bd-locale) BD_LOCALE_FORCEE="oui"; BD_URL="" ;;
       --frontend) FRONTEND="$2"; shift ;;
       --branche) BRANCHE="$2"; shift ;;
       --utilisateur) UTILISATEUR="$2"; shift ;;
@@ -233,17 +240,25 @@ charger_configuration() {
     local proprietaire; proprietaire="$(stat -c %U "$DEPOT")"
     if [[ "$proprietaire" != "root" ]]; then UTILISATEUR="$proprietaire"; else UTILISATEUR="smartcampus"; fi
   fi
-  # Serveur déjà configuré à la main avec une base distante : on la reprend plutôt que d'en créer une locale.
-  if [[ -z "$BD_URL" ]]; then
+  if [[ "$BD_LOCALE_FORCEE" == "oui" ]]; then
+    BD_URL=""
+  elif [[ -z "$BD_URL" && "$PREMIERE" == "oui" ]]; then
+    # Le .env présent (souvent celui d'un poste de développement, venu du dépôt Git) pointe vers une base
+    # distante : on ne l'utilise JAMAIS sans accord explicite.
     local url_env; url_env="$(lire_env "$BACKEND/.env" DATABASE_URL)"
-    if [[ "$url_env" == postgres* ]] && ! est_locale "$url_env"; then BD_URL="$url_env"; fi
+    if [[ "$url_env" == postgres* ]] && ! est_locale "$url_env"; then
+      alerte "back-istc/.env pointe vers une base distante ($(hote_bd "$url_env"))."
+      local reponse="non"
+      demander reponse "Utiliser cette base distante plutôt qu'une base sur ce serveur ? (oui/non)" "non"
+      if [[ "$reponse" =~ ^[oOyY] ]]; then BD_URL="$url_env"; else info "Base installée sur ce serveur."; fi
+    fi
   fi
   DOMAINE="$(normaliser_domaine "$DOMAINE")"
   FRONTEND="$(normaliser_origines "$FRONTEND")"
   if [[ -n "$BD_URL" ]] && ! est_locale "$BD_URL"; then MODE_BD="distante"; else MODE_BD="locale"; fi
   [[ "$BD_URL" == *sslmode=require* ]] && BD_SSL="True"
   info "Domaine        : ${DOMAINE:-aucun (adresse IP ${IP_PUBLIQUE:-?})}"
-  info "Base           : $MODE_BD"
+  if [[ "$MODE_BD" == "distante" ]]; then info "Base           : distante ($(hote_bd "$BD_URL"))"; else info "Base           : locale (PostgreSQL sur ce serveur)"; fi
   info "Interface web  : ${FRONTEND:-non renseignée}"
   info "Compte système : $UTILISATEUR · branche $BRANCHE · port $PORT"
 }
@@ -397,6 +412,7 @@ preparer_base() {
   fi
   if [[ "$(sudo -u postgres psql -Atqc "select 1 from pg_database where datname='smartcampus'")" != "1" ]]; then
     sudo -u postgres createdb -O smartcampus -E UTF8 smartcampus
+    BD_CREEE="oui"
     ok "Base « smartcampus » créée"
   fi
   DATABASE_URL_FINALE="postgresql://smartcampus:${mdp}@127.0.0.1:5432/smartcampus"
@@ -426,7 +442,7 @@ configurer_env() {
   [[ "$(lire_env "$f" SECRET_KEY)" == "change-me" ]] && ecrire_env "$f" SECRET_KEY "$(aleatoire 64)"
   ecrire_env "$f" DEBUG False
   ecrire_env "$f" DATABASE_URL "$DATABASE_URL_FINALE"
-  [[ "$MODE_BD" == "distante" ]] && ecrire_env "$f" DB_SSL_REQUIRE "$BD_SSL"
+  if [[ "$MODE_BD" == "distante" ]]; then ecrire_env "$f" DB_SSL_REQUIRE "$BD_SSL"; else ecrire_env "$f" DB_SSL_REQUIRE False; fi
   hotes="$(fusionner_liste "$(lire_env "$f" ALLOWED_HOSTS)" "localhost,127.0.0.1,${IP_PRIVEE},${IP_PUBLIQUE},${DOMAINE}")"
   ecrire_env "$f" ALLOWED_HOSTS "$hotes"
   # (les valeurs déjà présentes sont aussi remises au bon format : « ecole.cm » → « https://ecole.cm »)
@@ -471,6 +487,61 @@ sauvegarde_avant_migration() {
   fi
 }
 
+# Code Python exécuté par manage.py shell (les valeurs passent par l'environnement, jamais dans le code).
+PY_ADMIN_EXISTE='import os, sys
+from django.contrib.auth import get_user_model
+U = get_user_model()
+nom = os.environ.get("SC_NOM", "")
+sys.exit(0 if (U.objects.filter(username=nom).exists() if nom else U.objects.filter(is_superuser=True).exists()) else 1)'
+
+PY_ADMIN_CREER='import os
+from django.contrib.auth import get_user_model
+U = get_user_model()
+u = U.objects.create_superuser(username=os.environ["SC_NOM"], email=os.environ.get("SC_EMAIL", ""), password=os.environ["SC_MDP"])
+if hasattr(u, "role"):
+    u.role = "superadmin"
+    u.save(update_fields=["role"])'
+
+django_py() {  # django_py "<code>" VAR=valeur…  (exécute du code Python dans le contexte Django)
+  local code="$1"; shift
+  (cd "$BACKEND" && sudo -u "$UTILISATEUR" env PYTHONDONTWRITEBYTECODE=1 "$@" "$VENV/bin/python" manage.py shell -c "$code")
+}
+
+admin_existe() { django_py "$PY_ADMIN_EXISTE" SC_NOM="${1:-}" >/dev/null 2>&1; }
+
+# Demande le nom et le mot de passe du super-administrateur, puis crée le compte.
+creer_superadministrateur() {
+  local nom="${1:-}" email="${2:-}" mdp="${SMARTCAMPUS_ADMIN_PASSWORD:-}" mdp2
+  if [[ "$INTERACTIF" == "oui" ]]; then
+    echo
+    info "${B}Création du compte super-administrateur${N} (accès complet à la plateforme)"
+    while [[ -z "$nom" ]]; do
+      demander nom "Nom d'utilisateur" "admin"
+      if [[ ! "$nom" =~ ^[A-Za-z0-9.@+_-]{3,150}$ ]]; then
+        alerte "Nom invalide : 3 caractères minimum, lettres, chiffres et . @ + - _ uniquement."; nom=""
+      elif admin_existe "$nom"; then
+        alerte "Le compte « $nom » existe déjà : choisissez un autre nom."; nom=""
+      fi
+    done
+    [[ -n "$email" ]] || demander email "E-mail (facultatif)" ""
+    while [[ -z "$mdp" ]]; do
+      read -r -s -p "    Mot de passe (8 caractères minimum) : " mdp; echo
+      if (( ${#mdp} < 8 )); then alerte "Mot de passe trop court."; mdp=""; continue; fi
+      read -r -s -p "    Confirmez le mot de passe : " mdp2; echo
+      if [[ "$mdp" != "$mdp2" ]]; then alerte "Les deux saisies sont différentes."; mdp=""; fi
+    done
+  fi
+  nom="${nom:-${SMARTCAMPUS_ADMIN_USER:-}}"
+  if [[ -z "$nom" || -z "$mdp" ]]; then
+    alerte "Aucun super-administrateur créé (mode sans question). Indiquez SMARTCAMPUS_ADMIN_USER et SMARTCAMPUS_ADMIN_PASSWORD, ou relancez le script sans --oui."
+    return 0
+  fi
+  if ! django_py "$PY_ADMIN_CREER" SC_NOM="$nom" SC_EMAIL="$email" SC_MDP="$mdp" >/dev/null; then
+    erreur "Création du compte « $nom » impossible."
+  fi
+  ok "Super-administrateur « $nom » créé : connectez-vous avec ce nom et ce mot de passe."
+}
+
 mettre_a_jour_django() {
   etape "Mise à jour de l'application"
   django check >/dev/null
@@ -480,25 +551,11 @@ mettre_a_jour_django() {
   if [[ -n "$SUPERUTILISATEUR" ]]; then
     local nom="${SUPERUTILISATEUR%%:*}" mail="${SUPERUTILISATEUR#*:}"
     [[ "$mail" == "$SUPERUTILISATEUR" ]] && mail=""
-    if django shell -c "from django.contrib.auth import get_user_model as g; import sys; sys.exit(0 if g().objects.filter(username='$nom').exists() else 1)" 2>/dev/null; then
-      info "Compte administrateur « $nom » déjà présent."
-    else
-      local mdp="${SMARTCAMPUS_ADMIN_PASSWORD:-}"
-      if [[ -z "$mdp" && "$INTERACTIF" == "oui" ]]; then read -r -s -p "    Mot de passe du compte « $nom » : " mdp; echo; fi
-      [[ -n "$mdp" ]] || erreur "Mot de passe administrateur manquant (variable SMARTCAMPUS_ADMIN_PASSWORD)."
-      (cd "$BACKEND" && sudo -u "$UTILISATEUR" env PYTHONDONTWRITEBYTECODE=1 DJANGO_SUPERUSER_USERNAME="$nom" DJANGO_SUPERUSER_EMAIL="$mail" \
-        DJANGO_SUPERUSER_PASSWORD="$mdp" "$VENV/bin/python" manage.py createsuperuser --noinput >/dev/null)
-      ok "Compte administrateur « $nom » créé"
-    fi
-  elif [[ "$PREMIERE" == "oui" ]]; then
-    if ! django shell -c "from django.contrib.auth import get_user_model as g; import sys; sys.exit(0 if g().objects.filter(is_superuser=True).exists() else 1)" 2>/dev/null; then
-      if [[ "$INTERACTIF" == "oui" ]]; then
-        info "Création du premier compte administrateur :"
-        django createsuperuser
-      else
-        alerte "Aucun administrateur : créez-en un avec « cd $BACKEND && sudo -u $UTILISATEUR .venv/bin/python manage.py createsuperuser »."
-      fi
-    fi
+    if admin_existe "$nom"; then info "Compte « $nom » déjà présent."; else creer_superadministrateur "$nom" "$mail"; fi
+  elif [[ "$BD_CREEE" == "oui" ]] || ! admin_existe ""; then
+    # Base neuve, ou base sans aucun super-administrateur : on le crée maintenant.
+    [[ "$BD_CREEE" == "oui" ]] && info "Nouvelle base de données : un super-administrateur est nécessaire pour se connecter."
+    creer_superadministrateur
   fi
 }
 

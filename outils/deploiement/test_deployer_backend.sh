@@ -63,6 +63,8 @@ lire_options --domaine api.ecole.cm --bd postgresql://u:p@db:5432/b --frontend h
 verifier "option --domaine" "api.ecole.cm" "$DOMAINE"
 verifier "option --sans-https" "non" "$AVEC_HTTPS"
 verifier "option --oui" "non" "$INTERACTIF"
+lire_options --bd postgresql://u:p@db:5432/b --bd-locale
+verifier "option --bd-locale efface la base distante" "oui:" "$BD_LOCALE_FORCEE:$BD_URL"
 
 aide_texte="$(bash "$ICI/deployer_backend.sh" --aide)"
 [[ "$aide_texte" == *"--domaine api.ecole.cm"* && "$aide_texte" != *"set -E"* ]]; verifier "--aide affiche l'en-tête" "0" "$?"
