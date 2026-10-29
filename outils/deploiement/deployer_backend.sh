@@ -697,11 +697,13 @@ configurer_apache_bitnami() {
   etape "Serveur web Apache (Bitnami)"
   local dossier="/opt/bitnami/apache/conf/vhosts" nom="${DOMAINE:-$IP_PUBLIQUE}" ecoute80 ecoute443
   [[ -d "$dossier" ]] || { alerte "Dossier $dossier absent : configurez le serveur web à la main (voir la documentation)."; return; }
-  # Avec un domaine : hôte virtuel par nom (n'écrase pas une autre application Bitnami du serveur).
-  # Sans domaine : l'API devient le site par défaut de l'adresse IP.
-  if [[ -n "$DOMAINE" ]]; then ecoute80="*:80"; ecoute443="*:443"; else ecoute80="127.0.0.1:80 _default_:80"; ecoute443="127.0.0.1:443 _default_:443"; fi
+  # Modèle recommandé par Bitnami : nos hôtes virtuels « _default_ » sont lus AVANT ceux de Bitnami
+  # (conf/vhosts/ est inclus avant conf/bitnami/), donc l'API remplace la page « Congratulations » de Bitnami,
+  # en HTTP comme en HTTPS. Le serveur est supposé dédié à SmartCampus.
+  ecoute80="127.0.0.1:80 _default_:80"; ecoute443="127.0.0.1:443 _default_:443"
   local commun
   commun="  ServerName $nom
+  ServerAlias *
   LimitRequestBody 26214400
   ProxyPreserveHost On
   <IfModule mod_headers.c>
@@ -749,7 +751,17 @@ configurer_apache_bitnami() {
   else
     alerte "Apache ne relaie pas encore vers l'API. Test : curl -I -H 'Host: $nom' http://127.0.0.1/admin/login/"
   fi
-  if [[ -n "$DOMAINE" && "$AVEC_HTTPS" == "oui" ]]; then
+  if [[ -f "$dossier/$SERVICE-https-vhost.conf" ]] && curl -fsSk -o /dev/null -H "Host: $nom" "https://127.0.0.1/admin/login/" 2>/dev/null; then
+    ok "HTTPS relaie aussi vers l'API"
+  fi
+  # Certificat déjà installé par bncert-tool (Let's Encrypt) : rien à faire.
+  # (le certificat d'origine de Bitnami est auto-signé : émetteur = sujet)
+  local emetteur sujet
+  emetteur="$(openssl x509 -in "$certs/server.crt" -noout -issuer 2>/dev/null | sed 's/^issuer= *//' || true)"
+  sujet="$(openssl x509 -in "$certs/server.crt" -noout -subject 2>/dev/null | sed 's/^subject= *//' || true)"
+  if [[ -n "$DOMAINE" && -n "$emetteur" && "$emetteur" != "$sujet" ]]; then
+    ok "Certificat HTTPS valide installé (émetteur : $emetteur)"
+  elif [[ -n "$DOMAINE" && "$AVEC_HTTPS" == "oui" ]]; then
     HTTPS_EN_ATTENTE="oui"
     alerte "Certificat HTTPS à installer : « sudo /opt/bitnami/bncert-tool », domaine $DOMAINE (le navigateur affichera un avertissement d'ici là)."
   fi
