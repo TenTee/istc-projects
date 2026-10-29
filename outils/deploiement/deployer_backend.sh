@@ -725,18 +725,29 @@ configurer_apache_bitnami() {
     echo "# Généré par outils/deploiement/deployer_backend.sh"
     echo "<VirtualHost $ecoute80>"; echo "$commun"; echo "</VirtualHost>"
   } >"$dossier/$SERVICE-vhost.conf"
-  # HTTPS : mêmes règles sur le port 443, avec les certificats de Bitnami.
-  # bncert-tool remplace ensuite ces fichiers par un certificat Let's Encrypt valide.
-  local certs="/opt/bitnami/apache/conf/bitnami/certs"
-  if [[ -f "$certs/server.crt" && -f "$certs/server.key" ]]; then
+  # HTTPS : mêmes règles sur le port 443, avec le certificat qu'utilise Bitnami (celui que bncert-tool
+  # installe et renouvelle). Chemins lus dans bitnami-ssl.conf, sinon emplacement par défaut.
+  local ssl_conf="/opt/bitnami/apache/conf/bitnami/bitnami-ssl.conf" crt="" cle=""
+  if [[ -f "$ssl_conf" ]]; then
+    crt="$(awk '$1=="SSLCertificateFile"{gsub(/"/,"",$2); print $2; exit}' "$ssl_conf")"
+    cle="$(awk '$1=="SSLCertificateKeyFile"{gsub(/"/,"",$2); print $2; exit}' "$ssl_conf")"
+  fi
+  [[ -n "$crt" ]] || crt="conf/bitnami/certs/server.crt"
+  [[ -n "$cle" ]] || cle="conf/bitnami/certs/server.key"
+  [[ "$crt" == /* ]] || crt="/opt/bitnami/apache/$crt"
+  [[ "$cle" == /* ]] || cle="/opt/bitnami/apache/$cle"
+  local certs; certs="$(dirname "$crt")"
+  if [[ -e "$crt" && -e "$cle" ]]; then
     {
       echo "# Généré par outils/deploiement/deployer_backend.sh"
       echo "<VirtualHost $ecoute443>"; echo "$commun"
       echo "  SSLEngine on"
-      echo "  SSLCertificateFile \"$certs/server.crt\""
-      echo "  SSLCertificateKeyFile \"$certs/server.key\""
+      echo "  SSLCertificateFile \"$crt\""
+      echo "  SSLCertificateKeyFile \"$cle\""
       echo "</VirtualHost>"
     } >"$dossier/$SERVICE-https-vhost.conf"
+  else
+    alerte "Certificat introuvable ($crt) : HTTPS non configuré pour l'API. Lancez « sudo /opt/bitnami/bncert-tool » puis relancez ce script."
   fi
   local d="$BACKEND"; while [[ "$d" != "/" ]]; do chmod o+x "$d" 2>/dev/null || true; d="$(dirname "$d")"; done
   chmod -R o+rX "$BACKEND/staticfiles" "$BACKEND/media"
@@ -757,8 +768,8 @@ configurer_apache_bitnami() {
   # Certificat déjà installé par bncert-tool (Let's Encrypt) : rien à faire.
   # (le certificat d'origine de Bitnami est auto-signé : émetteur = sujet)
   local emetteur sujet
-  emetteur="$(openssl x509 -in "$certs/server.crt" -noout -issuer 2>/dev/null | sed 's/^issuer= *//' || true)"
-  sujet="$(openssl x509 -in "$certs/server.crt" -noout -subject 2>/dev/null | sed 's/^subject= *//' || true)"
+  emetteur="$(openssl x509 -in "$crt" -noout -issuer 2>/dev/null | sed 's/^issuer= *//' || true)"
+  sujet="$(openssl x509 -in "$crt" -noout -subject 2>/dev/null | sed 's/^subject= *//' || true)"
   if [[ -n "$DOMAINE" && -n "$emetteur" && "$emetteur" != "$sujet" ]]; then
     ok "Certificat HTTPS valide installé (émetteur : $emetteur)"
   elif [[ -n "$DOMAINE" && "$AVEC_HTTPS" == "oui" ]]; then
