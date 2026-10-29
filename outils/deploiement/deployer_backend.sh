@@ -263,28 +263,44 @@ charger_configuration() {
   info "Compte système : $UTILISATEUR · branche $BRANCHE · port $PORT"
 }
 
+paquet_disponible() { apt-cache show "$1" >/dev/null 2>&1; }
+
 installer_paquets() {
   etape "Installation des paquets système"
   export DEBIAN_FRONTEND=noninteractive
-  apt-get update -qq
-  local paquets=(git curl ca-certificates build-essential libpq-dev postgresql-client cron)
+  apt-get update -qq || alerte "apt-get update a signalé des erreurs (dépôts injoignables ?) : on continue."
+  local paquets=(git curl ca-certificates build-essential libpq-dev postgresql-client cron python3 python3-venv python3-dev)
   [[ "$MODE_BD" == "locale" ]] && paquets+=(postgresql)
   if [[ "$BITNAMI" == "non" ]]; then
     paquets+=(nginx)
     [[ -n "$DOMAINE" && "$AVEC_HTTPS" == "oui" ]] && paquets+=(certbot python3-certbot-nginx)
   fi
-  # Python 3.11 au minimum (Django 5.2 + code SmartCampus)
-  PYTHON="python3"
-  if ! python3 -c 'import sys; sys.exit(0 if sys.version_info >= (3, 11) else 1)' 2>/dev/null; then
-    PYTHON="python3.11"
-    paquets+=(python3.11 python3.11-venv python3.11-dev)
-  else
-    local v; v="$(python3 -c 'import sys; print(f"{sys.version_info[0]}.{sys.version_info[1]}")')"
-    paquets+=(python3 python3-venv python3-dev "python${v}-venv")
-  fi
   apt-get install -y -qq "${paquets[@]}" >/dev/null || erreur "Installation des paquets impossible : ${paquets[*]}"
-  command -v "$PYTHON" >/dev/null || erreur "$PYTHON introuvable après installation."
-  ok "Paquets installés ($($PYTHON --version))"
+
+  # Python du SYSTÈME (/usr/bin/python3), pas un éventuel Python installé à la main dans /usr/local :
+  # c'est lui qui correspond aux paquets venv d'apt. Il faut au moins la version 3.11.
+  PYTHON="/usr/bin/python3"
+  local v; v="$("$PYTHON" -c 'import sys; print(f"{sys.version_info[0]}.{sys.version_info[1]}")')"
+  if ! "$PYTHON" -c 'import sys; sys.exit(0 if sys.version_info >= (3, 11) else 1)'; then
+    if paquet_disponible python3.11-venv; then
+      apt-get install -y -qq python3.11 python3.11-venv python3.11-dev >/dev/null || erreur "Installation de Python 3.11 impossible."
+      PYTHON="/usr/bin/python3.11"
+    else
+      erreur "Python $v trop ancien (3.11 minimum) et python3.11 indisponible sur ce système. Utilisez Ubuntu 22.04 / 24.04 ou Debian 12."
+    fi
+  fi
+  # Sur certaines versions, venv demande en plus le paquet pythonX.Y-venv : on l'ajoute s'il existe.
+  v="$("$PYTHON" -c 'import sys; print(f"{sys.version_info[0]}.{sys.version_info[1]}")')"
+  if paquet_disponible "python${v}-venv"; then apt-get install -y -qq "python${v}-venv" >/dev/null || true; fi
+
+  # Vérification réelle : un environnement de test doit pouvoir être créé.
+  local essai; essai="$(mktemp -d)"
+  if ! "$PYTHON" -m venv "$essai/venv" >/dev/null 2>&1; then
+    rm -rf "$essai"
+    erreur "$PYTHON ne sait pas créer d'environnement virtuel (paquet python${v}-venv manquant ?). Essayez : sudo apt-get install python3-venv"
+  fi
+  rm -rf "$essai"
+  ok "Paquets installés ($("$PYTHON" --version), $PYTHON)"
 }
 
 preparer_utilisateur() {
