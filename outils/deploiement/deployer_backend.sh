@@ -263,19 +263,37 @@ charger_configuration() {
   info "Compte système : $UTILISATEUR · branche $BRANCHE · port $PORT"
 }
 
+# Un serveur neuf lance souvent ses mises à jour automatiques (unattended-upgrades) au démarrage :
+# apt est alors verrouillé quelques minutes. On attend la fin (20 min max) au lieu d'échouer.
+attendre_apt() {
+  local verrous=(/var/lib/dpkg/lock-frontend /var/lib/dpkg/lock /var/lib/apt/lists/lock) attente=0 annonce="non"
+  command -v fuser >/dev/null || return 0
+  while fuser "${verrous[@]}" >/dev/null 2>&1; do
+    if [[ "$annonce" == "non" ]]; then
+      info "Mises à jour automatiques du système en cours : attente de la fin (jusqu'à 20 min)…" >&2; annonce="oui"
+    fi
+    (( attente >= 1200 )) && erreur "apt est toujours verrouillé après 20 min. Voir : ps aux | grep -E 'apt|dpkg|unattended'"
+    sleep 5; attente=$(( attente + 5 ))
+  done
+  [[ "$annonce" == "oui" ]] && ok "Mises à jour automatiques terminées" >&2
+  return 0
+}
+
+apt_() { attendre_apt; apt-get -o DPkg::Lock::Timeout=1200 "$@"; }
+
 paquet_disponible() { apt-cache show "$1" >/dev/null 2>&1; }
 
 installer_paquets() {
   etape "Installation des paquets système"
   export DEBIAN_FRONTEND=noninteractive
-  apt-get update -qq || alerte "apt-get update a signalé des erreurs (dépôts injoignables ?) : on continue."
+  apt_ update -qq || alerte "apt-get update a signalé des erreurs (dépôts injoignables ?) : on continue."
   local paquets=(git curl ca-certificates build-essential libpq-dev postgresql-client cron python3 python3-venv python3-dev)
   [[ "$MODE_BD" == "locale" ]] && paquets+=(postgresql)
   if [[ "$BITNAMI" == "non" ]]; then
     paquets+=(nginx)
     [[ -n "$DOMAINE" && "$AVEC_HTTPS" == "oui" ]] && paquets+=(certbot python3-certbot-nginx)
   fi
-  apt-get install -y -qq "${paquets[@]}" >/dev/null || erreur "Installation des paquets impossible : ${paquets[*]}"
+  apt_ install -y -qq "${paquets[@]}" >/dev/null || erreur "Installation des paquets impossible : ${paquets[*]}"
 
   # Python du SYSTÈME (/usr/bin/python3), pas un éventuel Python installé à la main dans /usr/local :
   # c'est lui qui correspond aux paquets venv d'apt. Il faut au moins la version 3.11.
@@ -283,7 +301,7 @@ installer_paquets() {
   local v; v="$("$PYTHON" -c 'import sys; print(f"{sys.version_info[0]}.{sys.version_info[1]}")')"
   if ! "$PYTHON" -c 'import sys; sys.exit(0 if sys.version_info >= (3, 11) else 1)'; then
     if paquet_disponible python3.11-venv; then
-      apt-get install -y -qq python3.11 python3.11-venv python3.11-dev >/dev/null || erreur "Installation de Python 3.11 impossible."
+      apt_ install -y -qq python3.11 python3.11-venv python3.11-dev >/dev/null || erreur "Installation de Python 3.11 impossible."
       PYTHON="/usr/bin/python3.11"
     else
       erreur "Python $v trop ancien (3.11 minimum) et python3.11 indisponible sur ce système. Utilisez Ubuntu 22.04 / 24.04 ou Debian 12."
@@ -291,7 +309,7 @@ installer_paquets() {
   fi
   # Sur certaines versions, venv demande en plus le paquet pythonX.Y-venv : on l'ajoute s'il existe.
   v="$("$PYTHON" -c 'import sys; print(f"{sys.version_info[0]}.{sys.version_info[1]}")')"
-  if paquet_disponible "python${v}-venv"; then apt-get install -y -qq "python${v}-venv" >/dev/null || true; fi
+  if paquet_disponible "python${v}-venv"; then apt_ install -y -qq "python${v}-venv" >/dev/null || true; fi
 
   # Vérification réelle : un environnement de test doit pouvoir être créé.
   local essai; essai="$(mktemp -d)"
