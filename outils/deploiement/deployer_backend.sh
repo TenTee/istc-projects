@@ -409,48 +409,65 @@ recuperer_code() {
   fi
 }
 
+# psql en administrateur sur le PostgreSQL local installé par apt : socket Unix + compte système « postgres »
+# (authentification peer), -w = ne jamais demander de mot de passe (échoue au lieu de bloquer).
+psql_admin() { sudo -u postgres env -u PGHOST -u PGPORT -u PGUSER -u PGPASSWORD psql -w -h /var/run/postgresql -p "$PG_PORT" "$@"; }
+
 preparer_base() {
   etape "Base de données ($MODE_BD)"
   local fichier_env="$BACKEND/.env" url_existante
   url_existante="$(lire_env "$fichier_env" DATABASE_URL)"
   if [[ "$MODE_BD" == "distante" ]]; then
-    PGCONNECT_TIMEOUT=10 psql "$BD_URL" -Atqc 'select 1' >/dev/null 2>&1 \
+    PGCONNECT_TIMEOUT=10 psql -w "$BD_URL" -Atqc 'select 1' >/dev/null 2>&1 \
       || erreur "Connexion impossible à la base distante ($(hote_bd "$BD_URL")). Vérifiez l'adresse, le mot de passe et le pare-feu de la base."
     DATABASE_URL_FINALE="$BD_URL"
     ok "Connexion à la base distante réussie ($(hote_bd "$BD_URL"))"
     return
   fi
+  # PostgreSQL installé par apt (cluster Debian/Ubuntu). Un autre PostgreSQL peut déjà occuper le port 5432
+  # (image Bitnami, installation manuelle) : apt crée alors son cluster sur un autre port, qu'on lit ici.
   if [[ "$SYSTEMD" == "oui" ]]; then systemctl enable --now postgresql >/dev/null 2>&1 || true
   else service postgresql start >/dev/null 2>&1 || true; fi
-  local essai; for essai in 1 2 3 4 5 6 7 8 9 10; do
-    sudo -u postgres psql -Atqc 'select 1' >/dev/null 2>&1 && break; sleep 2
+  PG_PORT="5432"
+  if command -v pg_lsclusters >/dev/null; then
+    local ligne version cluster
+    ligne="$(pg_lsclusters --no-header 2>/dev/null | sort -k1,1 -rV | head -n1 || true)"
+    if [[ -n "$ligne" ]]; then
+      read -r version cluster PG_PORT _ <<<"$ligne"
+      pg_ctlcluster "$version" "$cluster" start >/dev/null 2>&1 || true
+    fi
+  fi
+  [[ "$PG_PORT" == "5432" ]] || alerte "Le port 5432 est déjà pris par un autre PostgreSQL : la base SmartCampus utilise le port $PG_PORT."
+  local essai; for essai in $(seq 1 15); do
+    psql_admin -Atqc 'select 1' >/dev/null 2>&1 && break; sleep 2
   done
-  sudo -u postgres psql -Atqc 'select 1' >/dev/null 2>&1 || erreur "PostgreSQL local ne démarre pas (voir : journalctl -u postgresql)."
+  psql_admin -Atqc 'select 1' >/dev/null 2>&1 \
+    || erreur "Connexion administrateur à PostgreSQL impossible (port $PG_PORT). Voir : pg_lsclusters et journalctl -u postgresql"
   # Adresse locale donnée avec --bd : on l'utilise telle quelle si elle répond.
-  if [[ -n "$BD_URL" ]] && psql "$BD_URL" -Atqc 'select 1' >/dev/null 2>&1; then
+  if [[ -n "$BD_URL" ]] && psql -w "$BD_URL" -Atqc 'select 1' >/dev/null 2>&1; then
     DATABASE_URL_FINALE="$BD_URL"
     ok "Base locale indiquée avec --bd utilisée"
     return
   fi
   # Base déjà configurée et joignable : on n'y touche pas.
-  if [[ -n "$url_existante" ]] && est_locale "$url_existante" && psql "$url_existante" -Atqc 'select 1' >/dev/null 2>&1; then
+  if [[ -n "$url_existante" ]] && est_locale "$url_existante" && psql -w "$url_existante" -Atqc 'select 1' >/dev/null 2>&1; then
     DATABASE_URL_FINALE="$url_existante"
     ok "Base locale existante conservée"
     return
   fi
   local mdp; mdp="$(aleatoire 32)"
-  if [[ "$(sudo -u postgres psql -Atqc "select 1 from pg_roles where rolname='smartcampus'")" == "1" ]]; then
-    sudo -u postgres psql -qc "ALTER ROLE smartcampus WITH LOGIN PASSWORD '$mdp'" >/dev/null
+  if [[ "$(psql_admin -Atqc "select 1 from pg_roles where rolname='smartcampus'")" == "1" ]]; then
+    psql_admin -qc "ALTER ROLE smartcampus WITH LOGIN PASSWORD '$mdp'" >/dev/null
   else
-    sudo -u postgres psql -qc "CREATE ROLE smartcampus WITH LOGIN PASSWORD '$mdp'" >/dev/null
+    psql_admin -qc "CREATE ROLE smartcampus WITH LOGIN PASSWORD '$mdp'" >/dev/null
   fi
-  if [[ "$(sudo -u postgres psql -Atqc "select 1 from pg_database where datname='smartcampus'")" != "1" ]]; then
-    sudo -u postgres createdb -O smartcampus -E UTF8 smartcampus
+  if [[ "$(psql_admin -Atqc "select 1 from pg_database where datname='smartcampus'")" != "1" ]]; then
+    psql_admin -qc "CREATE DATABASE smartcampus OWNER smartcampus ENCODING 'UTF8' TEMPLATE template0" >/dev/null
     BD_CREEE="oui"
     ok "Base « smartcampus » créée"
   fi
-  DATABASE_URL_FINALE="postgresql://smartcampus:${mdp}@127.0.0.1:5432/smartcampus"
-  psql "$DATABASE_URL_FINALE" -Atqc 'select 1' >/dev/null || erreur "Connexion à la base locale impossible."
+  DATABASE_URL_FINALE="postgresql://smartcampus:${mdp}@127.0.0.1:${PG_PORT}/smartcampus"
+  psql -w "$DATABASE_URL_FINALE" -Atqc 'select 1' >/dev/null || erreur "Connexion à la base locale impossible (127.0.0.1:$PG_PORT)."
   ok "Base locale prête (mot de passe généré, enregistré dans back-istc/.env)"
 }
 
