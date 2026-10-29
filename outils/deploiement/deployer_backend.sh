@@ -72,6 +72,7 @@ SUPERUTILISATEUR=""
 AVEC_HTTPS="oui"
 BD_LOCALE_FORCEE="non"
 BD_CREEE="non"
+HTTPS_EN_ATTENTE="non"
 AVEC_PULL="oui"
 INTERACTIF="oui"
 
@@ -636,7 +637,7 @@ EOF
   systemctl enable "$SERVICE" >/dev/null 2>&1
   systemctl restart "$SERVICE"
   local essai; for essai in $(seq 1 15); do
-    curl -fsS -o /dev/null "http://127.0.0.1:$PORT/admin/login/" && break; sleep 1
+    curl -fsS -o /dev/null "http://127.0.0.1:$PORT/admin/login/" 2>/dev/null && break; sleep 1
   done
   curl -fsS -o /dev/null "http://127.0.0.1:$PORT/admin/login/" \
     || erreur "L'API ne répond pas. Journal : journalctl -u $SERVICE -n 50 --no-pager"
@@ -694,34 +695,63 @@ EOF
 
 configurer_apache_bitnami() {
   etape "Serveur web Apache (Bitnami)"
-  local dossier="/opt/bitnami/apache/conf/vhosts" nom="${DOMAINE:-$IP_PUBLIQUE}"
+  local dossier="/opt/bitnami/apache/conf/vhosts" nom="${DOMAINE:-$IP_PUBLIQUE}" ecoute80 ecoute443
   [[ -d "$dossier" ]] || { alerte "Dossier $dossier absent : configurez le serveur web à la main (voir la documentation)."; return; }
-  cat >"$dossier/$SERVICE-vhost.conf" <<EOF
-# Généré par outils/deploiement/deployer_backend.sh
-<VirtualHost 127.0.0.1:80 _default_:80>
-  ServerName $nom
+  # Avec un domaine : hôte virtuel par nom (n'écrase pas une autre application Bitnami du serveur).
+  # Sans domaine : l'API devient le site par défaut de l'adresse IP.
+  if [[ -n "$DOMAINE" ]]; then ecoute80="*:80"; ecoute443="*:443"; else ecoute80="127.0.0.1:80 _default_:80"; ecoute443="127.0.0.1:443 _default_:443"; fi
+  local commun
+  commun="  ServerName $nom
   LimitRequestBody 26214400
   ProxyPreserveHost On
-  Alias /static/ "$BACKEND/staticfiles/"
-  Alias /media/ "$BACKEND/media/"
-  <Directory "$BACKEND/staticfiles">
+  <IfModule mod_headers.c>
+    RequestHeader set X-Forwarded-Proto expr=%{REQUEST_SCHEME}
+  </IfModule>
+  Alias /static/ \"$BACKEND/staticfiles/\"
+  Alias /media/ \"$BACKEND/media/\"
+  <Directory \"$BACKEND/staticfiles\">
     Require all granted
   </Directory>
-  <Directory "$BACKEND/media">
+  <Directory \"$BACKEND/media\">
     Require all granted
   </Directory>
   ProxyPass /static/ !
   ProxyPass /media/ !
   ProxyPass / http://127.0.0.1:$PORT/ timeout=120
-  ProxyPassReverse / http://127.0.0.1:$PORT/
-</VirtualHost>
-EOF
+  ProxyPassReverse / http://127.0.0.1:$PORT/"
+  {
+    echo "# Généré par outils/deploiement/deployer_backend.sh"
+    echo "<VirtualHost $ecoute80>"; echo "$commun"; echo "</VirtualHost>"
+  } >"$dossier/$SERVICE-vhost.conf"
+  # HTTPS : mêmes règles sur le port 443, avec les certificats de Bitnami.
+  # bncert-tool remplace ensuite ces fichiers par un certificat Let's Encrypt valide.
+  local certs="/opt/bitnami/apache/conf/bitnami/certs"
+  if [[ -f "$certs/server.crt" && -f "$certs/server.key" ]]; then
+    {
+      echo "# Généré par outils/deploiement/deployer_backend.sh"
+      echo "<VirtualHost $ecoute443>"; echo "$commun"
+      echo "  SSLEngine on"
+      echo "  SSLCertificateFile \"$certs/server.crt\""
+      echo "  SSLCertificateKeyFile \"$certs/server.key\""
+      echo "</VirtualHost>"
+    } >"$dossier/$SERVICE-https-vhost.conf"
+  fi
   local d="$BACKEND"; while [[ "$d" != "/" ]]; do chmod o+x "$d" 2>/dev/null || true; d="$(dirname "$d")"; done
   chmod -R o+rX "$BACKEND/staticfiles" "$BACKEND/media"
+  if [[ -x /opt/bitnami/apache/bin/apachectl ]] && ! /opt/bitnami/apache/bin/apachectl -t >/dev/null 2>&1; then
+    /opt/bitnami/apache/bin/apachectl -t || true
+    erreur "Configuration Apache invalide (fichiers $dossier/$SERVICE-*.conf)."
+  fi
   /opt/bitnami/ctlscript.sh restart apache >/dev/null 2>&1 || alerte "Redémarrage d'Apache impossible : sudo /opt/bitnami/ctlscript.sh restart apache"
-  ok "Apache relaie ${nom:-le serveur} vers l'API"
+  # Vérification de bout en bout : Apache → Gunicorn → Django.
+  if curl -fsS -o /dev/null -H "Host: $nom" "http://127.0.0.1/admin/login/" 2>/dev/null; then
+    ok "Apache relaie $nom vers l'API (vérifié)"
+  else
+    alerte "Apache ne relaie pas encore vers l'API. Test : curl -I -H 'Host: $nom' http://127.0.0.1/admin/login/"
+  fi
   if [[ -n "$DOMAINE" && "$AVEC_HTTPS" == "oui" ]]; then
-    alerte "HTTPS sur Bitnami : lancez « sudo /opt/bitnami/bncert-tool » et indiquez $DOMAINE (outil interactif de Bitnami)."
+    HTTPS_EN_ATTENTE="oui"
+    alerte "Certificat HTTPS à installer : « sudo /opt/bitnami/bncert-tool », domaine $DOMAINE (le navigateur affichera un avertissement d'ici là)."
   fi
 }
 
@@ -752,7 +782,7 @@ resume() {
   local version adresse
   version="$(cat "$DEPOT/VERSION" 2>/dev/null || echo "?")"
   if [[ -n "$DOMAINE" ]]; then
-    if [[ "$AVEC_HTTPS" == "oui" ]]; then adresse="https://$DOMAINE"; else adresse="http://$DOMAINE"; fi
+    if [[ "$AVEC_HTTPS" == "oui" && "$HTTPS_EN_ATTENTE" == "non" ]]; then adresse="https://$DOMAINE"; else adresse="http://$DOMAINE"; fi
   else
     adresse="http://${IP_PUBLIQUE:-<adresse-du-serveur>}"
   fi
