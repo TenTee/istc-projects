@@ -85,7 +85,7 @@ Ce n'est pas une panne : son rôle n'a pas le droit correspondant. Voir [Rôles 
 cd /home/bitnami/istc-projects/back-istc && source venv/bin/activate
 
 python manage.py check --deploy          # contrôle de la configuration de production
-python manage.py createsuperuser         # créer un nouveau super-administrateur
+python manage.py creer_superadmin        # créer un nouveau super-administrateur (rôle superadmin)
 python manage.py changepassword <nom>    # changer le mot de passe d'un compte
 python manage.py showmigrations | grep "\[ \]"   # migrations non appliquées
 python -m pytest -q                      # lancer les tests automatiques

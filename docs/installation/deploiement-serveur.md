@@ -85,7 +85,7 @@ Enregistrez (++ctrl+o++, ++enter++, ++ctrl+x++ dans `nano`), puis :
 ```bash
 python manage.py migrate
 python manage.py collectstatic --noinput
-python manage.py createsuperuser
+python manage.py creer_superadmin   # nom, e-mail, mot de passe (sans écho) ; rôle superadmin
 python manage.py check --deploy
 ```
 

@@ -45,7 +45,7 @@ Créez la base et le premier administrateur :
 
 ```bash
 python manage.py migrate
-python manage.py createsuperuser
+python manage.py creer_superadmin   # nom, e-mail, mot de passe (sans écho) ; rôle superadmin
 ```
 
 Répondez aux questions (nom d'utilisateur, email, mot de passe). **Ce compte est le super-administrateur** : il a accès à tout, y compris aux années archivées.

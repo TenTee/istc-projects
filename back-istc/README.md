@@ -5,10 +5,11 @@ Documentation complète : dossier `../docs/` (installation, configuration `.env`
 ## Démarrage (dev)
 
 ```bash
-source venv/bin/activate
+python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env          # puis adapter (DATABASE_URL, SECRET_KEY…)
 python manage.py migrate
+python manage.py creer_superadmin   # super-administrateur (rôle superadmin)
 python manage.py runserver
 ```
 

@@ -19,7 +19,7 @@ Cette partie s'adresse à l'équipe qui maintient et fait évoluer SmartCampus.
 cd back-istc && python3 -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env            # DEBUG=True, DATABASE_URL vide (SQLite)
-python manage.py migrate && python manage.py createsuperuser
+python manage.py migrate && python manage.py creer_superadmin
 python manage.py runserver      # http://127.0.0.1:8000/api/docs/
 
 # Frontend

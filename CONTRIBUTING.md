@@ -41,16 +41,17 @@ git checkout -b feature/<sujet>      # ou fix/<sujet>
 
 Chaque push sur `main` crée automatiquement une nouvelle version (X.Y.Z). Elle est affichée en bas du menu latéral avec ses nouveautés. Avant de pousser, décrivez ce que voient les utilisateurs dans [`NOUVEAUTES.md`](NOUVEAUTES.md). Après le push, faites `git pull` pour récupérer le commit de version du robot. Pour livrer le backend sur un serveur : `sudo bash outils/deploiement/deployer_backend.sh` (voir [Livraison automatique](docs/installation/deploiement-automatique.md)). Détails : [Versions et livraisons](docs/developpeurs/versions.md).
 
-Après fusion, la mise en production suit [Mettre à jour la plateforme](docs/installation/mise-a-jour.md) : sauvegarde, `git pull`, `migrate`, `collectstatic`, `npm run build`, redémarrage des services.
+Après fusion sur `main` : le frontend est republié automatiquement par Vercel ; le backend se livre en relançant le script de déploiement sur le serveur (il fait lui-même sauvegarde, `git pull`, dépendances, `migrate`, `collectstatic` et redémarrage — pas de `git pull` manuel). Procédure manuelle de secours : [Mettre à jour la plateforme](docs/installation/mise-a-jour.md).
 
 ## 6. Nettoyage du dépôt (à faire une fois)
 
-Des fichiers qui ne devraient pas être versionnés sont encore suivis par Git (`back-istc/.env` avec ses secrets, `back-istc/db.sqlite3`, `back-istc/media/`, les dossiers `__pycache__/`, `.DS_Store`). Le `.gitignore` empêche d'en ajouter de nouveaux ; pour retirer ceux déjà suivis **sans les supprimer du disque** :
+Des fichiers qui ne devraient pas être versionnés sont encore suivis par Git : `back-istc/.env` (secrets), `back-istc/db.sqlite3`, `back-istc/data.json`, `back-istc/media/`, les dossiers `__pycache__/`, les `.DS_Store`, et à la racine les fichiers de transfert `.claude_*`, le dossier `Claude outputs/` et des PDF d'exemple. Le `.gitignore` empêche d'en ajouter de nouveaux ; pour retirer ceux déjà suivis **sans les supprimer du disque** :
 
 ```bash
-git rm -r --cached back-istc/.env back-istc/db.sqlite3 back-istc/media .DS_Store
+git rm -r --cached back-istc/.env back-istc/db.sqlite3 back-istc/data.json back-istc/media
+git rm -r --cached "Claude outputs" .claude_sync.tgz .claude_sync.md5 "CERTIFICAT DE SCOLARITE Djumeni.pdf" "Modèle relevéde note.pdf"
 git rm -r --cached $(git ls-files | grep -E '__pycache__|\.pyc$|\.DS_Store$')
-git commit -m "Retire du suivi Git les secrets, la base locale et les fichiers générés"
+git commit -m "Retire du suivi Git les secrets, la base locale et les fichiers générés [sans version]"
 ```
 
 Si le dépôt a déjà été partagé, considérez les valeurs de `back-istc/.env` comme divulguées : changez la `SECRET_KEY`, le mot de passe de la base et la clé reCAPTCHA.

@@ -36,6 +36,8 @@ Thumbs.db
 
 # --- Divers ---
 .claude_*
+Claude outputs/
+back-istc/data.json
 
 # Démonstration locale
 outils/demo/media/
