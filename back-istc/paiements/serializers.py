@@ -6,6 +6,7 @@ from .models import (
     ClassePaymentSchedule,
     FiliereInstallmentTemplate,
     FilierePaymentPolicy,
+    JournalPaiement,
     Paiement,
     ReductionEtudiant,
     StudentPaymentInstallment,
@@ -169,11 +170,14 @@ class PaiementSerializer(serializers.ModelSerializer):
     filiere_nom = serializers.CharField(source="filiere.nom", read_only=True)
     frais_libelle = serializers.CharField(source="frais.libelle", read_only=True)
     classe_nom = serializers.CharField(source="frais.classe.nom", read_only=True)
+    enregistre_par_nom = serializers.SerializerMethodField()
 
     class Meta:
         model = Paiement
         fields = [
             "id",
+            "numero_recu",
+            "enregistre_par_nom",
             "etudiant",
             "etudiant_nom",
             "filiere",
@@ -189,7 +193,46 @@ class PaiementSerializer(serializers.ModelSerializer):
             "justificatif",
             "date_paiement",
         ]
-        read_only_fields = ["solde_restant", "date_paiement"]
+        read_only_fields = ["solde_restant", "numero_recu"]
+        extra_kwargs = {"date_paiement": {"required": False}}
+
+    def get_enregistre_par_nom(self, obj):
+        user = obj.enregistre_par
+        if not user:
+            return ""
+        return " ".join(p for p in [user.noms, user.prenoms] if p).strip() or user.username
+
+    def validate_montant_paye(self, value):
+        if value is None or value <= 0:
+            raise serializers.ValidationError("Le montant doit être supérieur à 0.")
+        return value
+
+    def validate_date_paiement(self, value):
+        from django.utils import timezone
+        if value and value > timezone.now() + timezone.timedelta(minutes=5):
+            raise serializers.ValidationError("La date du paiement ne peut pas être dans le futur.")
+        return value
+
+    def validate(self, attrs):
+        # Un paiement ne change pas d'étudiant : supprimez-le puis enregistrez-le sur le bon étudiant.
+        if self.instance is not None and "etudiant" in attrs and attrs["etudiant"] != self.instance.etudiant:
+            raise serializers.ValidationError(
+                {"etudiant": "Impossible de changer l'étudiant d'un paiement : supprimez-le puis ressaisissez-le."}
+            )
+        frais = attrs.get("frais", getattr(self.instance, "frais", None))
+        etudiant = attrs.get("etudiant", getattr(self.instance, "etudiant", None))
+        if frais and etudiant and not etudiant.inscriptions.filter(classe=frais.classe).exists():
+            raise serializers.ValidationError({"frais": "Ce frais appartient à une classe où l'étudiant n'est pas inscrit."})
+        return attrs
+
+
+class JournalPaiementSerializer(serializers.ModelSerializer):
+    action_libelle = serializers.CharField(source="get_action_display", read_only=True)
+
+    class Meta:
+        model = JournalPaiement
+        fields = ["id", "paiement_id_origine", "numero_recu", "etudiant", "etudiant_nom", "action",
+                  "action_libelle", "motif", "utilisateur_nom", "avant", "apres", "date"]
 
 
 class PaiementAggregatedSerializer(serializers.Serializer):

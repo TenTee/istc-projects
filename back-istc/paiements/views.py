@@ -1,5 +1,7 @@
 from decimal import Decimal
-from django.db import models
+from django.db import models, transaction
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
 from django.db.models import Max, Sum
 from django.utils import timezone
 from rest_framework import generics, status, viewsets
@@ -14,6 +16,7 @@ from .models import (
     Bourse,
     ClassePaymentSchedule,
     FilierePaymentPolicy,
+    JournalPaiement,
     Paiement,
     ReductionEtudiant,
     StudentPaymentInstallment,
@@ -21,6 +24,7 @@ from .models import (
 )
 from .serializers import (
     BourseSerializer,
+    JournalPaiementSerializer,
     ClassePaymentScheduleSerializer,
     FilierePaymentPolicySerializer,
     PaiementAggregatedSerializer,
@@ -32,6 +36,8 @@ from .serializers import (
 )
 from .schedule_resolver import compute_student_retard
 from .finance import situation_financiere
+from .corrections import instantane, journaliser, recalculer_etudiant, verifier_motif
+from .documents_pdf import facture_pdf, recu_pdf
 
 
 def _sum_paye(qs):
@@ -41,6 +47,11 @@ def _sum_paye(qs):
 
 class PaiementListCreate(generics.ListCreateAPIView):
     serializer_class = PaiementSerializer
+
+    def perform_create(self, serializer):
+        user = self.request.user if self.request.user.is_authenticated else None
+        paiement = serializer.save(enregistre_par=user)
+        journaliser(JournalPaiement.CREATION, paiement, self.request.user, "", None, instantane(paiement))
 
     def get_queryset(self):
         queryset = Paiement.objects.select_related("etudiant", "filiere", "frais", "frais__classe").all()
@@ -61,8 +72,133 @@ class PaiementListCreate(generics.ListCreateAPIView):
 
 
 class PaiementDetail(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Correction (PUT / PATCH) et suppression (DELETE) d'un paiement : droit Finance en écriture
+    (StaffAccessMiddleware). Un motif est exigé ; soldes et échéancier sont recalculés et
+    l'opération est inscrite au journal des paiements.
+    """
     queryset = Paiement.objects.select_related("etudiant", "filiere", "frais", "frais__classe").all()
     serializer_class = PaiementSerializer
+
+    @staticmethod
+    def _motif(request):
+        motif = request.data.get("motif") if hasattr(request, "data") else None
+        return (motif or request.query_params.get("motif") or "").strip()
+
+    def update(self, request, *args, **kwargs):
+        motif = self._motif(request)
+        erreur = verifier_motif(motif)
+        if erreur:
+            return Response({"motif": [erreur]}, status=status.HTTP_400_BAD_REQUEST)
+        paiement = self.get_object()
+        serializer = self.get_serializer(paiement, data=request.data, partial=kwargs.pop("partial", False))
+        serializer.is_valid(raise_exception=True)
+        with transaction.atomic():
+            avant = instantane(paiement)
+            groupe_avant = (paiement.frais_id, paiement.paiement_type)
+            paiement = serializer.save()
+            if (paiement.frais_id, paiement.paiement_type) != groupe_avant:
+                # Le paiement change de groupe : son « montant dû » sera recalculé pour son nouveau groupe.
+                Paiement.objects.filter(pk=paiement.pk).update(montant_du=None)
+            recalculer_etudiant(paiement.etudiant)
+            paiement.refresh_from_db()
+            journaliser(JournalPaiement.MODIFICATION, paiement, request.user, motif, avant, instantane(paiement))
+        return Response(self.get_serializer(paiement).data)
+
+    def destroy(self, request, *args, **kwargs):
+        motif = self._motif(request)
+        erreur = verifier_motif(motif)
+        if erreur:
+            return Response({"motif": [erreur]}, status=status.HTTP_400_BAD_REQUEST)
+        paiement = self.get_object()
+        etudiant = paiement.etudiant
+        with transaction.atomic():
+            journaliser(JournalPaiement.SUPPRESSION, paiement, request.user, motif, instantane(paiement), None)
+            paiement.delete()
+            recalculer_etudiant(etudiant)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+def _reponse_pdf(contenu, nom_fichier, telecharger):
+    reponse = HttpResponse(contenu, content_type="application/pdf")
+    mode = "attachment" if telecharger else "inline"
+    reponse["Content-Disposition"] = f'{mode}; filename="{nom_fichier}"'
+    reponse["Cache-Control"] = "no-store"
+    return reponse
+
+
+def _telecharger(request):
+    return request.query_params.get("telecharger", "1") not in ("0", "false", "non")
+
+
+class PaiementRecuPDF(APIView):
+    """Reçu PDF d'un paiement (personnel ayant accès aux paiements)."""
+
+    def get(self, request, pk):
+        paiement = get_object_or_404(
+            Paiement.objects.select_related("etudiant", "etudiant__filiere", "frais", "frais__classe",
+                                            "enregistre_par"), pk=pk)
+        if not paiement.etudiant_id:
+            return Response({"detail": "Paiement sans étudiant : reçu impossible."}, status=400)
+        return _reponse_pdf(recu_pdf(paiement), f"recu-{paiement.numero_recu or paiement.pk}.pdf",
+                            _telecharger(request))
+
+
+class FactureEtudiantPDF(APIView):
+    """Facture (frais, réductions, paiements, échéancier) d'un étudiant pour l'année choisie."""
+
+    def get(self, request, etudiant_id):
+        etudiant = get_object_or_404(Etudiant, pk=etudiant_id)
+        return _reponse_pdf(facture_pdf(etudiant, get_current_academic_year_id()),
+                            f"facture-{etudiant.matricule or etudiant.pk}.pdf", _telecharger(request))
+
+
+class JournalPaiementList(generics.ListAPIView):
+    """Journal des corrections et suppressions (filtrable par étudiant ou numéro de reçu)."""
+    serializer_class = JournalPaiementSerializer
+    pagination_class = None
+
+    def get_queryset(self):
+        qs = JournalPaiement.objects.all()
+        etudiant = self.request.query_params.get("etudiant")
+        if etudiant:
+            qs = qs.filter(etudiant_id=etudiant)
+        numero = self.request.query_params.get("numero_recu")
+        if numero:
+            qs = qs.filter(numero_recu__iexact=numero.strip())
+        action_filtre = self.request.query_params.get("action")
+        if action_filtre:
+            qs = qs.filter(action=action_filtre)
+        return qs[:500]
+
+
+def _etudiant_connecte(request):
+    return getattr(request.user, "etudiant_profile", None) if request.user.is_authenticated else None
+
+
+class MonRecuPDF(APIView):
+    """Portail étudiant : reçu d'un de SES paiements."""
+
+    def get(self, request, pk):
+        etudiant = _etudiant_connecte(request)
+        if not etudiant:
+            return Response({"error": "Profil étudiant introuvable"}, status=404)
+        paiement = get_object_or_404(
+            Paiement.objects.select_related("etudiant", "frais", "frais__classe", "enregistre_par"),
+            pk=pk, etudiant=etudiant)
+        return _reponse_pdf(recu_pdf(paiement), f"recu-{paiement.numero_recu or paiement.pk}.pdf",
+                            _telecharger(request))
+
+
+class MaFacturePDF(APIView):
+    """Portail étudiant : sa facture de l'année."""
+
+    def get(self, request):
+        etudiant = _etudiant_connecte(request)
+        if not etudiant:
+            return Response({"error": "Profil étudiant introuvable"}, status=404)
+        return _reponse_pdf(facture_pdf(etudiant, get_current_academic_year_id()),
+                            f"facture-{etudiant.matricule or etudiant.pk}.pdf", _telecharger(request))
 
 
 class PaiementAggregated(APIView):
@@ -408,7 +544,14 @@ class MePaiementSummary(APIView):
                 "paye": float(montant_paye_formation),
                 "reste": float(montant_du_formation - montant_paye_formation)
             },
-            "echeances": installments
+            "echeances": installments,
+            # Pour télécharger les reçus depuis le portail (/api/paiements/me/recus/<id>/).
+            "paiements": [
+                {"id": p.id, "numero_recu": p.numero_recu, "date_paiement": p.date_paiement,
+                 "paiement_type": p.paiement_type, "montant_paye": float(p.montant_paye),
+                 "moyen_paiement": p.moyen_paiement or ""}
+                for p in sf["paiements"].order_by("-date_paiement", "-id")
+            ],
         })
 
 

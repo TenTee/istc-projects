@@ -38,14 +38,20 @@ Par défaut : journée de **08:00 à 18:00**, pause de **12:00 à 13:00**. Aucun
 1. **Nouvel Utilisateur**.
 2. Remplissez « Noms », « Prénoms », « Email » et le « Rôle assigné ».
 3. **Enregistrer**.
-4. La fenêtre « Accès Utilisateur » affiche le **nom d'utilisateur** (généré : `noms.prénoms` + 3 chiffres) et le **mot de passe temporaire**. Utilisez l'icône **Copier le mot de passe**, transmettez les identifiants, puis cliquez sur **J'ai compris**.
+4. La fenêtre « Compte créé » affiche le **nom d'utilisateur** (généré : `noms.prénoms` + 3 chiffres) et le **mot de passe provisoire**.
+
+La fenêtre « Identifiants » (création ou réinitialisation) affiche le **nom d'utilisateur**, le **mot de passe** et un **message prêt à envoyer** (adresse de connexion, identifiants, conseil de changer le mot de passe). Vous pouvez modifier le message, puis :
+
+- **Copier le message** (ou copier un seul champ avec l'icône à sa droite) ;
+- **WhatsApp** : ouvre WhatsApp avec le message ; si le numéro de la personne commence par `+` ou `00`, la conversation s'ouvre directement avec elle, sinon choisissez le destinataire ;
+- **E-mail** : ouvre votre messagerie avec l'adresse de la personne, l'objet et le message.
 
 !!! warning
-    Le mot de passe n'est affiché qu'une seule fois.
+    Le mot de passe n'est affiché qu'une seule fois : envoyez-le avant de fermer la fenêtre. La personne peut ensuite le changer, ainsi que son nom d'utilisateur, dans **Mon profil**.
 
 ### Réinitialiser un mot de passe
 
-Icône **Changer le mot de passe** sur la ligne : un nouveau mot de passe temporaire s'affiche.
+Icône **Réinitialiser le mot de passe et envoyer les identifiants** sur la ligne, puis confirmez : l'ancien mot de passe cesse de fonctionner et la fenêtre « Mot de passe réinitialisé » s'ouvre avec le nouveau mot de passe et le message à envoyer. Seul un super-administrateur peut réinitialiser le compte d'un autre super-administrateur.
 
 ### Modifier, désactiver, supprimer
 

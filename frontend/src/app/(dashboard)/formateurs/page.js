@@ -50,6 +50,7 @@ import {
 } from "../../../services/api/services";
 import ImportExportModal from "../../../components/importExport/ImportExportModal";
 import { getApiErrorMessage } from "../../../services/api/client";
+import IdentifiantsDialog from "../../../components/common/IdentifiantsDialog";
 import { useUserPermissions } from "../../../utils/permissions";
 
 const COUNTRY_CODES = [
@@ -102,6 +103,7 @@ export default function FormateursPage() {
   const [openCourseDetail, setOpenCourseDetail] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [credentials, setCredentials] = useState(null);
+  const [motifIdentifiants, setMotifIdentifiants] = useState("creation");
   const [openCredentials, setOpenCredentials] = useState(false);
   const [openImportExport, setOpenImportExport] = useState(false);
   const [classesList, setClassesList] = useState([]);
@@ -312,6 +314,7 @@ export default function FormateursPage() {
       } else {
         const result = await formateursService.createFormateur(payload);
         if (result?.credentials) {
+          setMotifIdentifiants("creation");
           setCredentials(result.credentials);
           setOpenCredentials(true);
         } else {
@@ -1006,6 +1009,7 @@ export default function FormateursPage() {
                     const result = await formateursService.generateAccount(
                       selectedFormateur.id,
                     );
+                    setMotifIdentifiants("creation");
                     setCredentials(result);
                     setOpenCredentials(true);
                     setOpenDrawer(false);
@@ -1034,13 +1038,12 @@ export default function FormateursPage() {
                 fullWidth
                 onClick={async () => {
                   try {
+                    if (!window.confirm("Réinitialiser le mot de passe de ce formateur ? L'ancien ne fonctionnera plus.")) return;
                     const result = await formateursService.resetPassword(
-                      selectedFormateur.user,
+                      selectedFormateur.id,
                     );
-                    setCredentials({
-                      username: result.username,
-                      password: result.new_password,
-                    });
+                    setMotifIdentifiants("reinitialisation");
+                    setCredentials(result);
                     setOpenCredentials(true);
                     setOpenDrawer(false);
                   } catch (error) {
@@ -1139,61 +1142,13 @@ export default function FormateursPage() {
         </DialogActions>
       </Dialog>
 
-      {/* Dialog: Identifiants après création */}
-      <Dialog
+      {/* Identifiants à transmettre (création, génération du compte, réinitialisation) */}
+      <IdentifiantsDialog
         open={openCredentials}
+        identifiants={credentials}
+        motif={motifIdentifiants}
         onClose={() => setOpenCredentials(false)}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle sx={{ fontWeight: "bold", color: "success.main" }}>
-          Identifiants du formateur
-        </DialogTitle>
-        <DialogContent>
-          <Alert severity="info" sx={{ mb: 2 }}>
-            Voici les identifiants de connexion du formateur. Communiquez-les
-            lui pour qu&apos;il puisse accéder à son portail.
-          </Alert>
-          <Paper variant="outlined" sx={{ p: 2, bgcolor: "#f5f5f5" }}>
-            <Typography variant="body2" color="text.secondary">
-              Nom d&apos;utilisateur
-            </Typography>
-            <Typography variant="h6" fontWeight="bold" sx={{ mb: 1, wordBreak: "break-all" }}>
-              {credentials?.username}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              Mot de passe
-            </Typography>
-            <Typography variant="h6" fontWeight="bold" sx={{ wordBreak: "break-all" }}>
-              {credentials?.password}
-            </Typography>
-          </Paper>
-          <Alert severity="warning" sx={{ mt: 2 }}>
-            Ce mot de passe ne sera plus affiché. Notez-le ou envoyez-le au
-            formateur maintenant.
-          </Alert>
-        </DialogContent>
-        <DialogActions>
-          <Button
-            variant="outlined"
-            onClick={() => {
-              navigator.clipboard.writeText(
-                `Utilisateur: ${credentials?.username}\nMot de passe: ${credentials?.password}`,
-              );
-              setToast({
-                open: true,
-                message: "Identifiants copiés !",
-                severity: "success",
-              });
-            }}
-          >
-            Copier
-          </Button>
-          <Button variant="contained" onClick={() => setOpenCredentials(false)}>
-            Fermer
-          </Button>
-        </DialogActions>
-      </Dialog>
+      />
 
       {/* Snackbars de notifications (Success/Error) */}
       <Snackbar

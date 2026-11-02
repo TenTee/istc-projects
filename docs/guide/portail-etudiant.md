@@ -1,6 +1,6 @@
 # Portail étudiant
 
-Le portail étudiant permet de suivre sa scolarité **depuis un ordinateur ou un téléphone**. Les identifiants (nom d'utilisateur et mot de passe initial) sont remis par l'administration après l'inscription.
+Le portail étudiant permet de suivre sa scolarité **depuis un ordinateur ou un téléphone**. Les identifiants (nom d'utilisateur et mot de passe provisoire) sont envoyés par l'administration après l'inscription (WhatsApp, e-mail ou remise en main propre). Dès la première connexion, changez le mot de passe dans **Mon profil** (avatar en haut à droite).
 
 Menu : **Tableau de bord**, **Ma Scolarité**, **Mes Notes**, **Assiduité**, **Emploi du temps**, **Documents de cours**, **Banque d'épreuves**, **Discipline**.
 
@@ -25,7 +25,12 @@ Si le message « Impossible de charger votre profil. » s'affiche, cliquez sur *
 - le montant **dû**, **payé** et **restant** pour l'inscription et pour la formation (« Détails par catégorie ») ;
 - l'« Échéancier de paiement » : chaque tranche, sa date limite, son montant et son statut (**Payé**, **Partiel**, **Retard** ou **À venir**).
 
-Les réductions et bourses accordées sont déjà déduites. Pour toute question sur un paiement, munissez-vous de votre reçu et adressez-vous au service de scolarité.
+Les réductions et bourses accordées sont déjà déduites.
+
+- **Télécharger ma facture** (en haut de la page) : le détail de vos frais, réductions, paiements et échéances de l'année, en PDF.
+- « Mes paiements et reçus » : chaque paiement avec son numéro de reçu ; l'icône **PDF** télécharge le reçu.
+
+Pour toute question sur un paiement, munissez-vous de votre reçu et adressez-vous au service de scolarité.
 
 ## Mes Notes
 
@@ -64,7 +69,7 @@ Les anciens sujets publiés : **Voir Sujet**, **Voir Corrigé**, **Télécharger
 
 ![L'état disciplinaire](../images/captures/67_etudiant_discipline.jpg)
 
-« État Disciplinaire » : vos éventuelles sanctions (Date, Type, Motif, Durée, Statut). « Votre dossier disciplinaire est exemplaire. Aucune sanction active. » s'affiche s'il n'y en a pas.
+« État Disciplinaire » : vos éventuelles sanctions (Date, Type, Motif, Durée, Statut). Le statut est **En cours**, **Terminée** (exclusion finie) ou **Levée** (avec la date et le motif de la levée). Une exclusion en cours est rappelée en haut de la page avec son dernier jour. « Aucune sanction en cours à votre dossier. » s'affiche s'il n'y en a pas.
 
 ## Se déconnecter
 

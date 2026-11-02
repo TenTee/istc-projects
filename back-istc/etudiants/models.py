@@ -116,18 +116,45 @@ class EtudiantDocument(models.Model):
 
 
 class SanctionDisciplinaire(models.Model):
+    AVERTISSEMENT = 'Avertissement'
+    BLAME = 'Blâme'
+    EXCLUSION_TEMPORAIRE = 'Exclusion temporaire'
+    EXCLUSION_DEFINITIVE = 'Exclusion définitive'
     TYPE_CHOICES = (
-        ('Avertissement', 'Avertissement'),
-        ('Blâme', 'Blâme'),
-        ('Exclusion temporaire', 'Exclusion temporaire'),
-        ('Exclusion définitive', 'Exclusion définitive'),
+        (AVERTISSEMENT, 'Avertissement'),
+        (BLAME, 'Blâme'),
+        (EXCLUSION_TEMPORAIRE, 'Exclusion temporaire'),
+        (EXCLUSION_DEFINITIVE, 'Exclusion définitive'),
     )
     etudiant = models.ForeignKey(Etudiant, on_delete=models.CASCADE, related_name="sanctions")
     type_sanction = models.CharField(max_length=50, choices=TYPE_CHOICES)
     motif = models.TextField()
     date_sanction = models.DateField(default=timezone.now)
+    # Exclusion temporaire : dernier jour d'exclusion (la durée en texte reste pour les anciennes fiches).
+    date_fin = models.DateField(null=True, blank=True)
     duree = models.CharField(max_length=50, blank=True, null=True, help_text="Ex: 3 jours")
+    # « active » = au dossier ; une sanction levée reste dans l'historique avec le motif de levée.
     active = models.BooleanField(default=True)
-    
+    date_levee = models.DateField(null=True, blank=True)
+    motif_levee = models.TextField(blank=True)
+    levee_par = models.ForeignKey("users.CustomUser", on_delete=models.SET_NULL, null=True, blank=True,
+                                  related_name="+")
+    enregistree_par = models.ForeignKey("users.CustomUser", on_delete=models.SET_NULL, null=True, blank=True,
+                                        related_name="+")
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True)
+
+    class Meta:
+        ordering = ["-date_sanction", "-id"]
+
+    @property
+    def etat(self):
+        """levee | terminee (exclusion temporaire dont la date de fin est passée) | active."""
+        if not self.active:
+            return "levee"
+        if self.date_fin and self.date_fin < timezone.localdate():
+            return "terminee"
+        return "active"
+
     def __str__(self):
         return f"{self.etudiant.nom} - {self.type_sanction} ({self.date_sanction})"

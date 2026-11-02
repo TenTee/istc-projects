@@ -1,6 +1,6 @@
 # Portail formateur
 
-Le portail formateur est votre espace personnel d'enseignant. Vous y accédez avec les identifiants remis par l'administration (voir [Premiers pas](premiers-pas.md#se-connecter)).
+Le portail formateur est votre espace personnel d'enseignant. Vous y accédez avec les identifiants remis par l'administration (voir [Premiers pas](premiers-pas.md#se-connecter)). Changez le mot de passe provisoire dès la première connexion dans **Mon profil** (avatar en haut à droite).
 
 Menu : **Tableau de bord**, **Mes Classes**, **Saisie des Notes**, **Emploi du temps**, **Mes Cours**, **Épreuves**, **Mes heures**, **Mon Suivi**, et **Coordination** si vous êtes coordonnateur de filière.
 

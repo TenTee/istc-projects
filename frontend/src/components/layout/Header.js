@@ -33,11 +33,13 @@ import { useSidebar } from '../../context/SidebarContext';
 import { usersService, rolesService, revenusService, depensesService, demandesService, preinscriptionsService } from '../../services/api/services';
 import { ConfigContext } from '../../theme/ThemeRegistry';
 import { clearSession } from '../../services/api/client';
+import ProfilDialog from './ProfilDialog';
 
 export default function Header() {
   const { toggleSidebar } = useSidebar();
   const router = useRouter();
   const [anchorEl, setAnchorEl] = React.useState(null);
+  const [profilOuvert, setProfilOuvert] = React.useState(false);
   const [notifAnchorEl, setNotifAnchorEl] = React.useState(null);
   const [userInfo, setUserInfo] = React.useState({ username: 'Utilisateur', role: '' });
   const [notifications, setNotifications] = React.useState([]);
@@ -492,7 +494,12 @@ export default function Header() {
               </Typography>
             </Box>
             <Divider />
-            <MenuItem onClick={handleClose}>
+            <MenuItem
+              onClick={() => {
+                handleClose();
+                setProfilOuvert(true);
+              }}
+            >
               <ListItemIcon>
                 <PersonIcon fontSize="small" />
               </ListItemIcon>
@@ -507,6 +514,7 @@ export default function Header() {
           </Menu>
         </Box>
       </Toolbar>
+      <ProfilDialog open={profilOuvert} onClose={() => setProfilOuvert(false)} />
     </AppBar>
   );
 }

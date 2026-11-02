@@ -10,7 +10,10 @@ import {
   DialogContent,
   DialogTitle,
   Grid,
+  IconButton,
   Paper,
+  Snackbar,
+  Alert,
   Tab,
   Table,
   TableBody,
@@ -19,6 +22,7 @@ import {
   TableHead,
   TableRow,
   Tabs,
+  Tooltip,
   Typography,
   useMediaQuery,
   useTheme,
@@ -29,10 +33,39 @@ import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import PersonIcon from '@mui/icons-material/Person';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
+import PrintIcon from '@mui/icons-material/Print';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import HistoryIcon from '@mui/icons-material/History';
+import DescriptionIcon from '@mui/icons-material/Description';
 
 import { paiementsService, studentScheduleService } from '@/services/api/services';
 import { getMediaUrl } from '@/services/api/client';
 import { formatDate } from '@/utils/formatters';
+import { obtenirPdf } from '@/utils/documentsPdf';
+import { useUserPermissions } from '@/utils/permissions';
+import CorrectionPaiementDialog, { MOYENS_PAIEMENT } from './CorrectionPaiementDialog';
+
+const LIBELLES_MOYENS = Object.fromEntries(MOYENS_PAIEMENT.map((m) => [m.value, m.label]));
+const LIBELLES_ACTIONS = { creation: 'Création', modification: 'Correction', suppression: 'Suppression' };
+
+function resumeJournal(entree) {
+  const avant = entree.avant || {};
+  const apres = entree.apres || {};
+  if (entree.action === 'suppression') return `${formatFCFA(avant.montant_paye)} supprimé`;
+  if (entree.action === 'creation') return formatFCFA(apres.montant_paye);
+  const changements = [];
+  if (avant.montant_paye !== apres.montant_paye) changements.push(`${formatFCFA(avant.montant_paye)} → ${formatFCFA(apres.montant_paye)}`);
+  if (avant.paiement_type !== apres.paiement_type) changements.push(`type : ${avant.paiement_type} → ${apres.paiement_type}`);
+  if (avant.moyen_paiement !== apres.moyen_paiement) {
+    changements.push(`mode : ${LIBELLES_MOYENS[avant.moyen_paiement] || avant.moyen_paiement || '-'} → ${LIBELLES_MOYENS[apres.moyen_paiement] || apres.moyen_paiement}`);
+  }
+  if (avant.date_paiement !== apres.date_paiement) {
+    changements.push(`date : ${new Date(avant.date_paiement).toLocaleDateString('fr-FR')} → ${new Date(apres.date_paiement).toLocaleDateString('fr-FR')}`);
+  }
+  return changements.join(' ; ') || 'Aucun changement de valeur';
+}
 
 function formatFCFA(val) {
   return `${Number(val || 0).toLocaleString('fr-FR')} FCFA`;
@@ -43,7 +76,25 @@ export default function StudentPaymentDetailsModal({
   onClose,
   student,
   onOpenPayment,
+  onChanged,
 }) {
+  const { canWrite } = useUserPermissions();
+  const peutCorriger = canWrite('can_manage_finance');
+  const [journal, setJournal] = useState([]);
+  const [correction, setCorrection] = useState({ open: false, mode: 'modifier', paiement: null });
+  const [message, setMessage] = useState({ open: false, texte: '', severite: 'success' });
+  const [pdfEnCours, setPdfEnCours] = useState('');
+
+  const ouvrirPdf = async (cle, url, mode, nomParDefaut) => {
+    setPdfEnCours(cle);
+    try {
+      await obtenirPdf(url, { mode, nomParDefaut });
+    } catch (e) {
+      setMessage({ open: true, texte: e.message, severite: 'error' });
+    } finally {
+      setPdfEnCours('');
+    }
+  };
   const [currentTab, setCurrentTab] = useState(0);
   const [payments, setPayments] = useState([]);
   const [scheduleData, setScheduleData] = useState(null);
@@ -62,12 +113,14 @@ export default function StudentPaymentDetailsModal({
     setLoadingPayments(true);
     setLoadingSchedule(true);
     try {
-      const [paymentsRes, scheduleRes] = await Promise.all([
+      const [paymentsRes, scheduleRes, journalRes] = await Promise.all([
         paiementsService.list({ etudiant: etudiantId }).catch(() => []),
         studentScheduleService.get(etudiantId).catch(() => null),
+        paiementsService.journal({ etudiant: etudiantId }).catch(() => []),
       ]);
       setPayments(Array.isArray(paymentsRes) ? paymentsRes : paymentsRes?.results || []);
       setScheduleData(scheduleRes);
+      setJournal(Array.isArray(journalRes) ? journalRes : journalRes?.results || []);
     } catch (e) {
       console.error(e);
     } finally {
@@ -85,6 +138,18 @@ export default function StudentPaymentDetailsModal({
           <PersonIcon color="primary" />
           <span>Fiche Financière & Historique des Paiements</span>
         </Box>
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+        <Button
+          variant="outlined"
+          size="small"
+          startIcon={<DescriptionIcon />}
+          disabled={pdfEnCours === 'facture'}
+          onClick={() =>
+            ouvrirPdf('facture', paiementsService.urlFacture(student.etudiant), 'telecharger', 'facture.pdf')
+          }
+        >
+          {pdfEnCours === 'facture' ? 'Génération…' : 'Facture PDF'}
+        </Button>
         {onOpenPayment && (Number(student.solde_restant) || 0) > 0 && (
           <Button
             variant="contained"
@@ -99,6 +164,7 @@ export default function StudentPaymentDetailsModal({
             Enregistrer un paiement
           </Button>
         )}
+        </Box>
       </DialogTitle>
       <DialogContent dividers>
         {/* Banner Étudiant & Synthèse */}
@@ -158,6 +224,7 @@ export default function StudentPaymentDetailsModal({
         <Tabs value={currentTab} onChange={(e, v) => setCurrentTab(v)} sx={{ mb: 2, borderBottom: 1, borderColor: 'divider' }}>
           <Tab icon={<ReceiptLongIcon fontSize="small" />} iconPosition="start" label={`Historique & Reçus (${payments.length})`} />
           <Tab icon={<CalendarMonthIcon fontSize="small" />} iconPosition="start" label="Échéancier des Tranches" />
+          <Tab icon={<HistoryIcon fontSize="small" />} iconPosition="start" label={`Journal (${journal.length})`} />
         </Tabs>
 
         {/* TAB 0: HISTORIQUE DES PAIEMENTS & JUSTIFICATIFS */}
@@ -169,19 +236,22 @@ export default function StudentPaymentDetailsModal({
               </Box>
             ) : payments.length > 0 ? (
               <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 2 }}>
-                <Table size="small" sx={{ minWidth: 700 }}>
+                <Table size="small" sx={{ minWidth: 860 }}>
                   <TableHead sx={{ bgcolor: '#f1f5f9' }}>
                     <TableRow>
+                      <TableCell><strong>N° de reçu</strong></TableCell>
                       <TableCell><strong>Date & Heure</strong></TableCell>
                       <TableCell><strong>Type</strong></TableCell>
                       <TableCell><strong>Montant Payé</strong></TableCell>
                       <TableCell><strong>Mode</strong></TableCell>
-                      <TableCell align="center"><strong>Justificatif / Reçu de paiement</strong></TableCell>
+                      <TableCell align="center"><strong>Justificatif</strong></TableCell>
+                      <TableCell align="center"><strong>Reçu & actions</strong></TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {payments.map((p) => (
                       <TableRow key={p.id} hover>
+                        <TableCell sx={{ whiteSpace: 'nowrap', fontFamily: 'monospace' }}>{p.numero_recu || '-'}</TableCell>
                         <TableCell>{p.date_paiement ? new Date(p.date_paiement).toLocaleString('fr-FR') : '-'}</TableCell>
                         <TableCell>
                           <Chip
@@ -194,7 +264,7 @@ export default function StudentPaymentDetailsModal({
                         <TableCell sx={{ fontWeight: 700, color: 'success.main' }}>
                           {formatFCFA(p.montant_paye)}
                         </TableCell>
-                        <TableCell sx={{ textTransform: 'capitalize' }}>{p.moyen_paiement || 'Cash'}</TableCell>
+                        <TableCell>{LIBELLES_MOYENS[p.moyen_paiement] || p.moyen_paiement || 'Espèces'}</TableCell>
                         <TableCell align="center" sx={{ whiteSpace: 'nowrap' }}>
                           {p.justificatif ? (
                             <Button
@@ -212,7 +282,55 @@ export default function StudentPaymentDetailsModal({
                               Voir le justificatif
                             </Button>
                           ) : (
-                            <Chip label="Aucun justificatif" size="small" variant="outlined" color="default" />
+                            <Chip label="Aucun" size="small" variant="outlined" color="default" />
+                          )}
+                        </TableCell>
+                        <TableCell align="center" sx={{ whiteSpace: 'nowrap' }}>
+                          <Tooltip title="Télécharger le reçu (PDF)">
+                            <span>
+                              <IconButton
+                                size="small"
+                                color="primary"
+                                disabled={pdfEnCours === `recu-${p.id}`}
+                                onClick={() => ouvrirPdf(`recu-${p.id}`, paiementsService.urlRecu(p.id), 'telecharger', `recu-${p.numero_recu || p.id}.pdf`)}
+                                aria-label="Télécharger le reçu"
+                              >
+                                <PictureAsPdfIcon fontSize="small" />
+                              </IconButton>
+                            </span>
+                          </Tooltip>
+                          <Tooltip title="Ouvrir le reçu pour l'imprimer">
+                            <IconButton
+                              size="small"
+                              onClick={() => ouvrirPdf(`imp-${p.id}`, paiementsService.urlRecu(p.id), 'ouvrir')}
+                              aria-label="Imprimer le reçu"
+                            >
+                              <PrintIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                          {peutCorriger && (
+                            <>
+                              <Tooltip title="Corriger le paiement">
+                                <IconButton
+                                  size="small"
+                                  color="warning"
+                                  onClick={() => setCorrection({ open: true, mode: 'modifier', paiement: { ...p, etudiant_nom: p.etudiant_nom || student.etudiant_nom } })}
+                                  aria-label="Corriger le paiement"
+                                >
+                                  <EditIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                              <Tooltip title="Supprimer le paiement">
+                                <IconButton
+                                  size="small"
+                                  color="error"
+                                  onClick={() => setCorrection({ open: true, mode: 'supprimer', paiement: { ...p, etudiant_nom: p.etudiant_nom || student.etudiant_nom } })}
+                                  aria-label="Supprimer le paiement"
+                                >
+                                  <DeleteIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                            </>
                           )}
                         </TableCell>
                       </TableRow>
@@ -295,7 +413,74 @@ export default function StudentPaymentDetailsModal({
             )}
           </Box>
         )}
+
+        {/* TAB 2: JOURNAL DES PAIEMENTS (création, correction, suppression) */}
+        {currentTab === 2 && (
+          <Box>
+            {journal.length > 0 ? (
+              <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 2 }}>
+                <Table size="small" sx={{ minWidth: 760 }}>
+                  <TableHead sx={{ bgcolor: '#f1f5f9' }}>
+                    <TableRow>
+                      <TableCell><strong>Date</strong></TableCell>
+                      <TableCell><strong>Opération</strong></TableCell>
+                      <TableCell><strong>N° de reçu</strong></TableCell>
+                      <TableCell><strong>Détail</strong></TableCell>
+                      <TableCell><strong>Motif</strong></TableCell>
+                      <TableCell><strong>Par</strong></TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {journal.map((j) => (
+                      <TableRow key={j.id} hover>
+                        <TableCell sx={{ whiteSpace: 'nowrap' }}>{new Date(j.date).toLocaleString('fr-FR')}</TableCell>
+                        <TableCell>
+                          <Chip
+                            size="small"
+                            label={LIBELLES_ACTIONS[j.action] || j.action}
+                            color={j.action === 'suppression' ? 'error' : j.action === 'modification' ? 'warning' : 'default'}
+                            variant="outlined"
+                          />
+                        </TableCell>
+                        <TableCell sx={{ fontFamily: 'monospace', whiteSpace: 'nowrap' }}>{j.numero_recu || '-'}</TableCell>
+                        <TableCell>{resumeJournal(j)}</TableCell>
+                        <TableCell>{j.motif || '-'}</TableCell>
+                        <TableCell>{j.utilisateur_nom || '-'}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            ) : (
+              <Typography variant="body2" color="text.secondary" align="center" sx={{ py: 3 }}>
+                Aucune opération enregistrée dans le journal pour cet étudiant.
+              </Typography>
+            )}
+          </Box>
+        )}
       </DialogContent>
+      <CorrectionPaiementDialog
+        open={correction.open}
+        mode={correction.mode}
+        paiement={correction.paiement}
+        onClose={() => setCorrection((c) => ({ ...c, open: false }))}
+        onDone={(texte) => {
+          setCorrection((c) => ({ ...c, open: false }));
+          setMessage({ open: true, texte, severite: 'success' });
+          fetchStudentDetails(student.etudiant);
+          onChanged?.();
+        }}
+      />
+      <Snackbar
+        open={message.open}
+        autoHideDuration={5000}
+        onClose={() => setMessage((m) => ({ ...m, open: false }))}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert severity={message.severite} onClose={() => setMessage((m) => ({ ...m, open: false }))}>
+          {message.texte}
+        </Alert>
+      </Snackbar>
       <DialogActions sx={{ p: 2 }}>
         <Button onClick={onClose} variant="contained" color="primary">
           Fermer

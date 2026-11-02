@@ -16,6 +16,7 @@ import {
   TableRow,
   Paper,
   IconButton,
+  Tooltip,
   Chip,
   MenuItem,
   Select,
@@ -56,6 +57,11 @@ import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import SchoolIcon from "@mui/icons-material/School";
+import SendIcon from "@mui/icons-material/Send";
+import LockResetIcon from "@mui/icons-material/LockReset";
+import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
+import GavelIcon from "@mui/icons-material/Gavel";
+import LockOpenIcon from "@mui/icons-material/LockOpen";
 import { useAcademicYear } from "../../../context/AcademicYearContext";
 import { useUserPermissions } from "../../../utils/permissions";
 import {
@@ -68,6 +74,7 @@ import {
   facultesService,
   inscriptionsV2Service,
   paiementsService,
+  sanctionsService,
   paiementAlertsService,
   studentScheduleService,
 } from "../../../services/api/services";
@@ -75,6 +82,16 @@ import { getApiErrorMessage, getMediaUrl } from "../../../services/api/client";
 import { ConfigContext } from "../../../theme/ThemeRegistry";
 import CertificateScolariteTemplate from "../../../components/certificates/CertificateScolariteTemplate";
 import StudentCard from "../../../components/students/StudentCard";
+import IdentifiantsDialog from "../../../components/common/IdentifiantsDialog";
+import { obtenirPdf } from "../../../utils/documentsPdf";
+import {
+  COULEURS_TYPE,
+  ETATS,
+  LeverSanctionDialog,
+  SanctionFormDialog,
+  dateFr,
+  periodeSanction,
+} from "../../../components/discipline/SanctionDialogs";
 import * as XLSX from "xlsx";
 
 function toList(data) {
@@ -262,6 +279,13 @@ export default function StudentsPage() {
   const [openCardDialog, setOpenCardDialog] = useState(false);
   const [cardStudent, setCardStudent] = useState(null);
 
+  // Identifiants du portail à transmettre (création, renvoi, réinitialisation).
+  const [identifiants, setIdentifiants] = useState({ open: false, data: null, motif: "creation" });
+  const [reinitEnCours, setReinitEnCours] = useState(false);
+  // Discipline (fiche étudiant)
+  const [sanctionsEtudiant, setSanctionsEtudiant] = useState([]);
+  const [formSanction, setFormSanction] = useState({ open: false, sanction: null });
+  const [sanctionALever, setSanctionALever] = useState(null);
   const [openCertDialog, setOpenCertDialog] = useState(false);
   const [certStudent, setCertStudent] = useState(null);
 
@@ -688,6 +712,15 @@ export default function StudentsPage() {
     }
   };
 
+  const fetchSanctions = async (studentId) => {
+    try {
+      const data = await sanctionsService.list({ etudiant: studentId });
+      setSanctionsEtudiant(Array.isArray(data) ? data : data?.results || []);
+    } catch {
+      setSanctionsEtudiant([]);
+    }
+  };
+
   const fetchStudentPaymentPlan = async (student) => {
     setLoadingStudentPlan(true);
     try {
@@ -720,6 +753,7 @@ export default function StudentsPage() {
     setSelectedStudent(student);
     setOpenDrawer(true);
     fetchStudentPayments(student.id);
+    fetchSanctions(student.id);
     fetchStudentPaymentPlan(student);
   };
 
@@ -819,11 +853,21 @@ export default function StudentsPage() {
       delete payload.documents_existants;
 
       let studentId = form.id;
+      let identifiantsCrees = null;
       if (isEditing) {
         await etudiantsService.update(payload.id, payload);
       } else {
         const response = await etudiantsService.create(payload);
         studentId = response?.id || response?.results?.id;
+        if (response?.username && response?.initial_password) {
+          identifiantsCrees = {
+            username: response.username,
+            password: response.initial_password,
+            nom: response.nom || "",
+            email: response.email || "",
+            telephone: response.contact || "",
+          };
+        }
 
         // Création de l'inscription si un niveau est sélectionné
         const classeId = inscriptionData.classe;
@@ -880,6 +924,9 @@ export default function StudentsPage() {
       setOpenCreate(false);
       setForm(initialForm);
       setFiles({ photo: null, acte_naissance: null, cni: null, diplomes: [] });
+      if (identifiantsCrees) {
+        setIdentifiants({ open: true, data: identifiantsCrees, motif: "creation" });
+      }
       fetchStudents();
     } catch (error) {
       setToast({
@@ -889,6 +936,35 @@ export default function StudentsPage() {
       });
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const telechargerDocument = async (url, nomParDefaut) => {
+    try {
+      await obtenirPdf(url, { nomParDefaut });
+    } catch (error) {
+      setToast({ open: true, message: error.message, severity: "error" });
+    }
+  };
+
+  const reinitialiserMotDePasse = async () => {
+    if (!selectedStudent) return;
+    if (!window.confirm("Réinitialiser le mot de passe du portail de cet étudiant ? L'ancien ne fonctionnera plus.")) return;
+    setReinitEnCours(true);
+    try {
+      const data = await etudiantsService.resetPassword(selectedStudent.id);
+      if (data) {
+        setSelectedStudent((s) => (s ? { ...s, initial_password: data.password } : s));
+        setIdentifiants({ open: true, data, motif: "reinitialisation" });
+      }
+    } catch (error) {
+      setToast({
+        open: true,
+        message: getApiErrorMessage(error, "Réinitialisation impossible."),
+        severity: "error",
+      });
+    } finally {
+      setReinitEnCours(false);
     }
   };
 
@@ -1871,19 +1947,122 @@ export default function StudentsPage() {
               </ListItem>
               <ListItem>
                 <ListItemText
-                  primary="Mot de passe initial"
+                  primary="Mot de passe provisoire"
                   secondary={
                     selectedStudent.initial_password ||
-                    "Non disponible ou déjà modifié"
+                    "Déjà changé par l'étudiant (réinitialisez-le si besoin)"
                   }
                 />
               </ListItem>
+              {selectedStudent.username && (
+                <Box sx={{ px: 2, display: "flex", flexWrap: "wrap", gap: 1 }}>
+                  {selectedStudent.initial_password && (
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      startIcon={<SendIcon />}
+                      onClick={() =>
+                        setIdentifiants({
+                          open: true,
+                          motif: "creation",
+                          data: {
+                            username: selectedStudent.username,
+                            password: selectedStudent.initial_password,
+                            nom: selectedStudent.nom || "",
+                            email: selectedStudent.email || "",
+                            telephone: selectedStudent.contact || "",
+                          },
+                        })
+                      }
+                    >
+                      Envoyer les identifiants
+                    </Button>
+                  )}
+                  {canWriteStudents && (
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      color="warning"
+                      startIcon={<LockResetIcon />}
+                      disabled={reinitEnCours}
+                      onClick={reinitialiserMotDePasse}
+                    >
+                      Réinitialiser le mot de passe
+                    </Button>
+                  )}
+                </Box>
+              )}
             </List>
           )}
           <Divider sx={{ my: 2 }} />
-          <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
-            Historique des paiements
-          </Typography>
+          {selectedStudent && (
+            <>
+              <Divider sx={{ my: 2 }} />
+              <Box sx={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 1, mb: 1 }}>
+                <Typography variant="subtitle1" fontWeight="bold">
+                  Discipline
+                </Typography>
+                {canWriteStudents && (
+                  <Button size="small" variant="outlined" startIcon={<GavelIcon />} onClick={() => setFormSanction({ open: true, sanction: null })}>
+                    Ajouter une sanction
+                  </Button>
+                )}
+              </Box>
+              {sanctionsEtudiant.length === 0 ? (
+                <Typography variant="body2" color="text.secondary">
+                  Aucune sanction.
+                </Typography>
+              ) : (
+                <List sx={{ p: 0 }}>
+                  {sanctionsEtudiant.map((sanction) => (
+                    <ListItem key={sanction.id} sx={{ px: 0, alignItems: "flex-start" }}
+                      secondaryAction={
+                        canWriteStudents && sanction.etat !== "levee" ? (
+                          <Tooltip title="Lever la sanction">
+                            <IconButton edge="end" size="small" color="success" onClick={() => setSanctionALever(sanction)} aria-label="Lever la sanction">
+                              <LockOpenIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        ) : null
+                      }
+                    >
+                      <ListItemText
+                        primary={
+                          <Box sx={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 1, pr: 4 }}>
+                            <Chip size="small" label={sanction.type_sanction} color={COULEURS_TYPE[sanction.type_sanction] || "default"} variant="outlined" />
+                            <Chip size="small" label={(ETATS[sanction.etat] || ETATS.active).label} color={(ETATS[sanction.etat] || ETATS.active).color} />
+                            <Typography variant="caption" color="text.secondary">{periodeSanction(sanction) !== "-" ? periodeSanction(sanction) : dateFr(sanction.date_sanction)}</Typography>
+                          </Box>
+                        }
+                        secondary={
+                          <>
+                            {sanction.motif}
+                            {sanction.etat === "levee" && sanction.motif_levee ? ` — Levée le ${dateFr(sanction.date_levee)} : ${sanction.motif_levee}` : ""}
+                          </>
+                        }
+                      />
+                    </ListItem>
+                  ))}
+                </List>
+              )}
+            </>
+          )}
+          <Divider sx={{ my: 2 }} />
+          <Box sx={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 1, mb: 1 }}>
+            <Typography variant="subtitle1" fontWeight="bold">
+              Historique des paiements
+            </Typography>
+            <Button
+              size="small"
+              variant="outlined"
+              startIcon={<PictureAsPdfIcon />}
+              onClick={() =>
+                telechargerDocument(paiementsService.urlFacture(selectedStudent.id), `facture-${selectedStudent.matricule || selectedStudent.id}.pdf`)
+              }
+            >
+              Facture PDF
+            </Button>
+          </Box>
           <Grid container spacing={1.5} sx={{ mb: 2 }}>
             <Grid item xs={12} sm={4}>
               <Card sx={{ p: 1.5, borderRadius: 2, bgcolor: "#F7F9FC" }}>
@@ -1975,7 +2154,18 @@ export default function StudentsPage() {
                         <Box sx={{ mt: 0.5 }}>
                           <Typography variant="caption" display="block">
                             {formatDateTime(payment.date_paiement)}
+                            {payment.numero_recu ? ` · Reçu ${payment.numero_recu}` : ""}
                           </Typography>
+                          <Button
+                            size="small"
+                            startIcon={<PictureAsPdfIcon fontSize="small" />}
+                            sx={{ px: 0.5, minWidth: 0 }}
+                            onClick={() =>
+                              telechargerDocument(paiementsService.urlRecu(payment.id), `recu-${payment.numero_recu || payment.id}.pdf`)
+                            }
+                          >
+                            Reçu PDF
+                          </Button>
                           <Typography variant="caption" display="block">
                             Moyen: {payment.moyen_paiement || "Non precise"}
                           </Typography>
@@ -2120,6 +2310,35 @@ export default function StudentsPage() {
           </Box>
         </Box>
       </Drawer>
+
+      <SanctionFormDialog
+        open={formSanction.open}
+        sanction={formSanction.sanction}
+        etudiantFixe={selectedStudent ? { id: selectedStudent.id, nom: selectedStudent.nom } : null}
+        onClose={() => setFormSanction({ open: false, sanction: null })}
+        onSaved={() => {
+          setFormSanction({ open: false, sanction: null });
+          setToast({ open: true, message: "Sanction enregistrée.", severity: "success" });
+          if (selectedStudent) fetchSanctions(selectedStudent.id);
+        }}
+      />
+      <LeverSanctionDialog
+        open={Boolean(sanctionALever)}
+        sanction={sanctionALever}
+        onClose={() => setSanctionALever(null)}
+        onDone={() => {
+          setSanctionALever(null);
+          setToast({ open: true, message: "Sanction levée.", severity: "success" });
+          if (selectedStudent) fetchSanctions(selectedStudent.id);
+        }}
+      />
+
+      <IdentifiantsDialog
+        open={identifiants.open}
+        identifiants={identifiants.data}
+        motif={identifiants.motif}
+        onClose={() => setIdentifiants((x) => ({ ...x, open: false }))}
+      />
 
       <Dialog
         open={openPaymentPlanDialog}

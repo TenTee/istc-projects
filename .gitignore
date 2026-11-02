@@ -35,7 +35,7 @@ Thumbs.db
 *.swp
 
 # --- Divers ---
-.claude_snapshot*.tgz
+.claude_*
 
 # Démonstration locale
 outils/demo/media/

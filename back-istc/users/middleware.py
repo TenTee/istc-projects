@@ -37,9 +37,11 @@ PORTAL_RULES = {
         (SAFE, r"^/api/emploi-du-temps/me/$"),
         (SAFE, r"^/api/emploi-du-temps-documents/me/$"),
         (SAFE, r"^/api/paiements/me/$"),
+        (SAFE, r"^/api/paiements/me/(facture|recus/\d+)/$"),
         (SAFE, r"^/api/notes/me/$"),
         (SAFE, r"^/api/notes/\d+/(details|releve-notes)/$"),  # la vue vérifie qu'il s'agit de l'étudiant connecté
         (SAFE, r"^/api/assiduite/$"),  # la vue ne renvoie que ses propres enregistrements
+        (ALL, r"^/api/auth/me/"),  # « Mon profil » : son propre compte uniquement
     ],
     "formateur": _REFERENTIEL + [
         (ALL, r"^/api/formateurs/portal/"),
@@ -47,6 +49,7 @@ PORTAL_RULES = {
         (SAFE, r"^/api/emploi-du-temps-documents/formateur/$"),
         (ALL, r"^/api/vacations/(coordonnateur|pointages)/"),  # réservé aux coordonnateurs par la vue
         (SAFE, r"^/api/vacations/mes-heures/"),
+        (ALL, r"^/api/auth/me/"),  # « Mon profil » : son propre compte uniquement
     ],
 }
 _COMPILED = {k: [(m, re.compile(p)) for m, p in rules] for k, rules in PORTAL_RULES.items()}

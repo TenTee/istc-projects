@@ -61,7 +61,7 @@ Le message **« Pré-inscription envoyée »** confirme la réception. Cliquez s
 L'établissement étudie votre dossier et vous recontacte. Si la préinscription est approuvée :
 
 - vous devenez étudiant de l'établissement, avec un **matricule** (par exemple `GÉNI-2026-0001`) ;
-- un **compte pour le portail étudiant** est créé ; l'administration vous remet votre nom d'utilisateur et votre mot de passe initial.
+- un **compte pour le portail étudiant** est créé ; l'administration vous envoie votre nom d'utilisateur et votre mot de passe provisoire, à changer dans **Mon profil** dès la première connexion.
 
 ## Erreurs possibles
 

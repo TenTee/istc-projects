@@ -11,12 +11,12 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import PasswordIcon from '@mui/icons-material/Password';
-import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { usersService, rolesService } from '../../services/api/services';
 import { getApiErrorMessage } from '../../services/api/client';
+import IdentifiantsDialog from '../common/IdentifiantsDialog';
 
 const userSchema = yup.object({
   noms: yup.string().required('Le nom est requis'),
@@ -38,7 +38,8 @@ export default function UsersTab() {
   const [currentUserId, setCurrentUserId] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
-  const [resetModalInfo, setResetModalInfo] = useState({ open: false, passwordDetails: null });
+  // Identifiants à transmettre après une création ou une réinitialisation.
+  const [identifiants, setIdentifiants] = useState({ open: false, data: null, motif: 'creation' });
 
   const getRoleLabel = (roleCode) => {
     const role = roles.find(r => r.code === roleCode);
@@ -106,22 +107,13 @@ export default function UsersTab() {
       try {
         const result = await usersService.resetPassword(id);
         if (result) {
-          setResetModalInfo({ open: true, passwordDetails: result });
+          setIdentifiants({ open: true, motif: 'reinitialisation', data: { ...result, password: result.password || result.new_password } });
         } else {
           showSnackbar('Mot de passe réinitialisé.', 'success');
         }
       } catch (err) {
         showSnackbar(getApiErrorMessage(err, 'Erreur de réinitialisation'), 'error');
       }
-    }
-  };
-
-  const handleCopyPassword = async () => {
-    try {
-      await navigator.clipboard.writeText(resetModalInfo.passwordDetails?.new_password);
-      showSnackbar('Mot de passe copié avec succès', 'success');
-    } catch {
-      showSnackbar('Erreur lors de la copie', 'error');
     }
   };
 
@@ -135,7 +127,17 @@ export default function UsersTab() {
         const result = await usersService.create(data);
         showSnackbar('Utilisateur créé avec succès');
         if (result && result.raw_password) {
-          setResetModalInfo({ open: true, passwordDetails: result });
+          setIdentifiants({
+            open: true,
+            motif: 'creation',
+            data: {
+              username: result.username,
+              password: result.raw_password,
+              nom: [result.noms, result.prenoms].filter(Boolean).join(' '),
+              email: result.email || '',
+              telephone: result.telephone || '',
+            },
+          });
         }
       }
       setOpenModal(false);
@@ -194,7 +196,7 @@ export default function UsersTab() {
                       </Typography>
                     </TableCell>
                     <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
-                      <Tooltip title="Changer le mot de passe">
+                      <Tooltip title="Réinitialiser le mot de passe et envoyer les identifiants">
                         <IconButton color="warning" onClick={() => handleResetPassword(user.id)}>
                           <PasswordIcon />
                         </IconButton>
@@ -265,35 +267,12 @@ export default function UsersTab() {
         </form>
       </Dialog>
 
-      <Dialog open={resetModalInfo.open} onClose={() => setResetModalInfo({ ...resetModalInfo, open: false })} maxWidth="sm" fullWidth>
-        <DialogTitle sx={{ color: 'primary.main', fontWeight: 'bold' }}>Accès Utilisateur</DialogTitle>
-        <DialogContent dividers>
-          <Typography variant="body1" sx={{ mb: 2 }}>
-            L'opération a réussi. Voici les identifiants d'accès temporaires.
-            <br /><strong>Veillez à les transmettre de manière sécurisée.</strong>
-          </Typography>
-          <Box sx={{ p: { xs: 2, sm: 3 }, bgcolor: '#f5f5f5', borderRadius: 3, border: '1px solid rgba(0,0,0,0.08)' }}>
-            <Typography sx={{ mb: 2 }}>
-              Nom d'utilisateur : <br />
-              <Typography component="span" fontWeight="bold" sx={{ wordBreak: 'break-all' }}>{resetModalInfo.passwordDetails?.username}</Typography>
-            </Typography>
-            <Typography sx={{ mb: 1 }}>Mot de passe temporaire :</Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, p: { xs: 1.5, sm: 2 }, borderRadius: 2, bgcolor: 'white' }}>
-              <Typography variant="h6" sx={{ fontWeight: 'bold', letterSpacing: 1, wordBreak: 'break-all', minWidth: 0 }}>
-                {resetModalInfo.passwordDetails?.new_password}
-              </Typography>
-              <Tooltip title="Copier le mot de passe">
-                <IconButton color="primary" onClick={handleCopyPassword}><ContentCopyIcon /></IconButton>
-              </Tooltip>
-            </Box>
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setResetModalInfo({ ...resetModalInfo, open: false })} variant="contained">
-            J'ai compris
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <IdentifiantsDialog
+        open={identifiants.open}
+        identifiants={identifiants.data}
+        motif={identifiants.motif}
+        onClose={() => setIdentifiants((i) => ({ ...i, open: false }))}
+      />
 
       <Snackbar open={snackbar.open} autoHideDuration={6000} onClose={() => setSnackbar({ ...snackbar, open: false })}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>

@@ -13,6 +13,7 @@ redis
 pytest
 pytest-django
 Pillow
+reportlab>=4.2
 dj-database-url
 psycopg2-binary
 python-dotenv

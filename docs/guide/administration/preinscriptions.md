@@ -30,7 +30,7 @@ La page « Gestion des pré-inscriptions » liste les demandes envoyées par les
 En une seule opération, SmartCampus :
 
 - crée l'**étudiant** avec son **matricule** (si un étudiant existe déjà avec le même email, son dossier est **mis à jour** au lieu d'être dupliqué) ;
-- crée son **compte portail étudiant** (identifiants visibles dans **Étudiants** → *Voir détails* → *Accès Portail Étudiant*) ;
+- crée son **compte portail étudiant** : la fenêtre « Étudiant inscrit : identifiants du portail » s'ouvre aussitôt pour copier ou envoyer le message (WhatsApp, e-mail). Ils restent consultables dans **Étudiants** → *Voir détails* → *Accès Portail Étudiant* ;
 - l'**inscrit** dans la classe demandée pour l'année active ;
 - crée son **échéancier** (avec la réduction éventuelle), ses **paiements** initiaux et marque la bourse comme utilisée ;
 - retire la demande de la liste des préinscriptions.

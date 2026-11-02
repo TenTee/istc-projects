@@ -3,7 +3,7 @@
 ## Connexion et comptes
 
 ??? question "J'ai oublié mon mot de passe."
-    Demandez une réinitialisation à l'administration : **Système** → *Utilisateurs* (personnel) ou **Enseignants** → **Réinitialiser le mot de passe** (formateurs). Pour un étudiant, l'administration consulte son mot de passe initial dans sa fiche ou le fait réinitialiser par un administrateur.
+    Demandez une réinitialisation à l'administration : **Système** → *Utilisateurs* (personnel), **Enseignants** → **Réinitialiser le mot de passe** (formateurs) ou **Étudiants** → *Voir détails* → **Réinitialiser le mot de passe** (étudiants). Le nouveau mot de passe provisoire vous est envoyé par WhatsApp, e-mail ou copie ; changez-le ensuite dans **Mon profil**.
 
 ??? question "Je me connecte mais la page tourne sans fin / reste blanche."
     1. Rechargez la page (++f5++).
@@ -18,7 +18,7 @@
     Votre rôle a seulement le droit **Lecture** sur ce domaine. Un administrateur doit lui donner le droit **Écriture**.
 
 ??? question "Puis-je changer moi-même mon mot de passe ?"
-    Pas depuis l'interface pour l'instant : le menu « Mon profil » affiche votre nom et votre rôle. Demandez un nouveau mot de passe à l'administration si nécessaire.
+    Oui : avatar en haut à droite → **Mon profil**. Vous pouvez y changer votre mot de passe et votre nom d'utilisateur ; votre mot de passe actuel est demandé. Voir [Mon profil](premiers-pas.md#mon-profil-changer-son-nom-dutilisateur-ou-son-mot-de-passe).
 
 ## Étudiants et inscriptions
 
@@ -32,7 +32,7 @@
     Modifiez sa fiche (**Étudiants** → crayon) en choisissant la nouvelle filière / classe, ou utilisez **Scolarité** → **Nouvelle inscription** pour une nouvelle année. Les frais de la nouvelle classe s'appliquent.
 
 ??? question "Comment saisir une sanction disciplinaire ?"
-    Les sanctions sont consultables par l'étudiant dans son portail (« Discipline »). Leur saisie se fait aujourd'hui depuis l'interface d'administration technique (`/admin/` du serveur, rubrique *Sanctions disciplinaires*), réservée au super-administrateur.
+    Menu **Discipline** → **Nouvelle sanction**, ou fiche de l'étudiant → *Discipline* → **Ajouter une sanction** (droit Étudiants en écriture). L'étudiant la voit dans son portail (« Discipline »). Voir [Discipline](administration/discipline.md).
 
 ## Notes
 
@@ -51,7 +51,10 @@
     Vérifiez dans l'ordre : 1) les frais de sa classe (*Configuration des Frais*), 2) la présence du mot « inscription » dans le libellé des frais d'inscription, 3) ses réductions / bourse, 4) ses paiements (**Détails & Reçus**) : un paiement enregistré avec le mauvais type (inscription au lieu de formation) fausse les deux soldes.
 
 ??? question "Je me suis trompé dans un paiement."
-    L'écran Scolarité ne permet pas encore de modifier ou supprimer un paiement (pour garantir la traçabilité). Demandez au super-administrateur de le corriger depuis l'interface d'administration technique (`/admin/` du serveur, rubrique *Paiements*), en conservant le justificatif.
+    **Scolarité** → *Suivi des paiements* → **Détails & Reçus** → icône crayon (corriger) ou corbeille (supprimer), avec un motif obligatoire. Il faut le droit Finance en écriture. Les soldes sont recalculés et l'opération est inscrite au journal. Voir [Corriger ou supprimer un paiement](administration/scolarite.md#corriger-ou-supprimer-un-paiement).
+
+??? question "Comment imprimer un reçu ou une facture ?"
+    **Détails & Reçus** : icône PDF ou imprimante sur la ligne du paiement, bouton **Facture PDF** en haut. L'étudiant les télécharge aussi depuis « Ma Situation Financière » dans son portail.
 
 ## Paie et vacataires
 

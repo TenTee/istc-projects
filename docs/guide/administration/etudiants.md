@@ -37,7 +37,7 @@ La page « Liste des étudiants » regroupe tous les dossiers étudiants de l'an
 L'étudiant est créé avec :
 
 - son **inscription** dans la classe pour l'année active ;
-- son **compte portail** (nom d'utilisateur et mot de passe initial générés automatiquement).
+- son **compte portail** (nom d'utilisateur et mot de passe provisoire générés automatiquement, à envoyer depuis la fenêtre « Compte créé »).
 
 ## Consulter la fiche d'un étudiant
 
@@ -50,10 +50,24 @@ Cliquez sur l'icône **Voir détails** (œil). Le panneau « Détails de l'étud
 - l'identité, la filière, la classe, les documents ;
 - les **paiements** enregistrés ;
 - **Echeancier et alertes** : le plan de paiement de l'étudiant (étiquette *Global* = échéancier de la classe, *Personnel* = échéancier propre à l'étudiant) et le montant éventuellement en retard ;
-- **Accès Portail Étudiant** : « Nom d'utilisateur » et « Mot de passe initial » à communiquer à l'étudiant.
+- **Discipline** : les sanctions de l'étudiant, avec **Ajouter une sanction** et la levée (voir [Discipline](discipline.md)) ;
+- **Accès Portail Étudiant** : « Nom d'utilisateur » et « Mot de passe provisoire », avec les boutons **Envoyer les identifiants** et **Réinitialiser le mot de passe**.
 
-!!! tip "Remettre ses identifiants à un étudiant"
-    Ouvrez la fiche, recopiez le nom d'utilisateur et le mot de passe initial de la rubrique *Accès Portail Étudiant*. Si le mot de passe indique « Non disponible ou déjà modifié », demandez à un administrateur de le réinitialiser (**Système** → *Utilisateurs*).
+### Envoyer ses identifiants à un étudiant
+
+Juste après l'ajout d'un étudiant, la fenêtre « Compte créé » s'ouvre automatiquement. Plus tard, ouvrez sa fiche → *Accès Portail Étudiant* → **Envoyer les identifiants**.
+
+La fenêtre « Identifiants » (création ou réinitialisation) affiche le **nom d'utilisateur**, le **mot de passe** et un **message prêt à envoyer** (adresse de connexion, identifiants, conseil de changer le mot de passe). Vous pouvez modifier le message, puis :
+
+- **Copier le message** (ou copier un seul champ avec l'icône à sa droite) ;
+- **WhatsApp** : ouvre WhatsApp avec le message ; si le numéro de la personne commence par `+` ou `00`, la conversation s'ouvre directement avec elle, sinon choisissez le destinataire ;
+- **E-mail** : ouvre votre messagerie avec l'adresse de la personne, l'objet et le message.
+
+Quand l'étudiant a changé son mot de passe dans **Mon profil**, le mot de passe provisoire n'est plus affiché (« Déjà changé par l'étudiant ») et le bouton **Envoyer les identifiants** disparaît.
+
+### Réinitialiser le mot de passe d'un étudiant
+
+Fiche de l'étudiant → *Accès Portail Étudiant* → **Réinitialiser le mot de passe**, puis confirmez (droit Étudiants en écriture). L'ancien mot de passe cesse de fonctionner, le nouveau mot de passe provisoire s'affiche dans la fiche et la fenêtre « Mot de passe réinitialisé » s'ouvre pour l'envoyer.
 
 ## Donner un échéancier personnalisé à un étudiant
 
@@ -68,7 +82,7 @@ Pour revenir à l'échéancier de la classe, cliquez sur **Revenir au global**.
 
 ## Modifier ou supprimer un étudiant
 
-- Icône **Modifier** (crayon) : corrigez les informations puis enregistrez. Le mot de passe initial ne peut pas être modifié ici.
+- Icône **Modifier** (crayon) : corrigez les informations puis enregistrez. Le mot de passe ne se modifie pas ici : utilisez **Réinitialiser le mot de passe** dans la fiche.
 - Icône **Supprimer** (corbeille) puis confirmez.
 
 !!! danger "Suppression"

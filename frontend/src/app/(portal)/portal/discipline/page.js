@@ -41,7 +41,11 @@ export default function StudentDiscipline() {
   if (loading) return <Box sx={{ display: 'flex', justifyContent: 'center', mt: 5 }}><CircularProgress /></Box>;
   if (!student) return <Typography color="error">Erreur de chargement.</Typography>;
 
-  const activeSanctions = student.sanctions?.filter(s => s.active) || [];
+  // « etat » : active (en cours), terminee (exclusion temporaire finie) ou levee.
+  const etatDe = (s) => s.etat || (s.active ? 'active' : 'levee');
+  const activeSanctions = student.sanctions?.filter((s) => etatDe(s) === 'active') || [];
+  const dateFr = (iso) => (iso ? new Date(`${String(iso).slice(0, 10)}T00:00:00`).toLocaleDateString('fr-FR') : '-');
+  const exclusionEnCours = activeSanctions.find((s) => s.type_sanction === 'Exclusion temporaire' && s.date_fin);
 
   return (
     <Box>
@@ -49,11 +53,14 @@ export default function StudentDiscipline() {
       
       {activeSanctions.length > 0 ? (
         <Alert severity="warning" sx={{ mb: 4, borderRadius: 3 }}>
-          Vous avez {activeSanctions.length} sanction(s) active(s) au dossier.
+          Vous avez {activeSanctions.length} sanction(s) en cours au dossier.
+          {exclusionEnCours && (
+            <> Vous êtes exclu(e) jusqu&apos;au <strong>{dateFr(exclusionEnCours.date_fin)}</strong> inclus.</>
+          )}
         </Alert>
       ) : (
         <Alert severity="success" sx={{ mb: 4, borderRadius: 3 }}>
-          Votre dossier disciplinaire est exemplaire. Aucune sanction active.
+          Aucune sanction en cours à votre dossier.
         </Alert>
       )}
 
@@ -80,18 +87,27 @@ export default function StudentDiscipline() {
                 {student.sanctions?.length > 0 ? (
                   student.sanctions.map((sanction) => (
                     <TableRow key={sanction.id} hover>
-                      <TableCell sx={{ whiteSpace: 'nowrap' }}>{new Date(sanction.date_sanction).toLocaleDateString()}</TableCell>
+                      <TableCell sx={{ whiteSpace: 'nowrap' }}>{dateFr(sanction.date_sanction)}</TableCell>
                       <TableCell>
                         <Typography variant="body2" fontWeight="bold">{sanction.type_sanction}</Typography>
                       </TableCell>
-                      <TableCell sx={{ maxWidth: 300 }}>{sanction.motif}</TableCell>
-                      <TableCell>{sanction.duree || '-'}</TableCell>
+                      <TableCell sx={{ maxWidth: 300 }}>
+                        {sanction.motif}
+                        {etatDe(sanction) === 'levee' && sanction.motif_levee && (
+                          <Typography variant="caption" color="success.main" display="block">
+                            Levée le {dateFr(sanction.date_levee)} : {sanction.motif_levee}
+                          </Typography>
+                        )}
+                      </TableCell>
+                      <TableCell sx={{ whiteSpace: 'nowrap' }}>
+                        {sanction.date_fin ? `Jusqu'au ${dateFr(sanction.date_fin)}` : sanction.duree || '-'}
+                      </TableCell>
                       <TableCell align="center">
-                        <Chip 
-                          label={sanction.active ? 'Active' : 'Levée'} 
+                        <Chip
+                          label={{ active: 'En cours', terminee: 'Terminée', levee: 'Levée' }[etatDe(sanction)]}
                           size="small"
-                          color={sanction.active ? 'error' : 'default'}
-                          variant={sanction.active ? 'filled' : 'outlined'}
+                          color={{ active: 'error', terminee: 'default', levee: 'success' }[etatDe(sanction)]}
+                          variant={etatDe(sanction) === 'active' ? 'filled' : 'outlined'}
                         />
                       </TableCell>
                     </TableRow>

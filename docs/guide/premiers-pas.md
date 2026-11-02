@@ -48,13 +48,27 @@ Selon votre type de compte, vous arrivez automatiquement :
 
 ### J'ai oublié mon mot de passe
 
-Le lien « Mot de passe oublié ? » de la page de connexion n'envoie pas encore d'email de réinitialisation. Demandez à l'administration :
+Le lien « Mot de passe oublié ? » de la page de connexion n'envoie pas encore d'email de réinitialisation. Demandez à l'administration de réinitialiser votre mot de passe ; elle vous envoie un nouveau mot de passe provisoire (par WhatsApp, e-mail ou copie) :
 
-- **Personnel** : **Système** → *Utilisateurs* → icône « Changer le mot de passe » sur votre ligne ; un mot de passe temporaire s'affiche, avec un bouton pour le copier.
-- **Formateur** : **Enseignants** → détails du formateur → **Réinitialiser le mot de passe**.
+- **Personnel** : **Système** → *Utilisateurs* → icône « Réinitialiser le mot de passe » (administrateur).
+- **Formateur** : **Enseignants** → détails du formateur → **Réinitialiser le mot de passe** (droit RH en écriture).
+- **Étudiant** : **Étudiants** → *Voir détails* → *Accès Portail Étudiant* → **Réinitialiser le mot de passe** (droit Étudiants en écriture).
 
-!!! warning "Un mot de passe temporaire n'est affiché qu'une seule fois"
-    Notez-le ou transmettez-le immédiatement à la personne concernée.
+!!! warning "Un mot de passe provisoire n'est affiché qu'une seule fois"
+    L'administration doit le transmettre immédiatement. À la réception, connectez-vous puis changez-le dans **Mon profil**.
+
+## Mon profil : changer son nom d'utilisateur ou son mot de passe
+
+Tout le monde (personnel, formateurs, étudiants) peut changer ses propres identifiants :
+
+1. Cliquez sur votre avatar en haut à droite, puis sur **Mon profil**.
+2. **Nom d'utilisateur** : tapez le nouveau nom (lettres sans accent, chiffres et `. @ + - _`, sans espace), puis votre **mot de passe actuel**, et cliquez sur **Changer le nom d'utilisateur**. Connectez-vous ensuite avec ce nouveau nom.
+3. **Mot de passe** : tapez le **mot de passe actuel**, le **nouveau** et sa **confirmation**, puis **Changer le mot de passe**.
+
+Le nouveau mot de passe doit faire au moins 8 caractères, ne pas être composé uniquement de chiffres, ne pas être trop courant (« password », « 12345678 »…) ni trop proche de votre nom ; le message affiché sous le champ indique ce qui ne va pas.
+
+!!! tip "Changez le mot de passe provisoire"
+    Le mot de passe reçu à la création du compte ou après une réinitialisation est provisoire : remplacez-le dès votre première connexion. Pour un étudiant, il disparaît alors de sa fiche côté administration.
 
 ## Se repérer dans l'écran
 
@@ -97,7 +111,7 @@ Toutes les données (classes, inscriptions, notes, emplois du temps, paiements) 
 
 ## Se déconnecter
 
-![Le menu de l'avatar : nom d'utilisateur, rôle et Déconnexion](../images/captures/04b_menu_profil.jpg)
+![Le menu de l'avatar : nom d'utilisateur, rôle, Mon profil et Déconnexion](../images/captures/04b_menu_profil.jpg)
 
 1. Cliquez sur votre avatar en haut à droite.
 2. Cliquez sur **Déconnexion** (en rouge).

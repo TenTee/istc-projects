@@ -74,6 +74,8 @@ Dans le tableau (colonnes Libellé, Montant, Obligatoire, Échéance), le crayon
 
 5. Enregistrez.
 
+Le paiement reçoit un **numéro de reçu** (`REC-2026-000123`), affiché dans le message de confirmation avec un bouton **Reçu PDF** pour imprimer ou télécharger le reçu tout de suite.
+
 Le solde est recalculé immédiatement. Pour la scolarité, le paiement est **imputé sur les tranches dans l'ordre** : la tranche 1 est soldée en premier, le surplus passe sur la tranche 2, etc.
 
 Exemple : échéancier 4 × 100 000 ; l'étudiant paie 150 000 → *Tranche 1* payée, *Tranche 2* partiellement payée (50 000).
@@ -84,7 +86,31 @@ Exemple : échéancier 4 × 100 000 ; l'étudiant paie 150 000 → *Tranche 1* p
 
 ![Détails & Reçus : échéancier des tranches](../../images/captures/26b_paiement_echeancier.jpg)
 
-**Détails & Reçus** sur la ligne de l'étudiant : liste de ses paiements, « Échéancier des Tranches » avec l'état de chaque tranche, et bouton **Voir le justificatif** pour chaque paiement. **Enregistrer un paiement** est aussi disponible depuis cette fenêtre.
+**Détails & Reçus** sur la ligne de l'étudiant : liste de ses paiements (avec leur **N° de reçu**), « Échéancier des Tranches » avec l'état de chaque tranche, **Journal** des opérations, et bouton **Voir le justificatif** pour chaque paiement. **Enregistrer un paiement** est aussi disponible depuis cette fenêtre.
+
+### Reçus et factures PDF
+
+Dans **Détails & Reçus** :
+
+- icône **PDF** sur la ligne d'un paiement : télécharge son **reçu** (numéro, étudiant, classe, objet, mode, montant en chiffres et en lettres, situation après ce paiement, zone de signature) ;
+- icône **Imprimante** : ouvre le reçu dans un nouvel onglet pour l'imprimer ;
+- bouton **Facture PDF** (en haut) : la **facture** de l'étudiant pour l'année choisie (frais de sa classe, réduction ou bourse, net à payer, paiements reçus, reste à payer, échéancier).
+
+Les mêmes boutons existent dans la fiche de l'étudiant (**Étudiants** → *Voir détails* → *Historique des paiements*), et l'étudiant télécharge lui-même ses reçus et sa facture dans son portail. Les documents reprennent le nom, le logo d'en-tête, les coordonnées, la couleur et le directeur définis dans **Système** → *Établissement*.
+
+### Corriger ou supprimer un paiement
+
+Réservé aux comptes ayant le droit **Finance en écriture**. Dans **Détails & Reçus**, sur la ligne du paiement :
+
+- icône **crayon** : corrigez le montant, le type (inscription / formation), le mode ou la date, puis saisissez le **motif** ;
+- icône **corbeille** : saisissez le **motif** (ex. « saisi en double », « chèque rejeté ») puis **Supprimer**.
+
+Le motif est obligatoire (5 caractères au moins). SmartCampus recalcule aussitôt les soldes et l'imputation sur les tranches. Le numéro de reçu d'un paiement corrigé ne change pas : réimprimez le reçu. Un paiement supprimé disparaît des soldes, et son reçu n'est plus valable.
+
+Chaque opération est inscrite dans l'onglet **Journal** : date, opération, n° de reçu, valeurs avant / après, motif et nom de la personne.
+
+!!! warning "Mauvais étudiant"
+    Un paiement ne peut pas être déplacé vers un autre étudiant : supprimez-le (motif « mauvais étudiant ») puis enregistrez-le sur le bon.
 
 ## Suivre les retards
 

@@ -1,6 +1,7 @@
 import calendar
 from decimal import Decimal, ROUND_HALF_UP
 
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
@@ -389,13 +390,20 @@ class Paiement(models.Model):
         blank=True,
         help_text="Importer une photo ou un PDF comme preuve du paiement",
     )
-    date_paiement = models.DateTimeField(auto_now_add=True)
+    # Modifiable pour corriger une saisie (paiement reçu un autre jour).
+    date_paiement = models.DateTimeField(default=timezone.now)
+    numero_recu = models.CharField(max_length=30, unique=True, null=True, blank=True, editable=False)
+    enregistre_par = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        editable=False,
+        related_name="paiements_enregistres",
+    )
 
-    def save(self, *args, **kwargs):
-        is_new = self.pk is None
-        if self.etudiant and self.etudiant.filiere:
-            self.filiere = self.etudiant.filiere
-
+    def montant_reference(self):
+        """Montant dû pour le groupe de ce paiement (frais précis, ou type inscription / formation)."""
         reference_amount = Decimal("0")
         if self.frais_id:
             reference_amount = self.frais.montant
@@ -414,12 +422,22 @@ class Paiement(models.Model):
                 reference_amount = frais_qs.aggregate(
                     total=models.Sum("montant")
                 )["total"] or Decimal("0")
+        return reference_amount
 
-        existing_payments = Paiement.objects.filter(etudiant=self.etudiant)
+    def paiements_du_groupe(self):
+        qs = Paiement.objects.filter(etudiant=self.etudiant)
         if self.frais_id:
-            existing_payments = existing_payments.filter(frais=self.frais)
-        else:
-            existing_payments = existing_payments.filter(paiement_type=self.paiement_type)
+            return qs.filter(frais=self.frais)
+        return qs.filter(paiement_type=self.paiement_type)
+
+    def save(self, *args, **kwargs):
+        is_new = self.pk is None
+        if self.etudiant and self.etudiant.filiere:
+            self.filiere = self.etudiant.filiere
+
+        reference_amount = self.montant_reference()
+
+        existing_payments = self.paiements_du_groupe()
 
         first_payment = not existing_payments.exclude(pk=self.pk).exists()
         self.montant_du = reference_amount if first_payment else None
@@ -434,6 +452,12 @@ class Paiement(models.Model):
             self.solde_restant = reference_amount - total_paid
 
         super().save(*args, **kwargs)
+
+        if is_new and not self.numero_recu:
+            # Numéro dérivé de la clé primaire : unique sans verrou, même en cas de saisies simultanées.
+            annee = (self.date_paiement or timezone.now()).year
+            self.numero_recu = numero_de_recu(annee, self.pk)
+            Paiement.objects.filter(pk=self.pk).update(numero_recu=self.numero_recu)
 
         if is_new and self.paiement_type == "FORMATION":
             self.apply_to_payment_plan()
@@ -469,6 +493,41 @@ class Paiement(models.Model):
         if not plan.installments.exclude(status=StudentPaymentInstallment.STATUS_PAID).exists():
             plan.status = StudentPaymentPlan.STATUS_COMPLETED
             plan.save(update_fields=["status", "updated_at"])
+
+
+def numero_de_recu(annee, pk):
+    return f"REC-{annee}-{pk:06d}"
+
+
+class JournalPaiement(models.Model):
+    """Trace des créations, corrections et suppressions de paiements (qui, quand, pourquoi, avant / après)."""
+
+    CREATION = "creation"
+    MODIFICATION = "modification"
+    SUPPRESSION = "suppression"
+    ACTIONS = [(CREATION, "Création"), (MODIFICATION, "Modification"), (SUPPRESSION, "Suppression")]
+
+    paiement_id_origine = models.PositiveIntegerField(null=True, blank=True)
+    numero_recu = models.CharField(max_length=30, blank=True)
+    etudiant = models.ForeignKey(
+        Etudiant, on_delete=models.SET_NULL, null=True, blank=True, related_name="journal_paiements"
+    )
+    etudiant_nom = models.CharField(max_length=255, blank=True)
+    action = models.CharField(max_length=20, choices=ACTIONS)
+    motif = models.TextField(blank=True)
+    utilisateur = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="+"
+    )
+    utilisateur_nom = models.CharField(max_length=255, blank=True)
+    avant = models.JSONField(null=True, blank=True)
+    apres = models.JSONField(null=True, blank=True)
+    date = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-date", "-id"]
+
+    def __str__(self):
+        return f"{self.get_action_display()} {self.numero_recu} ({self.etudiant_nom})"
 
 
 def split_amount(total_amount, count):

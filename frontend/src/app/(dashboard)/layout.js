@@ -12,6 +12,7 @@ import { clearSession } from '../../services/api/client';
 
 const ROUTE_PERMISSION_MAP = {
   '/students': 'can_manage_etudiants',
+  '/discipline': 'can_manage_etudiants',
   '/formateurs': 'can_manage_rh',
   '/pedagogy': 'can_manage_pedagogie',
   '/modules': 'can_manage_pedagogie',

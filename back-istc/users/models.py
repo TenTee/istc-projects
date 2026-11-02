@@ -55,19 +55,17 @@ class CustomUser(AbstractUser):
 
         # Génération automatique du mot de passe si vide
         if not self.password:
-            raw_password = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
+            from users.utils import generer_mot_de_passe
+            raw_password = generer_mot_de_passe()
             self._raw_password = raw_password  # ✅ stock temporaire pour le signal
             self.set_password(raw_password)
 
         super().save(*args, **kwargs)
 
     def reset_password(self):
-        """Réinitialiser le mot de passe (réservé au superAdmin)."""
-        raw_password = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
-        self._raw_password = raw_password  # stock temporaire pour le signal
-        self.set_password(raw_password)
-        self.save()
-        return raw_password
+        """Réinitialiser le mot de passe : voir users.utils.reinitialiser_mot_de_passe."""
+        from users.utils import reinitialiser_mot_de_passe
+        return reinitialiser_mot_de_passe(self)
 
     def __str__(self):
         return f"{self.noms} {self.prenoms} ({self.role})"

@@ -7,9 +7,12 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.decorators import action
+from django.db import transaction
+from users.permissions import HasRolePermission
+from users.utils import identifiants, reinitialiser_mot_de_passe
 
-from .models import Etudiant, EtudiantDocument, Inscription
-from .serializers import EtudiantSerializer, EtudiantDocumentSerializer, InscriptionSerializer
+from .models import Etudiant, EtudiantDocument, Inscription, SanctionDisciplinaire
+from .serializers import EtudiantSerializer, EtudiantDocumentSerializer, InscriptionSerializer, SanctionGestionSerializer
 from academique.models import ConfigurationEtablissement, CourseAssignment
 from academique.middleware import get_current_academic_year_id
 from .views_situation import StudentSituationView, StudentHistoryView  # noqa: F401 (réexport pour urls.py)
@@ -69,6 +72,119 @@ class EtudiantRetrieveUpdateDeleteView(generics.RetrieveUpdateDestroyAPIView):
         'sanctions',
     ).select_related('filiere', 'user')
     serializer_class = EtudiantSerializer
+
+
+class EtudiantResetPasswordView(generics.GenericAPIView):
+    """Nouveau mot de passe provisoire pour le compte portail d'un étudiant (droit Étudiants en écriture).
+
+    Le mot de passe reste visible dans la fiche (« Mot de passe provisoire ») jusqu'à ce que
+    l'étudiant le change dans « Mon profil ».
+    """
+    queryset = Etudiant.objects.select_related('user')
+    permission_classes = [HasRolePermission]
+    required_permission = 'can_manage_etudiants'
+    required_access = 'ecriture'
+
+    @transaction.atomic
+    def post(self, request, pk=None):
+        etudiant = self.get_object()
+        if not etudiant.user or etudiant.user.role != 'etudiant':
+            return Response({'detail': "Cet étudiant n'a pas de compte portail."}, status=status.HTTP_400_BAD_REQUEST)
+        if not etudiant.user.is_active:
+            etudiant.user.is_active = True
+            etudiant.user.save(update_fields=['is_active'])
+        mot_de_passe = reinitialiser_mot_de_passe(etudiant.user)
+        return Response(identifiants(etudiant.user, mot_de_passe, nom=etudiant.nom, telephone=etudiant.contact or ''))
+
+
+# --- Discipline ---
+class SanctionViewSet(viewsets.ModelViewSet):
+    """
+    Sanctions disciplinaires : lecture avec l'accès Étudiants (ou Pédagogie / Finance en lecture),
+    écriture avec le droit Étudiants en écriture (StaffAccessMiddleware, règle /api/etudiants).
+    Une sanction n'est pas « désactivée » par modification : on la lève (action `lever`, avec motif)
+    pour garder l'historique ; la suppression sert à effacer une erreur de saisie.
+    """
+    serializer_class = SanctionGestionSerializer
+    pagination_class = None
+
+    def get_queryset(self):
+        from django.db.models import Q
+
+        qs = SanctionDisciplinaire.objects.select_related("etudiant", "enregistree_par", "levee_par")
+        p = self.request.query_params
+        if p.get("etudiant"):
+            qs = qs.filter(etudiant_id=p["etudiant"])
+        if p.get("type"):
+            qs = qs.filter(type_sanction=p["type"])
+        if p.get("classe"):
+            qs = qs.filter(etudiant__inscriptions__classe_id=p["classe"]).distinct()
+        if p.get("du"):
+            qs = qs.filter(date_sanction__gte=p["du"])
+        if p.get("au"):
+            qs = qs.filter(date_sanction__lte=p["au"])
+        aujourdhui = timezone.localdate()
+        etat = p.get("etat")
+        if etat == "active":
+            qs = qs.filter(active=True).filter(Q(date_fin__isnull=True) | Q(date_fin__gte=aujourdhui))
+        elif etat == "terminee":
+            qs = qs.filter(active=True, date_fin__lt=aujourdhui)
+        elif etat == "levee":
+            qs = qs.filter(active=False)
+        recherche = (p.get("q") or "").strip()
+        if recherche:
+            qs = qs.filter(Q(etudiant__nom__icontains=recherche) | Q(etudiant__matricule__icontains=recherche)
+                           | Q(motif__icontains=recherche))
+        return qs.order_by("-date_sanction", "-id")
+
+    def perform_create(self, serializer):
+        serializer.save(enregistree_par=self.request.user)
+
+    @action(detail=True, methods=["post"])
+    def lever(self, request, pk=None):
+        sanction = self.get_object()
+        motif = (request.data.get("motif_levee") or "").strip()
+        if len(motif) < 5:
+            return Response({"motif_levee": ["Indiquez le motif de la levée (au moins 5 caractères)."]},
+                            status=status.HTTP_400_BAD_REQUEST)
+        if not sanction.active:
+            return Response({"detail": "Cette sanction est déjà levée."}, status=status.HTTP_400_BAD_REQUEST)
+        sanction.active = False
+        sanction.date_levee = timezone.localdate()
+        sanction.motif_levee = motif
+        sanction.levee_par = request.user
+        sanction.save(update_fields=["active", "date_levee", "motif_levee", "levee_par", "updated_at"])
+        return Response(self.get_serializer(sanction).data)
+
+    @action(detail=True, methods=["post"])
+    def retablir(self, request, pk=None):
+        """Annule une levée faite par erreur."""
+        sanction = self.get_object()
+        sanction.active = True
+        sanction.date_levee = None
+        sanction.motif_levee = ""
+        sanction.levee_par = None
+        sanction.save(update_fields=["active", "date_levee", "motif_levee", "levee_par", "updated_at"])
+        return Response(self.get_serializer(sanction).data)
+
+    @action(detail=False, methods=["get"])
+    def statistiques(self, request):
+        from django.db.models import Count, Q
+
+        aujourdhui = timezone.localdate()
+        qs = SanctionDisciplinaire.objects.all()
+        en_cours = qs.filter(active=True).filter(Q(date_fin__isnull=True) | Q(date_fin__gte=aujourdhui))
+        par_type = dict(en_cours.values_list("type_sanction").annotate(n=Count("id")))
+        return Response({
+            "total": qs.count(),
+            "actives": en_cours.count(),
+            "etudiants_concernes": en_cours.values("etudiant").distinct().count(),
+            "exclusions_en_cours": en_cours.filter(
+                type_sanction__in=[SanctionDisciplinaire.EXCLUSION_TEMPORAIRE,
+                                   SanctionDisciplinaire.EXCLUSION_DEFINITIVE]).count(),
+            "levees": qs.filter(active=False).count(),
+            "par_type": {t: par_type.get(t, 0) for t, _ in SanctionDisciplinaire.TYPE_CHOICES},
+        })
 
 
 # --- Inscriptions ---

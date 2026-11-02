@@ -17,15 +17,40 @@ import {
   Paper,
   CircularProgress,
   Chip,
-  Divider
+  Divider,
+  Button,
+  IconButton,
+  Tooltip,
+  Alert,
 } from '@mui/material';
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
+import DescriptionIcon from '@mui/icons-material/Description';
 import { paiementsService } from '../../../../services/api/services';
+import { obtenirPdf } from '../../../../utils/documentsPdf';
+
+const LIBELLES_MOYENS = {
+  cash: 'Espèces', mobile_money: 'Mobile Money', orange_money: 'Orange Money', virement: 'Virement', cheque: 'Chèque',
+};
 
 const formatCurrency = (val) => `${Number(val || 0).toLocaleString('fr-FR')} FCFA`;
 
 export default function StudentFinance() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [erreurPdf, setErreurPdf] = useState('');
+  const [pdfEnCours, setPdfEnCours] = useState('');
+
+  const telecharger = async (cle, url, nomParDefaut) => {
+    setErreurPdf('');
+    setPdfEnCours(cle);
+    try {
+      await obtenirPdf(url, { nomParDefaut });
+    } catch (e) {
+      setErreurPdf(e.message);
+    } finally {
+      setPdfEnCours('');
+    }
+  };
 
   useEffect(() => {
     const fetchFinance = async () => {
@@ -50,7 +75,18 @@ export default function StudentFinance() {
 
   return (
     <Box>
-      <Typography variant="h5" fontWeight="bold" color="primary" gutterBottom>Ma Situation Financière</Typography>
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 1.5, mb: 2 }}>
+        <Typography variant="h5" fontWeight="bold" color="primary">Ma Situation Financière</Typography>
+        <Button
+          variant="contained"
+          startIcon={<DescriptionIcon />}
+          disabled={pdfEnCours === 'facture'}
+          onClick={() => telecharger('facture', paiementsService.urlMaFacture(), 'ma-facture.pdf')}
+        >
+          {pdfEnCours === 'facture' ? 'Génération…' : 'Télécharger ma facture'}
+        </Button>
+      </Box>
+      {erreurPdf && <Alert severity="error" sx={{ mb: 2 }} onClose={() => setErreurPdf('')}>{erreurPdf}</Alert>}
       
       <Grid container spacing={{ xs: 2, md: 3 }} sx={{ mb: { xs: 3, md: 4 } }}>
         <Grid item xs={12} md={8}>
@@ -157,6 +193,54 @@ export default function StudentFinance() {
               </TableBody>
             </Table>
           </TableContainer>
+        </Grid>
+
+        <Grid item xs={12}>
+          <Typography variant="h6" sx={{ mb: 2 }}>Mes paiements et reçus</Typography>
+          {data.paiements?.length ? (
+            <TableContainer component={Paper} sx={{ borderRadius: 3 }}>
+              <Table size="small" sx={{ minWidth: 560 }}>
+                <TableHead sx={{ bgcolor: '#F5F7FA' }}>
+                  <TableRow>
+                    <TableCell>Date</TableCell>
+                    <TableCell>N° de reçu</TableCell>
+                    <TableCell>Objet</TableCell>
+                    <TableCell>Mode</TableCell>
+                    <TableCell align="right">Montant</TableCell>
+                    <TableCell align="center">Reçu</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {data.paiements.map((p) => (
+                    <TableRow key={p.id}>
+                      <TableCell sx={{ whiteSpace: 'nowrap' }}>{new Date(p.date_paiement).toLocaleDateString('fr-FR')}</TableCell>
+                      <TableCell sx={{ whiteSpace: 'nowrap', fontFamily: 'monospace' }}>{p.numero_recu || '-'}</TableCell>
+                      <TableCell>{p.paiement_type === 'INSCRIPTION' ? "Frais d'inscription" : 'Frais de formation'}</TableCell>
+                      <TableCell>{LIBELLES_MOYENS[p.moyen_paiement] || p.moyen_paiement || 'Espèces'}</TableCell>
+                      <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>{formatCurrency(p.montant_paye)}</TableCell>
+                      <TableCell align="center">
+                        <Tooltip title="Télécharger le reçu (PDF)">
+                          <span>
+                            <IconButton
+                              color="primary"
+                              size="small"
+                              disabled={pdfEnCours === `recu-${p.id}`}
+                              onClick={() => telecharger(`recu-${p.id}`, paiementsService.urlMonRecu(p.id), `recu-${p.numero_recu || p.id}.pdf`)}
+                              aria-label={`Télécharger le reçu ${p.numero_recu || ''}`}
+                            >
+                              <PictureAsPdfIcon fontSize="small" />
+                            </IconButton>
+                          </span>
+                        </Tooltip>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          ) : (
+            <Typography variant="body2" color="text.secondary">Aucun paiement enregistré pour cette année.</Typography>
+          )}
         </Grid>
       </Grid>
     </Box>

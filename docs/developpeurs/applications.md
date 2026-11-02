@@ -5,15 +5,15 @@
 | App | Préfixe d'URL | Responsabilité |
 |---|---|---|
 | `smart_back` | — | Projet : `settings.py`, `urls.py`, `testing.py` (fabriques de test), `test_audit.py` |
-| `users` | `/api/auth/` | `CustomUser` (username/mot de passe générés), `Role` (5 domaines × none/lecture/ecriture), login JWT, reCAPTCHA (`recaptcha.py`), `PortalAccessMiddleware`, `permissions.py` |
+| `users` | `/api/auth/` | `CustomUser` (username/mot de passe générés), `Role` (5 domaines × none/lecture/ecriture), login JWT, « Mon profil » (`me/`, `me/mot-de-passe/`), génération / réinitialisation des identifiants (`utils.py`), reCAPTCHA (`recaptcha.py`), `PortalAccessMiddleware`, `permissions.py` |
 | `academique` | `/api/v2/` | Structure (universités, départements, filières, spécialités, cycles, niveaux, classes, années, salles), `ParametresGlobaux`, `CycleGlobal`, préinscriptions (+ approbation), inscriptions, épreuves, affectations, configuration établissement, middlewares d'année |
-| `etudiants` | `/api/etudiants/` | Dossier étudiant (matricule auto), `Inscription`, sanctions, portail (`me/`, situation, historique, carte, certificat) |
+| `etudiants` | `/api/etudiants/` | Dossier étudiant (matricule auto), `Inscription`, portail (`me/`, situation, historique, carte, certificat), sanctions disciplinaires (`SanctionViewSet` : `/api/etudiants/sanctions/`, actions `lever`, `retablir`, `statistiques`) |
 | `formateurs` | `/api/formateurs/` | Formateurs (permanent / vacataire), comptes portail, **API du portail formateur** (`portal/…`), documents de cours |
 | `modules` | `/api/modules/` | Cours / modules (coefficient, semestre, classes rattachées) |
 | `emploidutemps` | `/api/emploi-du-temps/` | Créneaux + règles (`clean()`), documents d'emploi du temps officiels |
 | `notes` | `/api/notes/` | Notes (CC / SN / rattrapage), saisie groupée, validation, relevés, rattrapages, portail (`me/`) |
 | `assiduite` | `/api/assiduite/` | Absences et retards des étudiants |
-| `paiements` | `/api/paiements/`, `/api/v2/frais/` … | Frais, paiements, bourses, réductions, échéanciers (classe / filière / étudiant), alertes, tableau de bord, `finance.py` |
+| `paiements` | `/api/paiements/`, `/api/v2/frais/` … | Frais, paiements, bourses, réductions, échéanciers (classe / filière / étudiant), alertes, tableau de bord, `finance.py`, reçus et factures PDF (`documents_pdf.py`, ReportLab), corrections / suppressions avec recalcul et `JournalPaiement` (`corrections.py`) |
 | `paie` | `/api/paie/` | Primes, retenues, avances, campagnes, bulletins, statistiques |
 | `vacations` | `/api/vacations/` | Coordinations de filière, pointages, récaps mensuels, validation finance, « mes heures » |
 | `personnels` | `/api/personnels/` | Personnel non enseignant, ancienneté, soldes de congés |

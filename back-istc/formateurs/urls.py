@@ -5,6 +5,7 @@ from .views import (
     FormateurListCreateView,
     FormateurRetrieveUpdateDeleteView,
     FormateurGenerateAccountView,
+    FormateurResetPasswordView,
     FormateurPortalViewSet,
     CoursDocumentViewSet,
     CoursDocumentEtudiantView,
@@ -18,6 +19,7 @@ urlpatterns = [
     path('', FormateurListCreateView.as_view(), name='formateur-list'),
     path('<int:pk>/', FormateurRetrieveUpdateDeleteView.as_view(), name='formateur-detail'),
     path('<int:pk>/generate-account/', FormateurGenerateAccountView.as_view(), name='formateur-generate-account'),
+    path('<int:pk>/reset-password/', FormateurResetPasswordView.as_view(), name='formateur-reset-password'),
     path('', include(router.urls)),
     path('cours-etudiants/', CoursDocumentEtudiantView.as_view(), name='cours-etudiants'),
 ]

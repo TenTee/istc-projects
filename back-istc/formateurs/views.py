@@ -11,6 +11,8 @@ from django.utils.crypto import get_random_string
 from rest_framework.exceptions import ValidationError
 
 from users.models import CustomUser
+from users.permissions import HasRolePermission
+from users.utils import generer_mot_de_passe, identifiants, reinitialiser_mot_de_passe
 
 from .models import Formateur, CoursDocument
 from .serializers import FormateurSerializer, FormateurPortalSerializer, CoursDocumentSerializer
@@ -24,7 +26,7 @@ def _create_formateur_account(formateur):
     nom_parts = formateur.nom.lower().replace(" ", "").split()
     base_username = ".".join(nom_parts) if nom_parts else "formateur"
     username = f"{base_username}{get_random_string(3, allowed_chars='0123456789')}"
-    raw_password = get_random_string(8)
+    raw_password = generer_mot_de_passe()
 
     user = CustomUser(
         noms=formateur.nom,
@@ -67,10 +69,8 @@ class FormateurListCreateView(generics.ListCreateAPIView):
         data = serializer.data
         formateur = serializer.instance
         if hasattr(formateur, '_generated_username'):
-            data['credentials'] = {
-                'username': formateur._generated_username,
-                'password': formateur._generated_password,
-            }
+            data['credentials'] = identifiants(formateur.user, formateur._generated_password, nom=formateur.nom,
+                                               telephone=formateur.contact or '')
 
         return Response(data, status=status.HTTP_201_CREATED)
 
@@ -106,10 +106,26 @@ class FormateurGenerateAccountView(generics.GenericAPIView):
             )
 
         username, raw_password = _create_formateur_account(formateur)
-        return Response({
-            'username': username,
-            'password': raw_password,
-        })
+        return Response(identifiants(formateur.user, raw_password, nom=formateur.nom,
+                                     telephone=formateur.contact or ''))
+
+
+class FormateurResetPasswordView(generics.GenericAPIView):
+    """Nouveau mot de passe provisoire pour le compte portail d'un formateur (droit RH en écriture)."""
+    queryset = Formateur.objects.select_related('user')
+    permission_classes = [HasRolePermission]
+    required_permission = 'can_manage_rh'
+    required_access = 'ecriture'
+
+    @transaction.atomic
+    def post(self, request, pk=None):
+        formateur = self.get_object()
+        if not formateur.user:
+            return Response({'detail': "Ce formateur n'a pas encore de compte : créez-le d'abord."},
+                            status=status.HTTP_400_BAD_REQUEST)
+        mot_de_passe = reinitialiser_mot_de_passe(formateur.user)
+        return Response(identifiants(formateur.user, mot_de_passe, nom=formateur.nom,
+                                     telephone=formateur.contact or ''))
 
 
 class FormateurPortalViewSet(viewsets.ViewSet):

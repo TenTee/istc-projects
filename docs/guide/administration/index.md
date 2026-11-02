@@ -6,6 +6,7 @@ L'espace d'administration regroupe tous les modules de gestion. Le menu de gauch
 |---|---|---|
 | Tableau de bord | | [Tableau de bord](tableau-de-bord.md) |
 | Étudiants | | [Étudiants](etudiants.md) |
+| Discipline | | [Discipline (sanctions)](discipline.md) |
 | Enseignants | | [Enseignants](enseignants.md) |
 | Pédagogie | Structure Académique | [Structure académique](structure-academique.md) |
 | | Cours | [Cours et modules](cours.md) |

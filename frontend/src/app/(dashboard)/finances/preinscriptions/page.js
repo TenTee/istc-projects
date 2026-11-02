@@ -27,6 +27,7 @@ import PhoneIcon from '@mui/icons-material/Phone';
 import { preinscriptionsService } from '../../../../services/api/services';
 import { getApiErrorMessage } from '../../../../services/api/client';
 import ValidatePreinscriptionModal from '../../../../components/finances/ValidatePreinscriptionModal';
+import IdentifiantsDialog from '../../../../components/common/IdentifiantsDialog';
 
 function toList(data) {
   return Array.isArray(data) ? data : data?.results || [];
@@ -35,6 +36,8 @@ function toList(data) {
 export default function PreinscriptionsPage() {
   const [preinscriptions, setPreinscriptions] = useState([]);
   const [loading, setLoading] = useState(true);
+  // Identifiants du portail du nouvel étudiant, à lui transmettre.
+  const [identifiants, setIdentifiants] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(0);
@@ -76,9 +79,10 @@ export default function PreinscriptionsPage() {
     if (!selectedPreinscription) return;
     setSubmitting(true);
     try {
-      await preinscriptionsService.approve(selectedPreinscription.id, payload);
+      const resultat = await preinscriptionsService.approve(selectedPreinscription.id, payload);
       setToast({ open: true, message: 'Pré-inscription approuvée avec succès.', severity: 'success' });
       setOpenModal(false);
+      if (resultat?.identifiants) setIdentifiants(resultat.identifiants);
       await fetchPreinscriptions();
     } catch (error) {
       setToast({ open: true, message: getApiErrorMessage(error, 'Approbation impossible'), severity: 'error' });
@@ -218,6 +222,13 @@ export default function PreinscriptionsPage() {
       <Snackbar open={toast.open} autoHideDuration={4000} onClose={() => setToast((current) => ({ ...current, open: false }))}>
         <Alert severity={toast.severity}>{toast.message}</Alert>
       </Snackbar>
+      <IdentifiantsDialog
+        open={Boolean(identifiants)}
+        identifiants={identifiants}
+        motif="creation"
+        titre="Étudiant inscrit : identifiants du portail"
+        onClose={() => setIdentifiants(null)}
+      />
     </Box>
   );
 }

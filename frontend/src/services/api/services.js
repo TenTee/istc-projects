@@ -19,6 +19,14 @@ export const authService = {
   auth_token_refresh_create: (payload) => apiRequest({ url: API_ENDPOINTS.authRefresh, method: 'POST', data: payload }),
 };
 
+// « Mon profil » : chaque compte (personnel, étudiant, formateur) gère ses propres identifiants.
+export const monCompteService = {
+  get: () => apiRequest({ url: `${API_ENDPOINTS.users}me/`, method: 'GET' }),
+  changerNomUtilisateur: (username, motDePasseActuel) =>
+    apiRequest({ url: `${API_ENDPOINTS.users}me/`, method: 'PATCH', data: { username, mot_de_passe_actuel: motDePasseActuel } }),
+  changerMotDePasse: (payload) => apiRequest({ url: `${API_ENDPOINTS.users}me/mot-de-passe/`, method: 'POST', data: payload }),
+};
+
 export const assiduiteService = createCrudService(API_ENDPOINTS.assiduite);
 export const congesService = createCrudService(API_ENDPOINTS.conges);
 export const demandesService = createCrudService(API_ENDPOINTS.demandes);
@@ -47,6 +55,7 @@ export const etudiantsService = {
   studentCard: () => apiRequest({ url: `${API_ENDPOINTS.etudiantsPortal}carte-etudiant/`, method: 'GET' }),
   studentCertificate: () => apiRequest({ url: `${API_ENDPOINTS.etudiantsPortal}certificat-scolarite/`, method: 'GET' }),
   exportDocuments: (id) => apiRequest({ url: idPath(API_ENDPOINTS.etudiants, `${id}/export-documents`), method: 'GET' }),
+  resetPassword: (id) => apiRequest({ url: idPath(API_ENDPOINTS.etudiants, `${id}/reset-password`), method: 'POST' }),
   uploadDocument: (id, formData) =>
     apiRequest({
       url: idPath(API_ENDPOINTS.etudiants, `${id}/documents`),
@@ -63,7 +72,19 @@ export const formateursService = {
   updateFormateur: (id, payload) => apiRequest({ url: idPath(API_ENDPOINTS.formateurs, id), method: 'PUT', data: payload }),
   patchFormateur: (id, payload) => apiRequest({ url: idPath(API_ENDPOINTS.formateurs, id), method: 'PATCH', data: payload }),
   generateAccount: (id) => apiRequest({ url: idPath(API_ENDPOINTS.formateurs, `${id}/generate-account`), method: 'POST' }),
-  resetPassword: (userId) => apiRequest({ url: idPath(API_ENDPOINTS.users, `${userId}/reset-password`), method: 'POST' }),
+  // Par l'identifiant du formateur (droit RH en écriture), pas par celui du compte.
+  resetPassword: (formateurId) => apiRequest({ url: idPath(API_ENDPOINTS.formateurs, `${formateurId}/reset-password`), method: 'POST' }),
+};
+// Discipline : sanctions des étudiants (droit Étudiants en écriture pour agir).
+const SANCTIONS = `${API_ENDPOINTS.etudiants}sanctions/`;
+export const sanctionsService = {
+  list: (params) => apiRequest({ url: SANCTIONS, method: 'GET', params }),
+  create: (payload) => apiRequest({ url: SANCTIONS, method: 'POST', data: payload }),
+  update: (id, payload) => apiRequest({ url: `${SANCTIONS}${id}/`, method: 'PATCH', data: payload }),
+  remove: (id) => apiRequest({ url: `${SANCTIONS}${id}/`, method: 'DELETE' }),
+  lever: (id, motifLevee) => apiRequest({ url: `${SANCTIONS}${id}/lever/`, method: 'POST', data: { motif_levee: motifLevee } }),
+  retablir: (id) => apiRequest({ url: `${SANCTIONS}${id}/retablir/`, method: 'POST' }),
+  statistiques: () => apiRequest({ url: `${SANCTIONS}statistiques/`, method: 'GET' }),
 };
 export const inventairesService = createCrudService(API_ENDPOINTS.inventaires);
 export const modulesService = {
@@ -94,6 +115,16 @@ export const paiesService = {
 export const paiementsService = {
   ...createCrudService(API_ENDPOINTS.paiements),
   me: () => apiRequest({ url: `${API_ENDPOINTS.paiements}me/`, method: 'GET' }),
+  // Correction / suppression : le motif est obligatoire (conservé dans le journal des paiements).
+  corriger: (id, payload, motif) =>
+    apiRequest({ url: idPath(API_ENDPOINTS.paiements, id), method: 'PATCH', data: { ...payload, motif } }),
+  supprimer: (id, motif) => apiRequest({ url: idPath(API_ENDPOINTS.paiements, id), method: 'DELETE', data: { motif } }),
+  journal: (params) => apiRequest({ url: `${API_ENDPOINTS.paiements}journal/`, method: 'GET', params }),
+  // Documents PDF (à télécharger avec utils/documentsPdf.js)
+  urlRecu: (id) => idPath(API_ENDPOINTS.paiements, `${id}/recu`),
+  urlFacture: (etudiantId) => `${API_ENDPOINTS.paiements}facture/${etudiantId}/`,
+  urlMonRecu: (id) => `${API_ENDPOINTS.paiements}me/recus/${id}/`,
+  urlMaFacture: () => `${API_ENDPOINTS.paiements}me/facture/`,
   aggregated: (params) => apiRequest({ url: API_ENDPOINTS.paiementsAggregated, method: 'GET', params }),
   dashboard: () => apiRequest({ url: API_ENDPOINTS.paiementsDashboard, method: 'GET' }),
 };

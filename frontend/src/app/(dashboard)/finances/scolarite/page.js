@@ -48,6 +48,7 @@ import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import SchoolIcon from '@mui/icons-material/School';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import VisibilityIcon from '@mui/icons-material/Visibility';
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import {
   anneesAcademiquesService,
   boursesService,
@@ -63,6 +64,7 @@ import {
 
 import { getApiErrorMessage } from '../../../../services/api/client';
 import { formatDate } from '../../../../utils/formatters';
+import { obtenirPdf } from '../../../../utils/documentsPdf';
 import PaymentModal from '../../../../components/finances/PaymentModal';
 import AddInscriptionModal from '../../../../components/finances/AddInscriptionModal';
 import StudentPaymentDetailsModal from '../../../../components/finances/StudentPaymentDetailsModal';
@@ -292,7 +294,8 @@ export default function ScolaritePage() {
         anneesAcademiquesService.list(),
         paiementAlertsService.list().catch(() => []),
       ]);
-      setFinancialRows(toList(paymentsRes));
+      const lignes = toList(paymentsRes);
+      setFinancialRows(lignes);
       setStudents(toList(studentsRes));
       setLevels(toList(levelsRes));
       setAcademicYears(toList(yearsRes));
@@ -301,6 +304,7 @@ export default function ScolaritePage() {
           .filter((item) => item.status === 'OVERDUE')
           .sort((a, b) => new Date(a.due_date) - new Date(b.due_date))
       );
+      return lignes;
     } catch (error) {
       setToast({ open: true, message: getApiErrorMessage(error, 'Erreur de chargement'), severity: 'error' });
       setErrorAlerts(getApiErrorMessage(error, "Chargement des alertes d'echeance impossible."));
@@ -382,13 +386,18 @@ export default function ScolaritePage() {
     if (!selectedRow || !validatePaymentForm()) return;
     setSubmitting(true);
     try {
-      await paiementsService.create({
+      const cree = await paiementsService.create({
         etudiant: selectedRow.etudiant,
         paiement_type: paymentForm.paiement_type,
         montant_paye: paymentForm.montant,
         moyen_paiement: paymentForm.mode_paiement,
       });
-      setToast({ open: true, message: 'Paiement enregistré avec succès.', severity: 'success' });
+      setToast({
+        open: true,
+        message: cree?.numero_recu ? `Paiement enregistré (reçu ${cree.numero_recu}).` : 'Paiement enregistré avec succès.',
+        severity: 'success',
+        paiement: cree?.id ? cree : null,
+      });
       setOpenPaymentModal(false);
       await fetchData();
     } catch (error) {
@@ -1142,10 +1151,44 @@ export default function ScolaritePage() {
         onClose={() => setOpenDetailsModal(false)}
         student={selectedDetailsStudent}
         onOpenPayment={openPaymentForRow}
+        onChanged={async () => {
+          // Rafraîchit le suivi et la synthèse de la fiche ouverte après une correction.
+          const lignes = await fetchData();
+          const maj = (lignes || []).find((r) => r.etudiant === selectedDetailsStudent?.etudiant);
+          if (maj) setSelectedDetailsStudent(maj);
+        }}
       />
 
-      <Snackbar open={toast.open} autoHideDuration={4000} onClose={() => setToast((current) => ({ ...current, open: false }))}>
-        <Alert severity={toast.severity}>{toast.message}</Alert>
+      <Snackbar
+        open={toast.open}
+        autoHideDuration={toast.paiement ? 12000 : 4000}
+        onClose={() => setToast((current) => ({ ...current, open: false }))}
+      >
+        <Alert
+          severity={toast.severity}
+          action={
+            toast.paiement ? (
+              <Button
+                color="inherit"
+                size="small"
+                startIcon={<PictureAsPdfIcon />}
+                onClick={async () => {
+                  try {
+                    await obtenirPdf(paiementsService.urlRecu(toast.paiement.id), {
+                      nomParDefaut: `recu-${toast.paiement.numero_recu || toast.paiement.id}.pdf`,
+                    });
+                  } catch (e) {
+                    setToast({ open: true, message: e.message, severity: 'error' });
+                  }
+                }}
+              >
+                Reçu PDF
+              </Button>
+            ) : null
+          }
+        >
+          {toast.message}
+        </Alert>
       </Snackbar>
 
     </Box>

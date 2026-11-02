@@ -903,9 +903,17 @@ class PreInscriptionViewSet(OptimizedModelViewSet):
 
                 preinscription.delete()
 
+                # Identifiants du portail étudiant, à transmettre au candidat (affichés une fois par l'interface).
+                etudiant.refresh_from_db(fields=["user", "initial_password"])
+                donnees_identifiants = None
+                if etudiant.user and etudiant.initial_password:
+                    from users.utils import identifiants
+                    donnees_identifiants = identifiants(etudiant.user, etudiant.initial_password,
+                                                        nom=etudiant.nom, telephone=etudiant.contact or "")
                 return Response({
                     "message": "Pré-inscription approuvée et synchronisée.",
                     "etudiant_id": etudiant.id,
+                    "identifiants": donnees_identifiants,
                 })
 
         except _ApprobationAnnulee as exc:

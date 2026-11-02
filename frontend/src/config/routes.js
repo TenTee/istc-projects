@@ -19,6 +19,7 @@ import QuizIcon from '@mui/icons-material/Quiz';
 import HowToRegIcon from '@mui/icons-material/HowToReg';
 import PendingActionsIcon from '@mui/icons-material/PendingActions';
 import SupervisorAccountIcon from '@mui/icons-material/SupervisorAccount';
+import GavelIcon from '@mui/icons-material/Gavel';
 
 export const routes = [
   {
@@ -31,6 +32,12 @@ export const routes = [
     label: 'Étudiants',
     path: '/students',
     icon: PeopleIcon,
+    permission: 'all',
+  },
+  {
+    label: 'Discipline',
+    path: '/discipline',
+    icon: GavelIcon,
     permission: 'all',
   },
   {
