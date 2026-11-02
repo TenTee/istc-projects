@@ -3,6 +3,10 @@
 Généré automatiquement à chaque livraison (`outils/version/versionner.py`). Ne pas modifier à la main :
 écrivez les nouveautés de la prochaine livraison dans `NOUVEAUTES.md`.
 
+## 0.3.1 — 02/11/2026
+
+- Améliorations et corrections diverses.
+
 ## 0.3.0 — 02/11/2026
 
 - Mon profil (menu de l'avatar) : chacun peut changer son mot de passe et son nom d'utilisateur.
