@@ -3,6 +3,13 @@
 Généré automatiquement à chaque livraison (`outils/version/versionner.py`). Ne pas modifier à la main :
 écrivez les nouveautés de la prochaine livraison dans `NOUVEAUTES.md`.
 
+## 0.4.0 — 06/11/2026
+
+- Rôles : nouveau droit « Gérer les années académiques » (créer, activer, supprimer une année vide) et droit « Années archivées » (aucun accès, consultation seule, ou consultation et modification).
+- Nouveau menu Pédagogie → Années académiques, avec un bouton « Activer » ; les années archivées sont signalées dans le sélecteur d'année.
+- Une année contenant des données ne peut plus être supprimée par erreur.
+- Correction : une sanction enregistrée sans date provoquait une erreur.
+
 ## 0.3.1 — 02/11/2026
 
 - Améliorations et corrections diverses.
