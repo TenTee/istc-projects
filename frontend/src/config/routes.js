@@ -20,6 +20,7 @@ import HowToRegIcon from '@mui/icons-material/HowToReg';
 import PendingActionsIcon from '@mui/icons-material/PendingActions';
 import SupervisorAccountIcon from '@mui/icons-material/SupervisorAccount';
 import GavelIcon from '@mui/icons-material/Gavel';
+import EventNoteIcon from '@mui/icons-material/EventNote';
 
 export const routes = [
   {
@@ -55,6 +56,12 @@ export const routes = [
         label: 'Structure Académique',
         path: '/pedagogy',
         icon: SchoolIcon,
+        permission: 'all',
+      },
+      {
+        label: 'Années académiques',
+        path: '/annees-academiques',
+        icon: EventNoteIcon,
         permission: 'all',
       },
       {

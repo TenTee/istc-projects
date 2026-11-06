@@ -57,7 +57,22 @@ Les rôles dont le code est `admin` ou `superadmin` (et les comptes « super-uti
 | Créer / modifier des comptes utilisateurs et des rôles | Administrateurs (`admin`, `superadmin`) |
 | Valider / dévalider les notes (les rendre visibles aux étudiants) | Administrateurs, ou rôle avec Pédagogie en **Écriture** |
 | Modifier les paramètres globaux, cycles et apparence de l'établissement | Administrateurs |
-| Consulter une année académique archivée | Super-administrateur uniquement |
+| Créer, activer, supprimer une année académique | Administrateurs, ou rôle avec **Gérer les années académiques** |
+| Consulter ou modifier une année académique archivée | Administrateurs, ou rôle avec le droit **Années archivées** |
+
+## Années académiques et archives {#annees-academiques-et-archives}
+
+Deux droits du rôle, en plus des domaines, se règlent dans **Système** → *Rôles* (rubrique *Années académiques*).
+
+| Droit | Valeurs | Effet |
+|---|---|---|
+| **Gérer les années académiques** | oui / non | Menu **Pédagogie** → **Années académiques** : créer une année, la modifier, **l'activer** (l'ancienne est archivée), supprimer une année vide. |
+| **Années archivées** | Aucun accès / Consultation seule / Consultation et modification | Choisir une année *(Archivée)* dans le sélecteur en haut de l'écran, puis la consulter, ou la consulter et la modifier. |
+
+- Le droit **Années archivées** n'ajoute aucun domaine : un comptable avec « Consultation seule » voit les finances des années passées, mais pas les notes s'il n'a pas la Pédagogie.
+- En **consultation seule**, l'étiquette « Archives : consultation seule » s'affiche à côté du sélecteur d'année, et toute modification est refusée.
+- Sans ce droit, les années archivées apparaissent grisées dans le sélecteur.
+- Les administrateurs (`admin`, `superadmin`) ont tous ces droits. Les portails étudiant et formateur ne voient que l'année active.
 
 ## Exemples de rôles
 

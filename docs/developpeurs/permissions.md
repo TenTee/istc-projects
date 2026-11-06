@@ -59,7 +59,25 @@ Interrupteur d'urgence : `CONTROLE_DROITS_PERSONNEL=False` dans `.env` désactiv
 
 ## 3. Années archivées
 
-`academique.middleware.ArchiveAcademicYearMiddleware` : si l'en-tête `X-Academic-Year` désigne une année non active, seuls les superusers passent. Exemptés : `/api/auth/`, `/api/v2/annees-academiques/`, `/api/v2/configuration-etablissement/`, `/admin/`.
+`academique.middleware.ArchiveAcademicYearMiddleware` : si l'en-tête `X-Academic-Year` désigne une année non active, l'accès dépend de `Role.acces_annees_archivees` (lu par `users.acces_personnel.niveau_annees_archivees`).
+
+| Niveau | Effet |
+|---|---|
+| `none` | 403 |
+| `lecture` | GET / HEAD / OPTIONS seulement |
+| `ecriture` | Tout |
+
+- Les administrateurs (`is_admin_user`) ont `ecriture`. Les comptes portail n'ont pas de rôle, donc `none`.
+- La matrice `REGLES` s'applique **ensuite** : le droit sur les archives n'ouvre aucun domaine.
+- Routes exemptées : `/api/auth/`, `/api/v2/annees-academiques/`, `/api/v2/configuration-etablissement/`, `/admin/`.
+
+**Gestion des années.** L'écriture sur `/api/v2/annees-academiques/` passe par le pseudo-domaine `ANNEES` de `REGLES` : `niveaux_du_role` le met à « ecriture » si `Role.can_manage_annees` est vrai. La migration `users 0004` a donné ce droit aux rôles qui avaient la Pédagogie en écriture (ancienne règle).
+
+`AnneeAcademiqueViewSet` :
+
+- l'action `POST …/<id>/activer/` active l'année et archive la précédente ;
+- la suppression est refusée pour l'année active ou une année qui contient des données ;
+- le serializer refuse de désactiver l'année active sans remplaçante.
 
 ## Matrice de contrôle (testée)
 

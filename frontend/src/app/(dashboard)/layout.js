@@ -15,6 +15,7 @@ const ROUTE_PERMISSION_MAP = {
   '/discipline': 'can_manage_etudiants',
   '/formateurs': 'can_manage_rh',
   '/pedagogy': 'can_manage_pedagogie',
+  '/annees-academiques': ['can_manage_pedagogie', 'can_manage_annees'],
   '/modules': 'can_manage_pedagogie',
   '/grades': ['can_manage_pedagogie', 'can_manage_etudiants'],
   '/schedule': 'can_manage_pedagogie',

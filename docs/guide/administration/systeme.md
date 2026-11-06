@@ -72,7 +72,10 @@ Le crayon permet de changer le rôle ou les informations. La corbeille supprime 
 2. « Code unique (ex: ADMIN) » : un code court sans espace (ex. `secretaire`, `comptable`). Les codes `admin` et `superadmin` donnent accès à tout.
 3. « Libellé complet » : le nom affiché (ex. « Secrétaire de direction »).
 4. Pour chaque domaine — **Étudiants**, **Pédagogie (Notes, Cours)**, **Finances**, **Logistique / Inventaire**, **Ressources Humaines** — choisissez **Aucun**, **Lecture** ou **Écriture**.
-5. **Enregistrer**.
+5. Rubrique **Années académiques** :
+    - **Gérer les années académiques** : créer, modifier, activer une année, supprimer une année vide ;
+    - **Années archivées** : **Aucun accès**, **Consultation seule** ou **Consultation et modification** des années non actives (dans la limite des droits par domaine).
+6. **Enregistrer**.
 
 Les droits sont expliqués dans [Rôles et droits d'accès](../roles-et-acces.md). Les personnes concernées doivent **se déconnecter puis se reconnecter** pour voir leurs nouveaux droits.
 

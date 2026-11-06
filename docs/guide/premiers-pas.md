@@ -107,7 +107,7 @@ Toutes les données (classes, inscriptions, notes, emplois du temps, paiements) 
 3. La page se recharge avec les données de cette année.
 
 !!! warning "Années archivées"
-    Seule l'année **active** est accessible aux utilisateurs ordinaires. Les années précédentes (archives) ne sont consultables que par un **super-administrateur**. Si vous voyez des pages vides ou un message de refus après avoir changé d'année, revenez sur l'année *(Active)*.
+    Les années précédentes sont marquées *(Archivée)*. Elles ne sont accessibles qu'aux administrateurs et aux rôles qui ont le droit **Années archivées** ; sinon, elles sont grisées dans le sélecteur. En **consultation seule**, l'étiquette « Archives : consultation seule » le rappelle et les modifications sont refusées. Si vous voyez des pages vides ou un message de refus, revenez sur l'année *(Active)*.
 
 ## Se déconnecter
 

@@ -30,12 +30,14 @@ FIN = "can_manage_finance"
 LOG = "can_manage_logistique"
 RH = "can_manage_rh"
 DOMAINES = (ET, PEDA, FIN, LOG, RH)
+# Droit oui / non du rôle (Role.can_manage_annees) : traité comme un domaine « ecriture » / « none ».
+ANNEES = "can_manage_annees"
 
 TOUS = "tout_le_personnel"  # tout compte du personnel, quels que soient ses droits
 ADMIN = "administration"     # administrateurs uniquement
 
 LIBELLES = {ET: "Étudiants", PEDA: "Pédagogie", FIN: "Finances", LOG: "Logistique / Inventaire",
-            RH: "Ressources Humaines"}
+            RH: "Ressources Humaines", ANNEES: "Gestion des années académiques"}
 
 SAFE = {"GET", "HEAD", "OPTIONS"}
 
@@ -49,7 +51,7 @@ REGLES = [
     # --- Référentiels lus par tous les écrans ------------------------------------------------
     (r"^/api/v2/(filieres|specialites|cycles|levels|niveaux|classes|semestres|departements|domaines|"
      r"facultes|universites-tutelles|courses)(/|$)", TOUS, (PEDA,)),
-    (r"^/api/v2/annees-academiques(/|$)", TOUS, (PEDA,)),
+    (r"^/api/v2/annees-academiques(/|$)", TOUS, (ANNEES,)),   # droit dédié du rôle
     (r"^/api/v2/(parametres-globaux|cycles-globaux|configuration-etablissement)(/|$)", TOUS, ADMIN),
     (r"^/api/(modules|salles)(/|$)", TOUS, (PEDA,)),
     (r"^/api/(emploi-du-temps|emploi-du-temps-documents)(/|$)", TOUS, (PEDA,)),
@@ -108,7 +110,19 @@ def niveaux_du_role(user):
     """{domaine: niveau} pour le rôle du compte ; tout « none » si le rôle n'existe pas."""
     from users.models import Role
     role = Role.objects.filter(code=getattr(user, "role", "")).first()
-    return {d: (getattr(role, d, "none") or "none") if role else "none" for d in DOMAINES}
+    niveaux = {d: (getattr(role, d, "none") or "none") if role else "none" for d in DOMAINES}
+    niveaux[ANNEES] = "ecriture" if role is not None and role.can_manage_annees else "none"
+    return niveaux
+
+
+def niveau_annees_archivees(user):
+    """« none » | « lecture » | « ecriture » : accès du compte aux années archivées."""
+    from users.models import Role
+    from users.permissions import is_admin_user
+    if is_admin_user(user):
+        return "ecriture"
+    role = Role.objects.filter(code=getattr(user, "role", "")).first()
+    return (role.acces_annees_archivees or "none") if role else "none"
 
 
 def acces_autorise(niveaux, method, path):

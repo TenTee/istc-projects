@@ -24,6 +24,12 @@ class Role(models.Model):
     can_manage_finance = models.CharField(max_length=10, choices=ACCESS_CHOICES, default='none')
     can_manage_etudiants = models.CharField(max_length=10, choices=ACCESS_CHOICES, default='none')
 
+    # Années académiques : créer, modifier, activer / désactiver, supprimer (une année sans données).
+    can_manage_annees = models.BooleanField(default=False)
+    # Années archivées (non actives) : aucun accès, consultation seule, ou consultation et modification.
+    # Les droits par domaine ci-dessus s'appliquent en plus.
+    acces_annees_archivees = models.CharField(max_length=10, choices=ACCESS_CHOICES, default='none')
+
     def __str__(self):
         return self.libelle
 

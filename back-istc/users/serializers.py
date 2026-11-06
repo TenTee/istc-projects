@@ -15,6 +15,8 @@ class RoleSerializer(serializers.ModelSerializer):
             "can_manage_logistique",
             "can_manage_finance",
             "can_manage_etudiants",
+            "can_manage_annees",
+            "acces_annees_archivees",
         ]
 
 
@@ -61,6 +63,8 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
                 'can_manage_logistique': role_obj.can_manage_logistique,
                 'can_manage_finance': role_obj.can_manage_finance,
                 'can_manage_etudiants': role_obj.can_manage_etudiants,
+                'can_manage_annees': role_obj.can_manage_annees,
+                'acces_annees_archivees': role_obj.acces_annees_archivees,
             }
         except Role.DoesNotExist:
             if user.is_superuser:
@@ -70,6 +74,8 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
                     'can_manage_logistique': 'ecriture',
                     'can_manage_finance': 'ecriture',
                     'can_manage_etudiants': 'ecriture',
+                    'can_manage_annees': True,
+                    'acces_annees_archivees': 'ecriture',
                 }
             else:
                 token['permissions'] = {}

@@ -220,7 +220,11 @@ export const classesService = createCrudService(API_ENDPOINTS.classes);
 export const cyclesService = createCrudService(API_ENDPOINTS.cycles);
 export const cycleGlobalsService = createCrudService(API_ENDPOINTS.cyclesGlobaux);
 export const levelsV2Service = createCrudService(API_ENDPOINTS.levelsV2);
-export const anneesAcademiquesService = createCrudService(API_ENDPOINTS.anneesAcademiques);
+export const anneesAcademiquesService = {
+  ...createCrudService(API_ENDPOINTS.anneesAcademiques),
+  // Fait de cette année l'année active ; l'année active précédente est archivée.
+  activer: (id) => apiRequest({ url: idPath(API_ENDPOINTS.anneesAcademiques, `${id}/activer`), method: 'POST' }),
+};
 export const semestresService = createCrudService(API_ENDPOINTS.semestres);
 export const epreuvesService = createCrudService(API_ENDPOINTS.epreuves);
 // Allow partial updates (PATCH) for epreuves (useful when editing without uploading files)

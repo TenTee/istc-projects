@@ -425,6 +425,17 @@ class AnneeAcademiqueSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["id", "created_at", "updated_at", "name"]
 
+    def validate(self, attrs):
+        # Une seule année est active : on change d'année active en activant la nouvelle (l'ancienne
+        # est archivée automatiquement). Désactiver l'année active sans la remplacer archiverait
+        # toutes les données et couperait l'accès de tout le personnel sans droit sur les archives.
+        if self.instance is not None and self.instance.est_active and attrs.get("est_active") is False:
+            raise serializers.ValidationError({
+                "est_active": "Pour archiver l'année active, activez l'année qui la remplace : "
+                              "l'année actuelle sera alors archivée automatiquement."
+            })
+        return attrs
+
 
 class ClasseSerializer(serializers.ModelSerializer):
     filiere_nom = serializers.CharField(source="filiere.nom", read_only=True)

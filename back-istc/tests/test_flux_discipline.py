@@ -138,3 +138,11 @@ def test_portail_etudiant(monde, client_admin):
     sanctions = client_api(etudiant.user).get("/api/etudiants/me/").data["sanctions"]
     assert len(sanctions) == 1
     assert sanctions[0]["etat"] == "active" and sanctions[0]["date_fin"] == (debut + timedelta(days=1)).isoformat()
+
+
+def test_date_par_defaut_aujourd_hui(monde, client_admin):
+    """Sans date, la sanction est datée du jour (auparavant : erreur 500, datetime au lieu de date)."""
+    res = client_admin.post(URL, {"etudiant": monde.nouvel_etudiant().id, "type_sanction": "Blâme",
+                                  "motif": "Comportement irrespectueux"}, format="json")
+    assert res.status_code == 201, res.data
+    assert res.data["date_sanction"] == timezone.localdate().isoformat()

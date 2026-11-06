@@ -15,21 +15,23 @@ Cette procédure sert à la **première mise en service** et au **passage d'une 
 
 ## 1. Créer l'année académique
 
-1. Menu **Pédagogie** → **Structure Académique**, onglet *Années Académiques*.
-2. Cliquez sur **Ajouter**.
+Il faut être administrateur, ou avoir un rôle avec le droit **Gérer les années académiques** (voir [Rôles et droits d'accès](roles-et-acces.md#annees-academiques-et-archives)).
+
+1. Menu **Pédagogie** → **Années académiques** (ou **Structure Académique**, onglet *Années Académiques*).
+2. Cliquez sur **Nouvelle année**.
 3. Remplissez :
-    - « Libellé (ex: 2024-2025) » : `2026-2027` (format `AAAA-AAAA`) ;
-    - « Date Début » et « Date Fin » ;
-    - cochez **Est Active** si l'année commence maintenant.
+    - « Libellé » : `2026-2027` (format `AAAA-AAAA`) ;
+    - « Début » et « Fin » ;
+    - activez **En faire l'année active maintenant** si l'année commence maintenant. Sinon, faites-le plus tard avec le bouton **Activer** de sa ligne.
 4. Cliquez sur **Enregistrer**.
 
 Ce qui se passe automatiquement :
 
-- **Une seule année peut être active** : cocher « Est Active » désactive l'ancienne année, qui devient une archive.
+- **Une seule année est active** : activer la nouvelle année archive l'ancienne. Une confirmation le rappelle. L'année active ne se désactive pas seule : activez celle qui la remplace.
 - Les **classes de l'année précédente sont recopiées** pour la nouvelle année (même filière, spécialité, cycle et niveau). Les étudiants, notes et paiements, eux, restent rattachés à l'ancienne année.
 
 !!! warning "Après le changement d'année"
-    Demandez à chacun de recharger la page et de vérifier que le sélecteur en haut affiche bien la nouvelle année *(Active)*. Les anciennes années ne sont plus accessibles qu'au super-administrateur.
+    Demandez à chacun de recharger la page et de vérifier que le sélecteur en haut affiche bien la nouvelle année *(Active)*. Les anciennes années, marquées *(Archivée)*, restent accessibles aux administrateurs et aux rôles qui ont le droit **Années archivées**.
 
 ## 2. Vérifier les classes
 

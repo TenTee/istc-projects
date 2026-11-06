@@ -5,7 +5,7 @@ import {
   Box, Typography, Button, Paper, Table, TableBody, TableCell, TableContainer,
   TableHead, TableRow, TablePagination, IconButton, Dialog, DialogTitle,
   DialogContent, DialogActions, TextField, Alert, CircularProgress, Snackbar,
-  FormControl, InputLabel, Select, MenuItem, Grid, Chip
+  FormControl, InputLabel, Select, MenuItem, Grid, Chip, FormControlLabel, Switch, FormHelperText, Divider
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -38,7 +38,16 @@ const roleSchema = yup.object({
   can_manage_logistique: yup.string().oneOf(['none', 'lecture', 'ecriture']).default('none'),
   can_manage_finance: yup.string().oneOf(['none', 'lecture', 'ecriture']).default('none'),
   can_manage_etudiants: yup.string().oneOf(['none', 'lecture', 'ecriture']).default('none'),
+  can_manage_annees: yup.boolean().default(false),
+  acces_annees_archivees: yup.string().oneOf(['none', 'lecture', 'ecriture']).default('none'),
 });
+
+// Accès aux années archivées (non actives). Les droits par domaine s'appliquent en plus.
+const ARCHIVES_OPTIONS = [
+  { value: 'none', label: 'Aucun accès' },
+  { value: 'lecture', label: 'Consultation seule' },
+  { value: 'ecriture', label: 'Consultation et modification' },
+];
 
 const defaultPermissions = {
   can_manage_rh: 'none',
@@ -46,6 +55,8 @@ const defaultPermissions = {
   can_manage_logistique: 'none',
   can_manage_finance: 'none',
   can_manage_etudiants: 'none',
+  can_manage_annees: false,
+  acces_annees_archivees: 'none',
 };
 
 function AccessChip({ level, label }) {
@@ -103,6 +114,8 @@ export default function RolesTab() {
         can_manage_logistique: role.can_manage_logistique || 'none',
         can_manage_finance: role.can_manage_finance || 'none',
         can_manage_etudiants: role.can_manage_etudiants || 'none',
+        can_manage_annees: Boolean(role.can_manage_annees),
+        acces_annees_archivees: role.acces_annees_archivees || 'none',
       });
     } else {
       setIsEditing(false);
@@ -183,6 +196,18 @@ export default function RolesTab() {
                       {PERMISSION_FIELDS.map((pf) => (
                         <AccessChip key={pf.name} level={role[pf.name]} label={pf.label} />
                       ))}
+                      {role.can_manage_annees && (
+                        <Chip size="small" label="Années académiques : gestion" color="secondary" variant="outlined" sx={{ mr: 0.5, mb: 0.5 }} />
+                      )}
+                      {role.acces_annees_archivees && role.acces_annees_archivees !== 'none' && (
+                        <Chip
+                          size="small"
+                          label={`Archives : ${role.acces_annees_archivees === 'ecriture' ? 'Consultation et modification' : 'Consultation'}`}
+                          color="warning"
+                          variant="outlined"
+                          sx={{ mr: 0.5, mb: 0.5 }}
+                        />
+                      )}
                     </TableCell>
                     <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
                       <IconButton color="primary" onClick={() => handleOpenModal(role)}><EditIcon /></IconButton>
@@ -238,6 +263,34 @@ export default function RolesTab() {
                   )} />
                 </Grid>
               ))}
+              <Grid item xs={12}>
+                <Divider sx={{ my: 1 }} />
+                <Typography variant="subtitle1" fontWeight="bold" sx={{ mt: 1 }}>Années académiques</Typography>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <Controller name="can_manage_annees" control={control} render={({ field }) => (
+                  <FormControl disabled={actionLoading}>
+                    <FormControlLabel
+                      control={<Switch checked={Boolean(field.value)} onChange={(e) => field.onChange(e.target.checked)} />}
+                      label="Gérer les années académiques"
+                    />
+                    <FormHelperText sx={{ mt: 0 }}>Créer, modifier, activer une année, supprimer une année vide.</FormHelperText>
+                  </FormControl>
+                )} />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <Controller name="acces_annees_archivees" control={control} render={({ field }) => (
+                  <FormControl fullWidth size="small" disabled={actionLoading}>
+                    <InputLabel>Années archivées</InputLabel>
+                    <Select {...field} label="Années archivées">
+                      {ARCHIVES_OPTIONS.map((opt) => (
+                        <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>
+                      ))}
+                    </Select>
+                    <FormHelperText>Dans la limite des droits par domaine ci-dessus.</FormHelperText>
+                  </FormControl>
+                )} />
+              </Grid>
             </Grid>
           </DialogContent>
           <DialogActions sx={{ p: 2 }}>

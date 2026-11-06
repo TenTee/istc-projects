@@ -29,17 +29,22 @@ class AcademicYearMiddleware:
 
 class ArchiveAcademicYearMiddleware:
     """
-    Bloque l'accès aux utilisateurs non superuser lorsque l'année académique
-    sélectionnée (en-tête X-Academic-Year) n'est pas active.
+    Contrôle l'accès aux années académiques archivées (non actives), choisies par l'en-tête
+    X-Academic-Year.
 
-    Correctif : l'ancienne version lisait `request.user`, qui à ce stade ne connaît que
-    l'authentification par session ; avec les jetons JWT de l'API il était toujours anonyme,
-    donc la protection ne s'appliquait jamais. Une année inconnue est désormais ignorée
-    (au lieu d'un 404 sur toutes les requêtes), et la liste des années reste accessible
-    pour que le frontend puisse corriger une sélection périmée.
+    - Administrateurs (super-utilisateurs, rôles admin) : accès complet.
+    - Personnel : selon le droit « Années archivées » de son rôle (`Role.acces_annees_archivees`) :
+      « none » = refusé, « lecture » = consultation seule (GET), « ecriture » = consultation et
+      modification. Les droits par domaine (StaffAccessMiddleware) s'appliquent ensuite.
+    - Comptes portail (étudiant, formateur) : pas de rôle, donc pas d'accès aux archives.
+
+    Le jeton JWT est lu directement (`request.user` ne connaît que la session à ce stade).
+    Une année inconnue est ignorée ; la liste des années reste accessible pour que le frontend
+    puisse corriger une sélection périmée.
     """
 
     EXEMPT_PREFIXES = ("/api/auth/", "/api/v2/annees-academiques/", "/api/v2/configuration-etablissement/", "/admin/")
+    SAFE_METHODS = ("GET", "HEAD", "OPTIONS")
 
     def __init__(self, get_response):
         self.get_response = get_response
@@ -62,16 +67,22 @@ class ArchiveAcademicYearMiddleware:
 
         from .models import AnneeAcademique
 
-        year = AnneeAcademique.objects.filter(pk=year_id).only("est_active").first()
-        if year is not None and not year.est_active:
-            return JsonResponse(
-                {
-                    'detail': "L'année académique sélectionnée est archivée. Seul le super-admin peut y accéder."
-                },
-                status=403,
-            )
+        year = AnneeAcademique.objects.filter(pk=year_id).only("est_active", "libelle").first()
+        if year is None or year.est_active:
+            return self.get_response(request)
 
-        return self.get_response(request)
+        from users.acces_personnel import niveau_annees_archivees
+
+        niveau = niveau_annees_archivees(user)
+        if niveau == "ecriture" or (niveau == "lecture" and request.method in self.SAFE_METHODS):
+            return self.get_response(request)
+        if niveau == "lecture":
+            detail = (f"L'année {year.libelle} est archivée : votre rôle peut la consulter mais pas la modifier.")
+        else:
+            detail = (f"L'année {year.libelle} est archivée : votre rôle n'y a pas accès. "
+                      "Demandez à l'administrateur le droit « Années archivées ».")
+        return JsonResponse({'detail': detail, 'error': detail}, status=403)
+
 
 def get_current_academic_year_id():
     val = _current_academic_year_id.get()

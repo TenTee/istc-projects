@@ -321,11 +321,53 @@ class CourseViewSet(OptimizedModelViewSet):
 
 
 class AnneeAcademiqueViewSet(OptimizedModelViewSet):
+    """
+    Années académiques. Lecture : tout le personnel. Création, modification, activation et
+    suppression : droit « Gestion des années académiques » du rôle (règle dans
+    users/acces_personnel.py).
+    """
     queryset = AnneeAcademique.objects.all()
     serializer_class = AnneeAcademiqueSerializer
     filterset_fields = ("est_active",)
     search_fields = ("libelle", "description")
     ordering = ("-libelle",)
+
+    @action(detail=True, methods=["post"])
+    def activer(self, request, pk=None):
+        """Fait de cette année l'année active ; l'année active précédente est archivée."""
+        annee = self.get_object()
+        if not annee.est_active:
+            annee.est_active = True
+            annee.save()
+        return Response(self.get_serializer(annee).data)
+
+    def destroy(self, request, *args, **kwargs):
+        annee = self.get_object()
+        if annee.est_active:
+            return Response({"detail": "L'année active ne peut pas être supprimée."}, status=status.HTTP_400_BAD_REQUEST)
+        donnees = {
+            "inscriptions": Inscription.objects.filter(
+                models.Q(annee_academique_ref=annee) | models.Q(classe__annee_academique=annee)).distinct().count(),
+            "notes": Note.objects.filter(annee_academique_ref=annee).count(),
+            "frais": Frais.objects.filter(classe__annee_academique=annee).count(),
+            "créneaux d'emploi du temps": EmploiDuTemps.objects.filter(classe__annee_academique=annee).count(),
+            "épreuves": annee.epreuves.count(),
+        }
+        presentes = [f"{n} {nom}" for nom, n in donnees.items() if n]
+        if presentes:
+            return Response({"detail": f"Impossible de supprimer l'année {annee.libelle} : elle contient des données "
+                                       f"({', '.join(presentes)}). Elle reste consultable dans les archives."},
+                            status=status.HTTP_400_BAD_REQUEST)
+        from django.db.models import ProtectedError
+        try:
+            with transaction.atomic():
+                # Les classes de l'année (créées automatiquement, vides) partent avec elle.
+                Classe.objects.filter(annee_academique=annee).delete()
+                annee.delete()
+        except ProtectedError:
+            return Response({"detail": f"Impossible de supprimer l'année {annee.libelle} : des données y sont "
+                                       "encore rattachées."}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class ClasseViewSet(OptimizedModelViewSet):

@@ -78,17 +78,20 @@ Une classe = un niveau d'une spécialité pour une année académique. C'est l'u
 
 ## Onglet *Années Académiques*
 
-![Onglet Années Académiques : une seule année active](../../images/captures/11e_structure_annees.jpg)
+Le même écran est disponible dans le menu **Pédagogie** → **Années académiques**. Les rôles qui ont le droit **Gérer les années académiques** sans avoir la Pédagogie y accèdent par ce menu.
 
-![Formulaire d'ajout d'une année académique](../../images/captures/11f_structure_ajout_annee.jpg)
+Le tableau liste les années (Libellé, Début, Fin, Statut **Active** ou **Archivée**). Avec le droit **Gérer les années académiques** :
 
-| Champ | Exemple | Remarque |
-|---|---|---|
-| Libellé (ex: 2024-2025) | 2026-2027 | Format AAAA-AAAA |
-| Date Début / Date Fin | 01/10/2026 – 31/07/2027 | |
-| Est Active | coché | Une seule année active à la fois |
+| Action | Effet |
+|---|---|
+| **Nouvelle année** | Libellé (format AAAA-AAAA), début, fin, description. L'option « En faire l'année active maintenant » l'active aussitôt. Les classes de l'année précédente sont recopiées. |
+| **Activer** | Fait de cette année l'année de travail de toute la plateforme ; l'année active précédente est **archivée**. |
+| Crayon | Modifier le libellé, les dates ou la description. |
+| Corbeille | Supprimer une année **archivée et vide** (sans inscriptions, notes, frais, créneaux ni épreuves). Sinon, un message indique ce qu'elle contient. |
 
-Voir [Démarrer une nouvelle année](../demarrer-une-annee.md).
+L'année active ne peut être ni supprimée ni simplement désactivée : activez l'année qui la remplace.
+
+Voir [Démarrer une nouvelle année](../demarrer-une-annee.md) et, pour l'accès aux années archivées, [Rôles et droits d'accès](../roles-et-acces.md#annees-academiques-et-archives).
 
 ## Onglet *Salles*
 

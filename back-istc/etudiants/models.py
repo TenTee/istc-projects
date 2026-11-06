@@ -129,7 +129,7 @@ class SanctionDisciplinaire(models.Model):
     etudiant = models.ForeignKey(Etudiant, on_delete=models.CASCADE, related_name="sanctions")
     type_sanction = models.CharField(max_length=50, choices=TYPE_CHOICES)
     motif = models.TextField()
-    date_sanction = models.DateField(default=timezone.now)
+    date_sanction = models.DateField(default=timezone.localdate)
     # Exclusion temporaire : dernier jour d'exclusion (la durée en texte reste pour les anciennes fiches).
     date_fin = models.DateField(null=True, blank=True)
     duree = models.CharField(max_length=50, blank=True, null=True, help_text="Ex: 3 jours")

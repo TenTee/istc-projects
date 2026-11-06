@@ -5,6 +5,7 @@ const protectedRoutes = [
   '/dashboard',
   '/students',
   '/discipline',
+  '/annees-academiques',
   '/trainers',
   '/formateurs',
   '/courses',

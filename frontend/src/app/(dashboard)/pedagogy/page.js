@@ -53,6 +53,7 @@ import {
 } from '../../../services/api/services';
 import { getApiErrorMessage } from '../../../services/api/client';
 import { useUserPermissions } from '../../../utils/permissions';
+import AnneesAcademiquesPanel from '../../../components/academique/AnneesAcademiquesPanel';
 
 function toList(data) {
   return Array.isArray(data) ? data : data?.results || [];
@@ -82,7 +83,8 @@ export default function PedagogyPage() {
   const [formData, setFormData] = useState({});
   // Tabs: 0=Universités, 1=Départements, 2=Filières, 3=Spécialités, 4=Niveaux(auto), 5=Classes(auto), 6=Années Académiques, 7=Salles
   // Niveaux (4) et Classes (5) sont créés automatiquement lors de la création d'une spécialité
-  const canAdd = ![4, 5].includes(tabValue);
+  // Années académiques (6) : composant dédié avec son propre bouton (droit « Gérer les années »).
+  const canAdd = ![4, 5, 6].includes(tabValue);
   const tabs = [
     { label: 'Universités', icon: <UniversityIcon fontSize="small" />, service: facultesService },
     { label: 'Départements', icon: <DepartmentIcon fontSize="small" />, service: domainesService },
@@ -347,6 +349,9 @@ export default function PedagogyPage() {
         </Tabs>
       </Paper>
 
+      {tabValue === 6 ? (
+        <AnneesAcademiquesPanel />
+      ) : (
       <TableContainer component={Paper} sx={{ borderRadius: 3, boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
         <Table sx={{ minWidth: getTableColumns().length > 4 ? 700 : 480 }}>
           <TableHead sx={{ bgcolor: '#F5F7FA' }}>
@@ -453,6 +458,7 @@ export default function PedagogyPage() {
           </TableBody>
         </Table>
       </TableContainer>
+      )}
 
       <Dialog open={openDialog} onClose={() => setOpenDialog(false)} fullWidth maxWidth="sm">
         <DialogTitle>{dialogMode === 'add' ? 'Ajouter' : 'Modifier'} - {tabs[tabValue].label}</DialogTitle>

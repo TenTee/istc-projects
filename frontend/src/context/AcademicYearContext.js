@@ -2,6 +2,27 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { anneesAcademiquesService } from '../services/api/services';
+import { isSuperUserOrAdmin, normalizePermissionValue } from '../utils/permissions';
+
+/**
+ * Accès du compte aux années archivées (non actives) : 'none' | 'lecture' | 'ecriture'.
+ * Administrateurs : 'ecriture'. Sinon : droit « Années archivées » du rôle. Le serveur
+ * applique la même règle (academique/middleware.py) : ceci ne sert qu'à l'affichage.
+ */
+export function lireNiveauArchives() {
+  if (typeof window === 'undefined') return 'none';
+  let permissions = {};
+  try {
+    permissions = JSON.parse(localStorage.getItem('user_permissions') || '{}');
+  } catch {
+    permissions = {};
+  }
+  if (permissions.is_superuser || isSuperUserOrAdmin()) return 'ecriture';
+  return normalizePermissionValue(permissions.acces_annees_archivees);
+}
+
+const MESSAGE_ARCHIVE_INTERDITE =
+  "Cette année est archivée : votre rôle n'y a pas accès (droit « Années archivées »).";
 
 const AcademicYearContext = createContext();
 
@@ -17,14 +38,7 @@ export const AcademicYearProvider = ({ children }) => {
       const list = Array.isArray(years) ? years : years?.results || [];
       setAcademicYears(list);
 
-      const permissions = (() => {
-        try {
-          return JSON.parse(localStorage.getItem('user_permissions') || '{}');
-        } catch {
-          return {};
-        }
-      })();
-      const allowInactive = !!permissions.is_superuser;
+      const allowInactive = lireNiveauArchives() !== 'none';
 
       // Récupérer l'année stockée ou utiliser l'année active par défaut
       const storedYearId = localStorage.getItem('selectedAcademicYearId');
@@ -37,7 +51,7 @@ export const AcademicYearProvider = ({ children }) => {
           localStorage.removeItem('selectedAcademicYearId');
           setSelectedYear(active);
           if (found && !allowInactive) {
-            setYearError("L'année sélectionnée est archivée et ne peut être utilisée que par le super-admin.");
+            setYearError(MESSAGE_ARCHIVE_INTERDITE);
           }
         }
       } else {
@@ -68,17 +82,10 @@ export const AcademicYearProvider = ({ children }) => {
     const year = academicYears.find(y => String(y.id) === String(yearId));
     if (!year) return;
 
-    const permissions = (() => {
-      try {
-        return JSON.parse(localStorage.getItem('user_permissions') || '{}');
-      } catch {
-        return {};
-      }
-    })();
-    const allowInactive = !!permissions.is_superuser;
+    const allowInactive = lireNiveauArchives() !== 'none';
 
     if (!year.est_active && !allowInactive) {
-      setYearError("L'année sélectionnée est archivée et ne peut être utilisée que par le super-admin.");
+      setYearError(MESSAGE_ARCHIVE_INTERDITE);
       return false;
     }
 
@@ -102,6 +109,8 @@ export const AcademicYearProvider = ({ children }) => {
       refreshYears: fetchYears,
       yearError,
       clearYearError: () => setYearError(null),
+      // Année archivée sélectionnée avec un droit « lecture » : les modifications seront refusées.
+      consultationSeule: Boolean(selectedYear && !selectedYear.est_active && lireNiveauArchives() === 'lecture'),
     }}>
       {children}
     </AcademicYearContext.Provider>

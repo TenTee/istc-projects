@@ -124,6 +124,11 @@ export default function Sidebar() {
         "Banque d'épreuves",
         'Coordonnateurs',
       ];
+      // Années académiques : aussi pour un rôle qui a seulement le droit de les gérer.
+      const gereAnnees = perms.can_manage_annees === true || perms.can_manage_annees === 'true';
+      if (route.label === 'Pédagogie' || route.label === 'Années académiques') {
+        return hasAccess(perms.can_manage_pedagogie) || gereAnnees;
+      }
       if (pGroup.includes(route.label)) return hasAccess(perms.can_manage_pedagogie);
 
       if (route.label === 'Notes')

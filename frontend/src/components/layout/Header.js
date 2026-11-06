@@ -18,6 +18,7 @@ import {
   ListItem,
   ListItemText,
   Tooltip,
+  Chip,
 } from '@mui/material';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import LogoutIcon from '@mui/icons-material/Logout';
@@ -28,7 +29,7 @@ import InfoIcon from '@mui/icons-material/Info';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import MenuIcon from '@mui/icons-material/Menu';
 import { useRouter } from 'next/navigation';
-import { useAcademicYear } from '../../context/AcademicYearContext';
+import { useAcademicYear, lireNiveauArchives } from '../../context/AcademicYearContext';
 import { useSidebar } from '../../context/SidebarContext';
 import { usersService, rolesService, revenusService, depensesService, demandesService, preinscriptionsService } from '../../services/api/services';
 import { ConfigContext } from '../../theme/ThemeRegistry';
@@ -43,7 +44,12 @@ export default function Header() {
   const [notifAnchorEl, setNotifAnchorEl] = React.useState(null);
   const [userInfo, setUserInfo] = React.useState({ username: 'Utilisateur', role: '' });
   const [notifications, setNotifications] = React.useState([]);
-  const { academicYears, selectedYear, changeYear, yearError, clearYearError } = useAcademicYear();
+  const { academicYears, selectedYear, changeYear, yearError, clearYearError, consultationSeule } = useAcademicYear();
+  const [archivesAccessibles, setArchivesAccessibles] = React.useState(false);
+  React.useEffect(() => {
+    const timer = setTimeout(() => setArchivesAccessibles(lireNiveauArchives() !== 'none'), 0);
+    return () => clearTimeout(timer);
+  }, [academicYears]);
   const config = React.useContext(ConfigContext);
   const primaryColor = config?.couleur_primaire || '#193A7F';
 
@@ -348,18 +354,29 @@ export default function Header() {
                   <>
                     <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>Année </Box>
                     {year.libelle}
-                    <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>{year.est_active ? ' (Active)' : ''}</Box>
+                    <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>{year.est_active ? ' (Active)' : ' (Archivée)'}</Box>
                   </>
                 );
               }}
             >
               {academicYears.map(year => (
-                <MenuItem key={year.id} value={year.id} sx={{ fontSize: '0.85rem' }}>
-                  Année {year.libelle} {year.est_active ? '(Active)' : ''}
+                <MenuItem
+                  key={year.id}
+                  value={year.id}
+                  disabled={!year.est_active && !archivesAccessibles}
+                  sx={{ fontSize: '0.85rem' }}
+                >
+                  Année {year.libelle} {year.est_active ? '(Active)' : '(Archivée)'}
                 </MenuItem>
               ))}
             </Select>
           </Box>
+
+          {consultationSeule && !yearError ? (
+            <Tooltip title="Votre rôle peut consulter cette année archivée, mais pas la modifier.">
+              <Chip size="small" color="warning" variant="outlined" label="Archives : consultation seule" />
+            </Tooltip>
+          ) : null}
 
           {yearError ? (
             <Box
