@@ -3,6 +3,13 @@
 Généré automatiquement à chaque livraison (`outils/version/versionner.py`). Ne pas modifier à la main :
 écrivez les nouveautés de la prochaine livraison dans `NOUVEAUTES.md`.
 
+## 0.5.0 — 11/11/2026
+
+- Structure académique : modifier une spécialité (nom, type de cycle, nombre de niveaux, filière) met à jour automatiquement ses niveaux et ses classes ; renommer une filière ou un type de cycle renomme aussi les classes.
+- Protection des données : une université, un département, une filière ou une spécialité qui a encore des étudiants, inscriptions, notes ou paiements ne peut plus être supprimé (auparavant, les étudiants étaient supprimés avec).
+- Doublons refusés sans tenir compte des majuscules, messages d'erreur en français, champs obligatoires signalés.
+- Correction : effacer la capacité d'une salle provoquait une erreur.
+
 ## 0.4.0 — 06/11/2026
 
 - Rôles : nouveau droit « Gérer les années académiques » (créer, activer, supprimer une année vide) et droit « Années archivées » (aucun accès, consultation seule, ou consultation et modification).
