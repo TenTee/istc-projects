@@ -3,9 +3,30 @@ from .models import EmploiDuTemps, Salle, EmploiDuTempsDocument
 from academique.models import Filiere, Niveau
 
 class SalleSerializer(serializers.ModelSerializer):
+    nom = serializers.CharField(max_length=100)
+    capacite = serializers.IntegerField(required=False, allow_null=True, min_value=0)
+
     class Meta:
         model = Salle
         fields = "__all__"
+
+    def to_internal_value(self, data):
+        # Le formulaire envoie "" quand la capacité est effacée : c'est « non renseignée ».
+        if hasattr(data, "get") and data.get("capacite") == "":
+            data = data.copy()
+            data["capacite"] = None
+        return super().to_internal_value(data)
+
+    def validate_nom(self, value):
+        value = value.strip()
+        if not value:
+            raise serializers.ValidationError("Ce champ est obligatoire.")
+        autres = Salle.objects.all()
+        if self.instance is not None:
+            autres = autres.exclude(pk=self.instance.pk)
+        if any(n.strip().casefold() == value.casefold() for n in autres.values_list("nom", flat=True)):
+            raise serializers.ValidationError("Une salle porte déjà ce nom.")
+        return value
 
 class EmploiDuTempsSerializer(serializers.ModelSerializer):
     filiere_nom = serializers.CharField(source="filiere.nom", read_only=True)

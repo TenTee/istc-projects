@@ -89,5 +89,5 @@ def on_annee_academique_created(sender, instance, created, **kwargs):
             cycle=classe.cycle,
             niveau=classe.niveau,
             annee_academique=instance,
-            defaults={"nom": f"{prefix} {classe.cycle.nom} {classe.niveau.ordre} ({instance.libelle})"},
+            defaults={"nom": f"{prefix} {classe.niveau.nom} ({instance.libelle})".strip()},
         )

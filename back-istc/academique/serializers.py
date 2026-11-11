@@ -55,41 +55,50 @@ class CycleGlobalSerializer(serializers.ModelSerializer):
 
 
 class CaseInsensitiveUniqueWithinParentMixin:
+    """
+    Nom unique (sans tenir compte des majuscules) dans le périmètre du parent : un seul
+    département « Informatique » par université, etc. Message en français ; les validateurs
+    d'unicité automatiques de DRF (messages en anglais) sont retirés via `Meta.validators = []`.
+    Sans `parent_field`, l'unicité est globale (universités).
+    """
     parent_field = None
     model_class = None
     name_field = "nom"
-    instance_id = None
+    libelle_doublon = "Ce nom existe déjà."
 
     def validate_scoped_name(self, attrs):
-        parent_field = self.parent_field
-        model_class = self.model_class
-        name_field = self.name_field
         instance = getattr(self, "instance", None)
-
-        if not parent_field or not model_class or name_field not in attrs:
+        name_field, parent_field = self.name_field, self.parent_field
+        if name_field in attrs and isinstance(attrs[name_field], str):
+            attrs[name_field] = attrs[name_field].strip()
+            if not attrs[name_field]:
+                raise serializers.ValidationError({name_field: "Ce champ est obligatoire."})
+        if name_field not in attrs and (not parent_field or parent_field not in attrs):
             return attrs
-
-        parent_value = attrs.get(parent_field) or getattr(instance, parent_field, None)
-        if parent_value is None:
+        nom = attrs.get(name_field, getattr(instance, name_field, None))
+        if not nom:
             return attrs
-
-        queryset = model_class.objects.filter(**{
-            parent_field: parent_value,
-            f"{name_field}__iexact": attrs[name_field].strip(),
-        })
+        filtre = {}
+        if parent_field:
+            parent_value = attrs.get(parent_field, getattr(instance, parent_field, None))
+            if parent_value is None:
+                return attrs
+            filtre[parent_field] = parent_value
+        queryset = self.model_class.objects.filter(**filtre)
         if instance is not None:
             queryset = queryset.exclude(pk=instance.pk)
-
-        if queryset.exists():
-            raise serializers.ValidationError({
-                name_field: "Une entité avec ce nom existe déjà dans ce périmètre.",
-            })
-
+        # Comparaison en Python : SQLite ignore la casse des seules lettres sans accent (É ≠ é).
+        cle = nom.casefold()
+        if any((n or "").strip().casefold() == cle for n in queryset.values_list(name_field, flat=True)):
+            raise serializers.ValidationError({name_field: self.libelle_doublon})
         return attrs
 
 
-class UniversiteTutelleSerializer(serializers.ModelSerializer):
+class UniversiteTutelleSerializer(CaseInsensitiveUniqueWithinParentMixin, serializers.ModelSerializer):
+    model_class = UniversiteTutelle
+    libelle_doublon = "Une université porte déjà ce nom."
     name = serializers.CharField(source="nom", read_only=True)
+    nom = serializers.CharField(max_length=200)
 
     class Meta:
         model = UniversiteTutelle
@@ -104,10 +113,14 @@ class UniversiteTutelleSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ["id", "created_at", "updated_at", "name"]
 
+    def validate(self, attrs):
+        return self.validate_scoped_name(attrs)
+
 
 class DepartementSerializer(CaseInsensitiveUniqueWithinParentMixin, serializers.ModelSerializer):
     model_class = Departement
     parent_field = "universite_tutelle"
+    libelle_doublon = "Cette université a déjà un département de ce nom."
     universite_tutelle_nom = serializers.CharField(source="universite_tutelle.nom", read_only=True)
     name = serializers.CharField(source="nom", read_only=True)
 
@@ -125,6 +138,7 @@ class DepartementSerializer(CaseInsensitiveUniqueWithinParentMixin, serializers.
             "updated_at",
         ]
         read_only_fields = ["id", "created_at", "updated_at", "universite_tutelle_nom", "name"]
+        validators = []
 
     def validate(self, attrs):
         return self.validate_scoped_name(attrs)
@@ -133,6 +147,7 @@ class DepartementSerializer(CaseInsensitiveUniqueWithinParentMixin, serializers.
 class FiliereSerializer(CaseInsensitiveUniqueWithinParentMixin, serializers.ModelSerializer):
     model_class = Filiere
     parent_field = "departement"
+    libelle_doublon = "Ce département a déjà une filière de ce nom."
     departement_nom = serializers.CharField(source="departement.nom", read_only=True)
     universite_tutelle_nom = serializers.CharField(source="departement.universite_tutelle.nom", read_only=True)
     name = serializers.CharField(source="nom", read_only=True)
@@ -160,6 +175,7 @@ class FiliereSerializer(CaseInsensitiveUniqueWithinParentMixin, serializers.Mode
             "universite_tutelle_nom",
             "name",
         ]
+        validators = []
 
     def validate(self, attrs):
         return self.validate_scoped_name(attrs)
@@ -168,12 +184,16 @@ class FiliereSerializer(CaseInsensitiveUniqueWithinParentMixin, serializers.Mode
 class SpecialiteSerializer(CaseInsensitiveUniqueWithinParentMixin, serializers.ModelSerializer):
     model_class = Specialite
     parent_field = "filiere"
+    libelle_doublon = "Cette filière a déjà une spécialité de ce nom."
     filiere_nom = serializers.CharField(source="filiere.nom", read_only=True)
     departement_nom = serializers.CharField(source="filiere.departement.nom", read_only=True)
     universite_tutelle_nom = serializers.CharField(source="filiere.departement.universite_tutelle.nom", read_only=True)
     name = serializers.CharField(source="nom", read_only=True)
     cycle_nom = serializers.SerializerMethodField()
     nombre_niveaux = serializers.SerializerMethodField()
+    # Type du cycle généré (pré-remplit le formulaire de modification ; en écriture, la vue lit
+    # `type_cycle` et `nombre_niveaux` dans la requête).
+    type_cycle = serializers.SerializerMethodField()
 
     class Meta:
         model = Specialite
@@ -189,6 +209,7 @@ class SpecialiteSerializer(CaseInsensitiveUniqueWithinParentMixin, serializers.M
             "responsable_nom",
             "description",
             "cycle_nom",
+            "type_cycle",
             "nombre_niveaux",
             "created_at",
             "updated_at",
@@ -204,6 +225,11 @@ class SpecialiteSerializer(CaseInsensitiveUniqueWithinParentMixin, serializers.M
             "cycle_nom",
             "nombre_niveaux",
         ]
+        validators = []
+
+    def get_type_cycle(self, obj):
+        cycle = obj.cycles.order_by("ordre", "pk").first()
+        return cycle.type_cycle_id if cycle else None
 
     def get_cycle_nom(self, obj):
         cycle = obj.cycles.select_related("type_cycle").first()
@@ -268,6 +294,7 @@ class CycleSerializer(CaseInsensitiveUniqueWithinParentMixin, serializers.ModelS
 class LevelSerializer(CaseInsensitiveUniqueWithinParentMixin, serializers.ModelSerializer):
     model_class = Niveau
     parent_field = "cycle"
+    libelle_doublon = "Ce cycle a déjà un niveau de ce nom."
     cycle_nom = serializers.CharField(source="cycle.nom", read_only=True)
     filiere_id = serializers.IntegerField(source="cycle.filiere_id", read_only=True)
     filiere_nom = serializers.CharField(source="cycle.filiere.nom", read_only=True)
@@ -300,6 +327,7 @@ class LevelSerializer(CaseInsensitiveUniqueWithinParentMixin, serializers.ModelS
             "cycle_nom",
             "name",
         ]
+        validators = []
 
     def validate(self, attrs):
         return self.validate_scoped_name(attrs)

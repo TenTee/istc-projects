@@ -18,6 +18,8 @@ from modules.models import Module
 from notes.models import Note
 from paiements.models import Frais, Paiement
 from .middleware import get_current_academic_year_id
+from . import structure
+from .structure import verifier_suppression
 
 from .models import (
     Affectation,
@@ -123,27 +125,44 @@ class ConfigurationEtablissementViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-class UniversiteTutelleViewSet(OptimizedModelViewSet):
+class StructureMixin:
+    """
+    Suppression protégée : refusée (400, message détaillé) tant que l'élément ou ses descendants
+    portent des données (étudiants, inscriptions, notes, paiements…), au lieu de les effacer en
+    cascade. Voir academique/structure.py.
+    """
+    intitule_suppression = "Cet élément"
+
+    def perform_destroy(self, instance):
+        verifier_suppression(instance, f"{self.intitule_suppression} « {instance} »")
+        with transaction.atomic():
+            instance.delete()
+
+
+class UniversiteTutelleViewSet(StructureMixin, OptimizedModelViewSet):
     queryset = UniversiteTutelle.objects.all()
     serializer_class = UniversiteTutelleSerializer
     search_fields = ("nom", "code", "description")
     ordering = ("nom",)
+    intitule_suppression = "L'université"
 
 
-class DepartementViewSet(OptimizedModelViewSet):
+class DepartementViewSet(StructureMixin, OptimizedModelViewSet):
     queryset = Departement.objects.select_related("universite_tutelle").all()
     serializer_class = DepartementSerializer
     filterset_fields = ("universite_tutelle",)
     search_fields = ("nom", "code", "description", "universite_tutelle__nom")
     ordering = ("universite_tutelle__nom", "nom")
+    intitule_suppression = "Le département"
 
 
-class FiliereViewSet(OptimizedModelViewSet):
+class FiliereViewSet(StructureMixin, OptimizedModelViewSet):
     queryset = Filiere.objects.select_related("departement", "departement__universite_tutelle").all()
     serializer_class = FiliereSerializer
     filterset_fields = ("departement",)
     search_fields = ("nom", "code", "description", "departement__nom")
     ordering = ("departement__nom", "nom")
+    intitule_suppression = "La filière"
 
     def get_permissions(self):
         if self.action in ["list", "retrieve", "cycles", "specialites"]:
@@ -151,46 +170,26 @@ class FiliereViewSet(OptimizedModelViewSet):
         return [permissions.IsAuthenticated()]
 
     def create(self, request, *args, **kwargs):
+        # Option : type_cycle + nombre_niveaux génèrent un cycle, ses niveaux et ses classes
+        # directement sous la filière (filière sans spécialité).
         payload = request.data.copy()
         type_cycle_id = _pop_scalar(payload, "type_cycle")
         nombre_niveaux = _pop_scalar(payload, "nombre_niveaux")
-
         with transaction.atomic():
             serializer = self.get_serializer(data=payload)
             serializer.is_valid(raise_exception=True)
             filiere = serializer.save()
-
-            if type_cycle_id:
-                try:
-                    type_cycle = CycleGlobal.objects.get(pk=type_cycle_id)
-                except CycleGlobal.DoesNotExist:
-                    raise ValidationError({"type_cycle": "Type de cycle introuvable"})
-
-                cycle = Cycle.objects.create(filiere=filiere, type_cycle=type_cycle, nom=type_cycle.nom, ordre=1)
-
-                try:
-                    levels = int(nombre_niveaux) if nombre_niveaux is not None else 0
-                except (ValueError, TypeError):
-                    levels = 0
-
-                all_annees = AnneeAcademique.objects.all()
-
-                for i in range(1, levels + 1):
-                    niveau_nom = f"{type_cycle.nom} {i}"
-                    niveau = Niveau.objects.create(cycle=cycle, nom=niveau_nom, ordre=i)
-
-                    for annee in all_annees:
-                        classe_nom = f"{filiere.nom} {type_cycle.nom} {i} ({annee.libelle})"
-                        Classe.objects.update_or_create(
-                            filiere=filiere,
-                            cycle=cycle,
-                            niveau=niveau,
-                            annee_academique=annee,
-                            defaults={"nom": classe_nom}
-                        )
-
+            type_cycle = structure._type_cycle(type_cycle_id)
+            if type_cycle:
+                structure.configurer_cycle(filiere=filiere, type_cycle=type_cycle,
+                                           nombre_niveaux=structure._entier(nombre_niveaux) or 0)
+                structure.renommer_classes(list(Classe.objects.filter(filiere=filiere, specialite__isnull=True)
+                                                .values_list("pk", flat=True)))
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def perform_update(self, serializer):
+        structure.mettre_a_jour_filiere(serializer)
 
     @action(detail=True, methods=["get"], url_path="cycles")
     def cycles(self, request, pk=None):
@@ -205,12 +204,18 @@ class FiliereViewSet(OptimizedModelViewSet):
         return Response(serializer.data)
 
 
-class SpecialiteViewSet(OptimizedModelViewSet):
+class SpecialiteViewSet(StructureMixin, OptimizedModelViewSet):
+    """
+    Spécialité + son cycle généré. `type_cycle` (id du type : Licence, BTS…) et `nombre_niveaux`
+    sont acceptés à la création ET à la modification : les niveaux et les classes (une par année)
+    suivent automatiquement, tout comme les noms des classes et le changement de filière.
+    """
     queryset = Specialite.objects.select_related("filiere", "filiere__departement", "filiere__departement__universite_tutelle").all()
     serializer_class = SpecialiteSerializer
     filterset_fields = ("filiere", "filiere__departement")
     search_fields = ("nom", "code", "description", "filiere__nom")
     ordering = ("filiere__nom", "nom")
+    intitule_suppression = "La spécialité"
 
     def get_permissions(self):
         if self.action in ["list", "retrieve", "cycles"]:
@@ -221,50 +226,27 @@ class SpecialiteViewSet(OptimizedModelViewSet):
         payload = request.data.copy()
         type_cycle_id = _pop_scalar(payload, "type_cycle")
         nombre_niveaux = _pop_scalar(payload, "nombre_niveaux")
-
         with transaction.atomic():
             serializer = self.get_serializer(data=payload)
             serializer.is_valid(raise_exception=True)
             specialite = serializer.save()
+            type_cycle = structure._type_cycle(type_cycle_id)
+            if type_cycle:
+                structure.configurer_cycle(specialite=specialite, type_cycle=type_cycle,
+                                           nombre_niveaux=structure._entier(nombre_niveaux) or 0)
+                structure.renommer_classes(list(Classe.objects.filter(specialite=specialite).values_list("pk", flat=True)))
+        data = self.get_serializer(Specialite.objects.get(pk=specialite.pk)).data
+        return Response(data, status=status.HTTP_201_CREATED, headers=self.get_success_headers(data))
 
-            if type_cycle_id:
-                try:
-                    type_cycle = CycleGlobal.objects.get(pk=type_cycle_id)
-                except CycleGlobal.DoesNotExist:
-                    raise ValidationError({"type_cycle": "Type de cycle introuvable"})
-
-                cycle = Cycle.objects.create(
-                    specialite=specialite,
-                    filiere=specialite.filiere,
-                    type_cycle=type_cycle,
-                    nom=type_cycle.nom,
-                    ordre=1
-                )
-
-                try:
-                    levels = int(nombre_niveaux) if nombre_niveaux is not None else 0
-                except (ValueError, TypeError):
-                    levels = 0
-
-                all_annees = AnneeAcademique.objects.all()
-
-                for i in range(1, levels + 1):
-                    niveau_nom = f"{type_cycle.nom} {i}"
-                    niveau = Niveau.objects.create(cycle=cycle, nom=niveau_nom, ordre=i)
-
-                    for annee in all_annees:
-                        classe_nom = f"{specialite.nom} {type_cycle.nom} {i} ({annee.libelle})"
-                        Classe.objects.update_or_create(
-                            specialite=specialite,
-                            filiere=specialite.filiere,
-                            cycle=cycle,
-                            niveau=niveau,
-                            annee_academique=annee,
-                            defaults={"nom": classe_nom}
-                        )
-
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop("partial", False)
+        payload = request.data.copy()
+        type_cycle_id = _pop_scalar(payload, "type_cycle")
+        nombre_niveaux = _pop_scalar(payload, "nombre_niveaux")
+        serializer = self.get_serializer(self.get_object(), data=payload, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        specialite = structure.mettre_a_jour_specialite(serializer, type_cycle_id, nombre_niveaux)
+        return Response(self.get_serializer(Specialite.objects.get(pk=specialite.pk)).data)
 
     @action(detail=True, methods=["get"], url_path="cycles")
     def cycles(self, request, pk=None):
@@ -279,8 +261,20 @@ class CycleGlobalViewSet(OptimizedModelViewSet):
     search_fields = ("nom", "code", "description")
     ordering = ("nom",)
 
+    def perform_update(self, serializer):
+        # Renommer « Licence » renomme les cycles, niveaux et classes générés qui portent ce nom.
+        structure.mettre_a_jour_type_cycle(serializer)
 
-class CycleViewSet(OptimizedModelViewSet):
+    def perform_destroy(self, instance):
+        utilises = Cycle.objects.filter(type_cycle=instance).count()
+        if utilises:
+            raise ValidationError({"detail": f"Le type de cycle « {instance.nom} » est utilisé par {utilises} "
+                                             "cycle(s) de la structure académique : il ne peut pas être supprimé."})
+        instance.delete()
+
+
+class CycleViewSet(StructureMixin, OptimizedModelViewSet):
+    intitule_suppression = "Le cycle"
     queryset = Cycle.objects.select_related("filiere").prefetch_related("niveaux").all()
     serializer_class = CycleSerializer
     filterset_fields = ("filiere",)
@@ -299,7 +293,8 @@ class CycleViewSet(OptimizedModelViewSet):
         return [permissions.IsAuthenticated()]
 
 
-class LevelViewSet(OptimizedModelViewSet):
+class LevelViewSet(StructureMixin, OptimizedModelViewSet):
+    intitule_suppression = "Le niveau"
     queryset = Niveau.objects.select_related("cycle", "cycle__filiere").prefetch_related("modules").all()
     serializer_class = LevelSerializer
     filterset_fields = ("cycle", "cycle__filiere")

@@ -156,14 +156,35 @@ export default function PedagogyPage() {
     setOpenDialog(true);
   };
 
+  // Champs obligatoires par onglet (le serveur contrôle aussi ; ceci évite un aller-retour).
+  const CHAMPS_OBLIGATOIRES = {
+    0: [['nom', 'le nom']],
+    1: [['universite_tutelle', "l'université"], ['nom', 'le nom']],
+    2: [['departement', 'le département'], ['nom', 'le nom']],
+    3: [['filiere', 'la filière'], ['nom', 'le nom']],
+    7: [['nom', 'le nom']],
+  };
+
   const handleSave = async () => {
+    const manquants = (CHAMPS_OBLIGATOIRES[tabValue] || [])
+      .filter(([champ]) => formData[champ] === undefined || formData[champ] === null || String(formData[champ]).trim() === '')
+      .map(([, libelle]) => libelle);
+    if (tabValue === 3 && dialogMode === 'add' && (!formData.type_cycle || !(Number(formData.nombre_niveaux) > 0))) {
+      manquants.push('le type de cycle et le nombre de niveaux');
+    }
+    if (manquants.length) {
+      setToast({ open: true, message: `Renseignez ${manquants.join(', ')}.`, severity: 'warning' });
+      return;
+    }
+    const payload = { ...formData };
+    if (tabValue === 7 && (payload.capacite === '' || payload.capacite === undefined)) payload.capacite = null;
     try {
       const currentTab = tabs[tabValue];
       if (dialogMode === 'add') {
         if (tabValue === 3) {
           // Création spécialité : le backend crée automatiquement Cycle + Niveaux + Classes
           // Le payload contient : filiere, nom, type_cycle (id CycleGlobal), nombre_niveaux, code, responsable_nom
-          const specRes = await specialitesService.create(formData);
+          const specRes = await specialitesService.create(payload);
           const specData = specRes?.id ? specRes : specRes?.data || specRes;
 
           // Basculer vers l'onglet Classes (index 5) pour montrer les classes auto-créées
@@ -180,12 +201,21 @@ export default function PedagogyPage() {
             severity: 'success',
           });
         } else {
-          await currentTab.service.create(formData);
+          await currentTab.service.create(payload);
           setToast({ open: true, message: 'Création réussie.', severity: 'success' });
         }
       } else {
-        await currentTab.service.update(selectedItem.id, formData);
-        setToast({ open: true, message: 'Modification réussie.', severity: 'success' });
+        const maj = await currentTab.service.update(selectedItem.id, payload);
+        setToast({
+          open: true,
+          message:
+            tabValue === 3 && maj
+              ? `Spécialité modifiée : ${maj.cycle_nom || 'cycle'}, ${maj.nombre_niveaux} niveau(x). Niveaux et classes mis à jour.`
+              : tabValue === 2
+              ? 'Filière modifiée. Les noms de ses classes ont été mis à jour.'
+              : 'Modification réussie.',
+          severity: 'success',
+        });
       }
       setOpenDialog(false);
       fetchData();
@@ -200,7 +230,16 @@ export default function PedagogyPage() {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Voulez-vous vraiment supprimer cet élément ?')) return;
+    const consequences = {
+      0: 'ses départements, filières, spécialités, niveaux et classes',
+      1: 'ses filières, spécialités, niveaux et classes',
+      2: 'ses spécialités, niveaux et classes',
+      3: 'ses niveaux et ses classes',
+    }[tabValue];
+    const message = consequences
+      ? `Supprimer cet élément et ${consequences} ?\n\nLa suppression est refusée s'il reste des étudiants, inscriptions, notes, paiements ou créneaux rattachés.`
+      : 'Voulez-vous vraiment supprimer cet élément ?';
+    if (!window.confirm(message)) return;
     try {
       const currentTab = tabs[tabValue];
       await currentTab.service.remove(id);
@@ -221,7 +260,7 @@ export default function PedagogyPage() {
       case 0: // Universités
         return (
           <>
-            <TextField fullWidth margin="dense" label="Nom" value={formData.nom || ''} onChange={(e) => setFormData({ ...formData, nom: e.target.value })} />
+            <TextField fullWidth required margin="dense" label="Nom" value={formData.nom || ''} onChange={(e) => setFormData({ ...formData, nom: e.target.value })} />
             <TextField fullWidth margin="dense" label="Code" value={formData.code || ''} onChange={(e) => setFormData({ ...formData, code: e.target.value })} />
             <TextField fullWidth multiline rows={3} margin="dense" label="Description" value={formData.description || ''} onChange={(e) => setFormData({ ...formData, description: e.target.value })} />
           </>
@@ -229,20 +268,20 @@ export default function PedagogyPage() {
       case 1: // Départements
         return (
           <>
-            <TextField select fullWidth margin="dense" label="Université" value={formData.universite_tutelle || ''} onChange={(e) => setFormData({ ...formData, universite_tutelle: e.target.value })}>
+            <TextField select fullWidth required margin="dense" label="Université" value={formData.universite_tutelle || ''} onChange={(e) => setFormData({ ...formData, universite_tutelle: e.target.value })}>
               {universities.map((u) => <MenuItem key={u.id} value={u.id}>{u.nom}</MenuItem>)}
             </TextField>
-            <TextField fullWidth margin="dense" label="Nom du département" value={formData.nom || ''} onChange={(e) => setFormData({ ...formData, nom: e.target.value })} />
+            <TextField fullWidth required margin="dense" label="Nom du département" value={formData.nom || ''} onChange={(e) => setFormData({ ...formData, nom: e.target.value })} />
             <TextField fullWidth margin="dense" label="Code" value={formData.code || ''} onChange={(e) => setFormData({ ...formData, code: e.target.value })} />
           </>
         );
       case 2: // Filières
         return (
           <>
-            <TextField select fullWidth margin="dense" label="Département" value={formData.departement || ''} onChange={(e) => setFormData({ ...formData, departement: e.target.value })}>
-              {departments.map((d) => <MenuItem key={d.id} value={d.id}>{d.nom}</MenuItem>)}
+            <TextField select fullWidth required margin="dense" label="Département" value={formData.departement || ''} onChange={(e) => setFormData({ ...formData, departement: e.target.value })}>
+              {departments.map((d) => <MenuItem key={d.id} value={d.id}>{d.nom}{d.universite_tutelle_nom ? ` (${d.universite_tutelle_nom})` : ''}</MenuItem>)}
             </TextField>
-            <TextField fullWidth margin="dense" label="Nom de la filière (ex: Génie Informatique)" value={formData.nom || ''} onChange={(e) => setFormData({ ...formData, nom: e.target.value })} />
+            <TextField fullWidth required margin="dense" label="Nom de la filière (ex: Génie Informatique)" value={formData.nom || ''} onChange={(e) => setFormData({ ...formData, nom: e.target.value })} />
             <TextField fullWidth margin="dense" label="Code" value={formData.code || ''} onChange={(e) => setFormData({ ...formData, code: e.target.value })} />
             <TextField fullWidth margin="dense" label="Nom du responsable" value={formData.responsable_nom || ''} onChange={(e) => setFormData({ ...formData, responsable_nom: e.target.value })} />
           </>
@@ -250,11 +289,17 @@ export default function PedagogyPage() {
       case 3: // Spécialités — crée automatiquement Cycle + Niveaux + Classes
         return (
           <>
-            <Alert severity="info" sx={{ mb: 1, fontSize: '0.82rem' }}>
-              En créant une spécialité avec un type de cycle et un nombre de niveaux, les <strong>niveaux</strong> et <strong>classes</strong> correspondants seront générés <strong>automatiquement</strong>.<br />
-              Ex : Filière &quot;Informatique&quot; + Spécialité &quot;Développement Web&quot; + Cycle &quot;Licence&quot; + 3 niveaux → classes <em>Développement Web Licence 1</em>, <em>2</em>, <em>3</em>.
-            </Alert>
-            <TextField select fullWidth margin="dense" label="Filière" value={formData.filiere || ''} onChange={(e) => setFormData({ ...formData, filiere: e.target.value })}>
+            {dialogMode === 'add' ? (
+              <Alert severity="info" sx={{ mb: 1, fontSize: '0.82rem' }}>
+                En créant une spécialité avec un type de cycle et un nombre de niveaux, les <strong>niveaux</strong> et <strong>classes</strong> correspondants seront générés <strong>automatiquement</strong>.<br />
+                Ex : Filière &quot;Informatique&quot; + Spécialité &quot;Développement Web&quot; + Cycle &quot;Licence&quot; + 3 niveaux → classes <em>Développement Web Licence 1</em>, <em>2</em>, <em>3</em>.
+              </Alert>
+            ) : (
+              <Alert severity="info" sx={{ mb: 1, fontSize: '0.82rem' }}>
+                Les modifications sont répercutées <strong>automatiquement</strong> : nom et type de cycle renomment les niveaux et les classes, un nombre de niveaux plus grand ajoute des niveaux (avec leurs classes pour chaque année), un nombre plus petit retire les derniers niveaux s&apos;ils sont vides. Une spécialité qui a des inscrits ne peut pas changer de filière.
+              </Alert>
+            )}
+            <TextField select fullWidth required margin="dense" label="Filière" value={formData.filiere || ''} onChange={(e) => setFormData({ ...formData, filiere: e.target.value })}>
               {filieres.map((f) => <MenuItem key={f.id} value={f.id}>{f.nom}</MenuItem>)}
             </TextField>
             <TextField select fullWidth margin="dense" label="Type de Cycle (ex: Licence, BTS, Master)" value={formData.type_cycle || ''} onChange={(e) => {
@@ -268,9 +313,9 @@ export default function PedagogyPage() {
               label="Nombre de niveaux (ex: 3 pour Licence 1, 2, 3)"
               inputProps={{ min: 1, max: 10 }}
               value={formData.nombre_niveaux || ''}
-              onChange={(e) => setFormData({ ...formData, nombre_niveaux: Number(e.target.value) })}
+              onChange={(e) => setFormData({ ...formData, nombre_niveaux: e.target.value === '' ? '' : Number(e.target.value) })}
             />
-            <TextField fullWidth margin="dense" label="Nom de la spécialité (ex: Développement Web)" value={formData.nom || ''} onChange={(e) => setFormData({ ...formData, nom: e.target.value })} />
+            <TextField fullWidth required margin="dense" label="Nom de la spécialité (ex: Développement Web)" value={formData.nom || ''} onChange={(e) => setFormData({ ...formData, nom: e.target.value })} />
             <TextField fullWidth margin="dense" label="Code" value={formData.code || ''} onChange={(e) => setFormData({ ...formData, code: e.target.value })} />
             <TextField fullWidth margin="dense" label="Nom du responsable" value={formData.responsable_nom || ''} onChange={(e) => setFormData({ ...formData, responsable_nom: e.target.value })} />
           </>

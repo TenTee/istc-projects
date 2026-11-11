@@ -19,11 +19,26 @@ flowchart TD
 ![La page Structure Académique et ses huit onglets](../../images/captures/11_structure_universites.jpg)
 
 1. Cliquez sur l'onglet voulu.
-2. **Ajouter** ouvre le formulaire ; remplissez-le puis **Enregistrer** (ou **Annuler**).
+2. **Ajouter** ouvre le formulaire ; remplissez-le puis **Enregistrer** (ou **Annuler**). Les champs marqués d'un astérisque sont obligatoires.
 3. Dans le tableau, l'icône crayon modifie une ligne, la corbeille la supprime (avec confirmation).
 
+Les noms sont uniques dans leur parent, sans tenir compte des majuscules : deux départements « Informatique » et « informatique » dans la même université sont refusés (« Cette université a déjà un département de ce nom. »).
+
+### Les modifications se répercutent automatiquement
+
+| Vous modifiez… | SmartCampus met à jour… |
+|---|---|
+| Le nom d'une **spécialité** | les noms de ses classes (*Génie Logiciel Licence 1 (2026-2027)*…) |
+| Le **type de cycle** d'une spécialité (Licence → BTS) | le cycle, les niveaux (*BTS 1, 2…*) et les classes |
+| Le **nombre de niveaux** d'une spécialité | **plus grand** : ajoute les niveaux manquants et leurs classes pour chaque année ; **plus petit** : retire les derniers niveaux et leurs classes, **seulement s'ils sont vides** |
+| La **filière** d'une spécialité | déplace ses cycles et ses classes (refusé si la spécialité a des inscrits) |
+| Le nom d'une **filière** | les noms de ses classes sans spécialité |
+| Le nom d'un **type de cycle** (*Système* → *Paramètres Globaux* → *Cycles Globaux*) | les cycles, niveaux et classes qui portent ce nom |
+
+Une classe dont vous avez changé le nom à la main garde son nom.
+
 !!! danger "Supprimer un élément de la structure"
-    Supprimer une filière, un niveau ou une classe peut supprimer ou détacher les éléments qui en dépendent (classes, inscriptions…). Ne supprimez qu'un élément créé par erreur et encore inutilisé. Préférez la modification.
+    Supprimer un élément supprime aussi tout ce qui en dépend : une université emporte ses départements, filières, spécialités, niveaux et classes. Pour protéger les données, la suppression est **refusée** tant que l'élément ou ses descendants ont des étudiants, inscriptions, notes, paiements, frais, créneaux d'emploi du temps, épreuves, affectations, pré-inscriptions ou heures de vacataires. Le message indique ce qui reste (par exemple « La filière « Gestion » contient des données (12 étudiants, 3 frais de scolarité) »). Ne supprimez qu'un élément créé par erreur ; sinon, modifiez-le.
 
 ## Onglet *Universités*
 
@@ -62,6 +77,8 @@ Une option à l'intérieur d'une filière. **C'est ici que les niveaux et les cl
 | Nombre de niveaux (ex: 3 pour Licence 1, 2, 3) | 3 |
 
 Résultat : les niveaux *Licence 1, 2, 3* et les classes *Développement Web Licence 1*, *Développement Web Licence 2*, *Développement Web Licence 3* sont créés pour chaque année académique.
+
+**Modifier une spécialité** (crayon) : le formulaire affiche son type de cycle et son nombre de niveaux actuels. Changez-les puis **Enregistrer** : le message confirme le résultat (« Spécialité modifiée : BTS, 2 niveau(x). Niveaux et classes mis à jour. »). Pour retirer un niveau qui a des inscrits, le message indique ce qu'il contient : rien n'est modifié.
 
 ## Onglet *Niveaux*
 

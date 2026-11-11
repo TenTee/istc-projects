@@ -353,8 +353,9 @@ class Classe(NamedDescriptionModel):
         if self.specialite and not self.filiere:
             self.filiere = self.specialite.filiere
         if not self.nom:
+            # Même format que academique/structure.py::nom_automatique (renommages automatiques).
             prefix = self.specialite.nom if self.specialite else (self.filiere.nom if self.filiere else "")
-            self.nom = f"{prefix} - {self.niveau.nom} ({self.annee_academique.libelle})"
+            self.nom = f"{prefix} {self.niveau.nom} ({self.annee_academique.libelle})".strip()
         super().save(*args, **kwargs)
 
         if not self.modules.exists():
